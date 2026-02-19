@@ -119,7 +119,7 @@
   }
 
   .age-tag {
-    @apply text-xs font-700 px-2 py-0.5 rounded-full;
+    @apply text-xs font-bold px-2 py-0.5 rounded-full;
     background: rgba(255,255,255,0.9);
     color: hsl(var(--app-teal-dark));
     font-weight: 700;
@@ -137,13 +137,13 @@
   }
 
   .section-title {
-    @apply text-lg font-800 mb-3;
+    @apply text-lg font-extrabold mb-3;
     color: hsl(var(--foreground));
     font-weight: 800;
   }
 
   .cardapio-btn {
-    @apply w-full py-4 rounded-2xl font-700 text-base transition-all active:scale-98;
+    @apply w-full py-4 rounded-2xl font-bold text-base transition-all;
     background: hsl(var(--card));
     color: hsl(var(--app-teal-dark));
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
