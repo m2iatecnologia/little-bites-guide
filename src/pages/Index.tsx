@@ -2,6 +2,7 @@ import dicaImg from "@/assets/dica-do-dia.jpg";
 import muffinImg from "@/assets/receita-muffin.jpg";
 import picoleImg from "@/assets/receita-picole.jpg";
 import { FoodImage } from "@/components/FoodImage";
+import { ReportSection } from "@/components/ReportSection";
 import { foods, ageTips } from "@/data/appData";
 import { ChevronRight, Crown, Star } from "lucide-react";
 import { useState } from "react";
@@ -49,6 +50,9 @@ export default function Index() {
       </div>
 
       <div className="px-4 space-y-4">
+        {/* Resumo Alimentar + PDF */}
+        <ReportSection />
+
         {/* Dica do Dia */}
         <div className="card-food overflow-hidden">
           <div className="relative h-44">
