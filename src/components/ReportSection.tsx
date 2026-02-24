@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   FileText,
-  TrendingUp,
   Check,
   X,
   Download,
@@ -13,66 +12,31 @@ import {
 import { generateClinicalReport } from "@/lib/generateReport";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useNavigate } from "react-router-dom";
-import { PremiumBadge } from "@/components/PremiumGate";
+import type { DashboardData } from "@/hooks/useDashboardData";
 
-const mockReportData = {
-  childName: "Sofia Lima",
-  birthDate: "12/05/2024",
-  currentAge: "9 meses",
-  weight: "8,2",
-  period: "Janeiro 2025",
-  totalFoods: 42,
-  acceptanceRate: 68,
-  rejectionRate: 20,
-  neutralRate: 12,
-  newFoodsIntroduced: 8,
-  reactionsCount: 1,
-  totalMeals: 87,
-  weeklyFrequency: 3,
-  bestAccepted: [
-    { food: "Abobrinha", rate: 90 },
-    { food: "Banana", rate: 85 },
-    { food: "Ovo", rate: 82 },
-    { food: "Batata doce", rate: 78 },
-    { food: "Frango desfiado", rate: 74 },
-  ],
-  mostRejected: [
-    { food: "Brócolis", rate: 70 },
-    { food: "Beterraba", rate: 60 },
-    { food: "Espinafre", rate: 45 },
-  ],
-  reactions: [
-    { date: "15/01/2025", food: "Morango", type: "Manchas vermelhas ao redor da boca" },
-  ],
-  weeklyIntroductions: [6, 8, 12, 9, 7],
-  parentNotes: "",
-};
+interface ReportSectionProps {
+  dashboardData: DashboardData;
+}
 
-export function ReportSection() {
+export function ReportSection({ dashboardData: d }: ReportSectionProps) {
   const [showModal, setShowModal] = useState(false);
   const [parentNotes, setParentNotes] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
-  const { isPremium, loading: subLoading } = useSubscription();
+  const { isPremium } = useSubscription();
   const navigate = useNavigate();
 
   const handleGenerate = async () => {
-    if (!isPremium) {
-      navigate("/planos");
-      return;
-    }
+    if (!isPremium) { navigate("/planos"); return; }
     setIsGenerating(true);
     await new Promise((r) => setTimeout(r, 800));
-    generateClinicalReport({ ...mockReportData, parentNotes });
+    generateClinicalReport({ ...d.reportData, parentNotes } as any);
     setIsGenerating(false);
     setShowModal(false);
   };
 
   const handleOpenModal = () => {
-    if (!isPremium) {
-      navigate("/planos");
-      return;
-    }
+    if (!isPremium) { navigate("/planos"); return; }
     setShowModal(true);
   };
 
@@ -98,9 +62,9 @@ export function ReportSection() {
         {/* Stats grid */}
         <div className="grid grid-cols-3 gap-2 mb-4">
           {[
-            { label: "Alimentos", value: "42", sub: "introduzidos" },
-            { label: "Novos", value: "8", sub: "este mês" },
-            { label: "Refeições", value: "87", sub: "registradas" },
+            { label: "Alimentos", value: String(d.totalFoods), sub: "introduzidos" },
+            { label: "Novos", value: String(d.newFoodsThisMonth), sub: "este mês" },
+            { label: "Refeições", value: String(d.totalMeals), sub: "registradas" },
           ].map((s) => (
             <div
               key={s.label}
@@ -134,7 +98,7 @@ export function ReportSection() {
               className="font-bold"
               style={{ color: "hsl(var(--app-gold-dark))", fontWeight: 700 }}
             >
-              68%
+              {d.acceptanceRate}%
             </span>
           </div>
           <div
@@ -144,14 +108,14 @@ export function ReportSection() {
             <div
               className="h-full"
               style={{
-                width: "68%",
+                width: `${d.acceptanceRate}%`,
                 background: "hsl(var(--app-gold))",
                 borderRadius: "999px 0 0 999px",
               }}
             />
             <div
               className="h-full"
-              style={{ width: "12%", background: "hsl(var(--app-cream-dark))" }}
+              style={{ width: `${d.neutralRate}%`, background: "hsl(var(--app-cream-dark))" }}
             />
             <div
               className="h-full flex-1"
@@ -163,9 +127,9 @@ export function ReportSection() {
           </div>
           <div className="flex gap-3 mt-1.5">
             {[
-              { color: "hsl(var(--app-gold))", label: "Aceitação 68%" },
-              { color: "hsl(var(--app-cream-dark))", label: "Neutro 12%" },
-              { color: "hsl(25 30% 70%)", label: "Recusa 20%" },
+              { color: "hsl(var(--app-gold))", label: `Aceitação ${d.acceptanceRate}%` },
+              { color: "hsl(var(--app-cream-dark))", label: `Neutro ${d.neutralRate}%` },
+              { color: "hsl(25 30% 70%)", label: `Recusa ${d.rejectionRate}%` },
             ].map((l) => (
               <div key={l.label} className="flex items-center gap-1">
                 <div
@@ -186,68 +150,81 @@ export function ReportSection() {
         {/* Expanded details */}
         {showDetails && (
           <div className="space-y-2 mb-4 pt-2" style={{ borderTop: "1px solid hsl(var(--app-divider))" }}>
-            <div
-              className="text-xs font-bold mb-1"
-              style={{ color: "hsl(var(--app-petrol))", fontWeight: 700 }}
-            >
-              🏆 Melhor aceitação
-            </div>
-            {mockReportData.bestAccepted.slice(0, 3).map((item, i) => (
-              <div key={item.food} className="flex items-center gap-2">
-                <span className="text-xs w-4">{["🥇", "🥈", "🥉"][i]}</span>
-                <span className="text-xs flex-1" style={{ color: "hsl(var(--app-petrol))" }}>
-                  {item.food}
-                </span>
+            {d.bestAccepted.length > 0 && (
+              <>
                 <div
-                  className="flex-1 h-2 rounded-full overflow-hidden"
-                  style={{ background: "hsl(var(--app-cream-dark))" }}
+                  className="text-xs font-bold mb-1"
+                  style={{ color: "hsl(var(--app-petrol))", fontWeight: 700 }}
                 >
-                  <div
-                    className="h-full rounded-full"
-                    style={{
-                      width: `${item.rate}%`,
-                      background: "hsl(var(--app-gold))",
-                    }}
-                  />
+                  🏆 Melhor aceitação
                 </div>
-                <span
-                  className="text-xs font-bold w-8 text-right"
-                  style={{ color: "hsl(var(--app-gold-dark))", fontWeight: 700 }}
-                >
-                  {item.rate}%
-                </span>
-              </div>
-            ))}
-            <div
-              className="text-xs font-bold mt-3 mb-1"
-              style={{ color: "hsl(25 30% 50%)", fontWeight: 700 }}
-            >
-              ⚠️ Maior rejeição
-            </div>
-            {mockReportData.mostRejected.slice(0, 3).map((item) => (
-              <div key={item.food} className="flex items-center gap-2">
-                <span className="text-xs w-4">•</span>
-                <span className="text-xs flex-1" style={{ color: "hsl(var(--app-petrol))" }}>
-                  {item.food}
-                </span>
+                {d.bestAccepted.slice(0, 3).map((item, i) => (
+                  <div key={item.food} className="flex items-center gap-2">
+                    <span className="text-xs w-4">{["🥇", "🥈", "🥉"][i]}</span>
+                    <span className="text-xs flex-1" style={{ color: "hsl(var(--app-petrol))" }}>
+                      {item.food}
+                    </span>
+                    <div
+                      className="flex-1 h-2 rounded-full overflow-hidden"
+                      style={{ background: "hsl(var(--app-cream-dark))" }}
+                    >
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${item.rate}%`,
+                          background: "hsl(var(--app-gold))",
+                        }}
+                      />
+                    </div>
+                    <span
+                      className="text-xs font-bold w-8 text-right"
+                      style={{ color: "hsl(var(--app-gold-dark))", fontWeight: 700 }}
+                    >
+                      {item.rate}%
+                    </span>
+                  </div>
+                ))}
+              </>
+            )}
+            {d.mostRejected.length > 0 && (
+              <>
                 <div
-                  className="flex-1 h-2 rounded-full overflow-hidden"
-                  style={{ background: "hsl(var(--app-cream-dark))" }}
+                  className="text-xs font-bold mt-3 mb-1"
+                  style={{ color: "hsl(25 30% 50%)", fontWeight: 700 }}
                 >
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: `${item.rate}%`, background: "hsl(25 30% 70%)" }}
-                  />
+                  ⚠️ Maior rejeição
                 </div>
-                <span
-                  className="text-xs font-bold w-8 text-right"
-                  style={{ color: "hsl(25 30% 55%)", fontWeight: 700 }}
-                >
-                  {item.rate}%
-                </span>
-              </div>
-            ))}
-            {mockReportData.reactions.length > 0 && (
+                {d.mostRejected.slice(0, 3).map((item) => (
+                  <div key={item.food} className="flex items-center gap-2">
+                    <span className="text-xs w-4">•</span>
+                    <span className="text-xs flex-1" style={{ color: "hsl(var(--app-petrol))" }}>
+                      {item.food}
+                    </span>
+                    <div
+                      className="flex-1 h-2 rounded-full overflow-hidden"
+                      style={{ background: "hsl(var(--app-cream-dark))" }}
+                    >
+                      <div
+                        className="h-full rounded-full"
+                        style={{ width: `${item.rate}%`, background: "hsl(25 30% 70%)" }}
+                      />
+                    </div>
+                    <span
+                      className="text-xs font-bold w-8 text-right"
+                      style={{ color: "hsl(25 30% 55%)", fontWeight: 700 }}
+                    >
+                      {item.rate}%
+                    </span>
+                  </div>
+                ))}
+              </>
+            )}
+            {d.bestAccepted.length === 0 && d.mostRejected.length === 0 && (
+              <p className="text-xs text-center py-2" style={{ color: "hsl(var(--muted-foreground))" }}>
+                Registre alimentos para ver os rankings aqui 📝
+              </p>
+            )}
+            {d.reactions.length > 0 && (
               <div
                 className="mt-2 p-2.5 rounded-xl text-xs"
                 style={{ background: "hsl(0 80% 97%)" }}
@@ -256,7 +233,7 @@ export function ReportSection() {
                   ⚠️ Reação registrada:
                 </span>{" "}
                 <span style={{ color: "hsl(var(--app-petrol))" }}>
-                  {mockReportData.reactions[0].food} — {mockReportData.reactions[0].type}
+                  {d.reactions[0].food} — {d.reactions[0].type}
                 </span>
               </div>
             )}
@@ -368,7 +345,6 @@ export function ReportSection() {
                   borderColor: "hsl(var(--border))",
                   background: "hsl(var(--background))",
                   color: "hsl(var(--foreground))",
-                  
                 }}
               />
             </div>
