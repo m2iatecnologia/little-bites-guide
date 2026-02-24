@@ -6,46 +6,54 @@
 
 @layer base {
   :root {
-    --background: 33 45% 94%;
-    --foreground: 25 25% 22%;
+    --background: 34 33% 95%;
+    --foreground: 210 29% 29%;
 
     --card: 0 0% 100%;
-    --card-foreground: 25 25% 22%;
+    --card-foreground: 210 29% 29%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 25 25% 22%;
+    --popover-foreground: 210 29% 29%;
 
-    --primary: 43 100% 67%;
-    --primary-foreground: 25 25% 22%;
+    --primary: 43 88% 65%;
+    --primary-foreground: 210 29% 29%;
 
-    --secondary: 33 45% 90%;
-    --secondary-foreground: 25 25% 22%;
+    --secondary: 34 25% 90%;
+    --secondary-foreground: 210 29% 29%;
 
     --muted: 30 15% 90%;
-    --muted-foreground: 25 15% 50%;
+    --muted-foreground: 25 12% 52%;
 
-    --accent: 43 100% 67%;
-    --accent-foreground: 25 25% 22%;
+    --accent: 43 88% 65%;
+    --accent-foreground: 210 29% 29%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 15% 85%;
-    --input: 30 15% 85%;
-    --ring: 43 100% 67%;
+    --border: 30 12% 87%;
+    --input: 30 12% 87%;
+    --ring: 43 88% 65%;
 
     --radius: 1rem;
 
-    /* App-specific tokens */
-    --app-brown: 25 25% 30%;
-    --app-brown-light: 25 15% 50%;
-    --app-yellow: 43 100% 78%;
-    --app-yellow-dark: 43 100% 67%;
-    --app-yellow-highlight: 43 100% 55%;
-    --app-cream: 33 45% 94%;
-    --app-cream-light: 33 50% 97%;
+    /* App-specific tokens — new clinical palette */
+    --app-petrol: 210 29% 29%;
+    --app-petrol-light: 210 20% 45%;
+    --app-gold: 43 88% 65%;
+    --app-gold-dark: 43 88% 55%;
+    --app-gold-light: 43 88% 82%;
+    --app-cream: 34 33% 95%;
+    --app-cream-dark: 30 18% 88%;
     --app-card: 0 0% 100%;
-    --app-warm-muted: 30 20% 88%;
+    --app-divider: 30 12% 87%;
+
+    /* Legacy aliases for components that still use old names */
+    --app-brown: 210 29% 29%;
+    --app-brown-light: 210 20% 45%;
+    --app-yellow: 43 88% 82%;
+    --app-yellow-dark: 43 88% 65%;
+    --app-yellow-highlight: 43 88% 55%;
+    --app-warm-muted: 30 18% 88%;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -58,25 +66,25 @@
   }
 
   .dark {
-    --background: 25 20% 10%;
-    --foreground: 33 40% 95%;
-    --card: 25 20% 14%;
-    --card-foreground: 33 40% 95%;
-    --popover: 25 20% 14%;
-    --popover-foreground: 33 40% 95%;
-    --primary: 43 100% 67%;
-    --primary-foreground: 25 25% 15%;
-    --secondary: 43 60% 25%;
-    --secondary-foreground: 33 40% 95%;
-    --muted: 25 15% 20%;
+    --background: 210 20% 10%;
+    --foreground: 34 30% 95%;
+    --card: 210 20% 14%;
+    --card-foreground: 34 30% 95%;
+    --popover: 210 20% 14%;
+    --popover-foreground: 34 30% 95%;
+    --primary: 43 88% 65%;
+    --primary-foreground: 210 29% 15%;
+    --secondary: 43 40% 25%;
+    --secondary-foreground: 34 30% 95%;
+    --muted: 210 15% 20%;
     --muted-foreground: 30 15% 60%;
-    --accent: 43 60% 25%;
-    --accent-foreground: 33 40% 95%;
+    --accent: 43 40% 25%;
+    --accent-foreground: 34 30% 95%;
     --destructive: 0 62.8% 40%;
-    --destructive-foreground: 33 40% 95%;
-    --border: 25 15% 22%;
-    --input: 25 15% 22%;
-    --ring: 43 100% 67%;
+    --destructive-foreground: 34 30% 95%;
+    --border: 210 15% 22%;
+    --input: 210 15% 22%;
+    --ring: 43 88% 65%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -111,56 +119,73 @@
   }
 
   .bottom-nav-safe {
-    @apply pb-20;
+    @apply pb-24;
+  }
+
+  .card-clinical {
+    @apply bg-card rounded-2xl overflow-hidden;
+    box-shadow: 0 2px 20px rgba(46, 64, 87, 0.07);
+    border-radius: 20px;
   }
 
   .card-food {
     @apply bg-card rounded-2xl overflow-hidden;
-    box-shadow: 0 2px 16px rgba(92, 75, 59, 0.08);
+    box-shadow: 0 2px 16px rgba(46, 64, 87, 0.06);
     border-radius: 20px;
   }
 
   .age-tag {
     @apply text-xs font-bold px-2 py-0.5 rounded-full;
-    background: hsl(var(--app-yellow));
-    color: hsl(var(--app-brown));
+    background: hsl(var(--app-gold-light));
+    color: hsl(var(--app-petrol));
     font-weight: 700;
   }
 
   .tag-yellow {
     @apply text-xs font-bold px-3 py-1 rounded-full;
-    background: hsl(var(--app-yellow));
-    color: hsl(var(--app-brown));
+    background: hsl(var(--app-gold-light));
+    color: hsl(var(--app-petrol));
   }
 
   .tag-highlight {
     @apply text-xs font-bold px-3 py-1 rounded-full;
-    background: hsl(var(--app-yellow-dark));
-    color: hsl(var(--app-brown));
+    background: hsl(var(--app-gold));
+    color: hsl(var(--app-petrol));
   }
 
   .section-title {
     @apply text-lg font-extrabold mb-3;
-    color: hsl(var(--foreground));
+    color: hsl(var(--app-petrol));
     font-weight: 800;
   }
 
   .cardapio-btn {
     @apply w-full py-4 rounded-2xl font-bold text-base transition-all;
     background: hsl(var(--card));
-    color: hsl(var(--app-brown));
-    box-shadow: 0 2px 8px rgba(92, 75, 59, 0.06);
+    color: hsl(var(--app-petrol));
+    box-shadow: 0 2px 8px rgba(46, 64, 87, 0.06);
     font-weight: 700;
     border: none;
     cursor: pointer;
   }
 
   .cardapio-btn:hover {
-    background: hsl(var(--app-yellow) / 0.3);
+    background: hsl(var(--app-gold-light));
   }
 
   .premium-crown {
-    color: hsl(var(--app-yellow-highlight));
+    color: hsl(var(--app-gold-dark));
+  }
+
+  .btn-primary-clinical {
+    @apply w-full py-3.5 rounded-xl flex items-center justify-center gap-2 font-bold text-sm transition-all active:scale-95;
+    background: hsl(var(--app-gold));
+    color: hsl(var(--app-petrol));
+    font-weight: 700;
+  }
+
+  .btn-primary-clinical:disabled {
+    opacity: 0.6;
   }
 
   /* Smooth transitions */

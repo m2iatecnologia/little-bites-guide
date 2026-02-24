@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { FileText, TrendingUp, Check, X, Download, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  FileText,
+  TrendingUp,
+  Check,
+  X,
+  Download,
+  ChevronDown,
+  ChevronUp,
+  Share2,
+} from "lucide-react";
 import { generateClinicalReport } from "@/lib/generateReport";
 
 const mockReportData = {
@@ -51,128 +60,223 @@ export function ReportSection() {
 
   return (
     <>
-      <div className="card-food p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center"
-              style={{ background: "hsl(var(--app-yellow) / 0.4)" }}>
-              <TrendingUp size={16} style={{ color: "hsl(var(--app-yellow-highlight))" }} />
-            </div>
-            <h2 className="font-extrabold text-base" style={{ fontWeight: 800 }}>
-              📊 Resumo Alimentar do Mês
-            </h2>
-          </div>
-          <button onClick={() => setShowDetails((v) => !v)} style={{ color: "hsl(var(--muted-foreground))" }}>
+      <div className="card-clinical p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2
+            className="font-extrabold text-base"
+            style={{ fontWeight: 800, color: "hsl(var(--app-petrol))" }}
+          >
+            📊 Painel de Acompanhamento
+          </h2>
+          <button
+            onClick={() => setShowDetails((v) => !v)}
+            className="p-1 rounded-lg transition-all active:scale-95"
+            style={{ color: "hsl(var(--muted-foreground))" }}
+          >
             {showDetails ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
           </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-3">
+        {/* Stats grid */}
+        <div className="grid grid-cols-3 gap-2 mb-4">
           {[
-            { label: "Alimentos ofertados", value: "42", icon: "🥗" },
-            { label: "Novos introduzidos", value: "8", icon: "🆕" },
-            { label: "Refeições registradas", value: "87", icon: "🍽️" },
+            { label: "Alimentos", value: "42", sub: "introduzidos" },
+            { label: "Novos", value: "8", sub: "este mês" },
+            { label: "Refeições", value: "87", sub: "registradas" },
           ].map((s) => (
-            <div key={s.label} className="rounded-xl p-2 text-center"
-              style={{ background: "hsl(var(--app-yellow) / 0.25)" }}>
-              <div className="text-lg">{s.icon}</div>
-              <div className="text-lg font-extrabold leading-none"
-                style={{ color: "hsl(var(--app-brown))", fontWeight: 900 }}>
+            <div
+              key={s.label}
+              className="rounded-xl p-3 text-center"
+              style={{ background: "hsl(var(--app-cream))" }}
+            >
+              <div
+                className="text-xl font-extrabold leading-none"
+                style={{ color: "hsl(var(--app-petrol))", fontWeight: 900 }}
+              >
                 {s.value}
               </div>
-              <div className="text-[9px] leading-tight mt-0.5" style={{ color: "hsl(var(--muted-foreground))" }}>
-                {s.label}
+              <div
+                className="text-[10px] leading-tight mt-1"
+                style={{ color: "hsl(var(--muted-foreground))" }}
+              >
+                {s.sub}
               </div>
             </div>
           ))}
         </div>
 
         {/* Acceptance bar */}
-        <div className="mb-3">
-          <div className="flex justify-between text-xs mb-1" style={{ color: "hsl(var(--muted-foreground))" }}>
-            <span>Índice de Aceitação</span>
-            <span className="font-bold" style={{ color: "hsl(var(--app-yellow-highlight))", fontWeight: 700 }}>68%</span>
+        <div className="mb-4">
+          <div
+            className="flex justify-between text-xs mb-1.5"
+            style={{ color: "hsl(var(--muted-foreground))" }}
+          >
+            <span className="font-semibold">Índice de Aceitação</span>
+            <span
+              className="font-bold"
+              style={{ color: "hsl(var(--app-gold-dark))", fontWeight: 700 }}
+            >
+              68%
+            </span>
           </div>
-          <div className="h-3 rounded-full overflow-hidden flex" style={{ background: "hsl(var(--muted))" }}>
-            <div className="h-full" style={{ width: "68%", background: "hsl(var(--app-yellow-dark))", borderRadius: "999px 0 0 999px" }} />
-            <div className="h-full" style={{ width: "12%", background: "hsl(var(--app-warm-muted))" }} />
-            <div className="h-full flex-1" style={{ background: "hsl(25 40% 65%)", borderRadius: "0 999px 999px 0" }} />
+          <div
+            className="h-3 rounded-full overflow-hidden flex"
+            style={{ background: "hsl(var(--app-cream-dark))" }}
+          >
+            <div
+              className="h-full"
+              style={{
+                width: "68%",
+                background: "hsl(var(--app-gold))",
+                borderRadius: "999px 0 0 999px",
+              }}
+            />
+            <div
+              className="h-full"
+              style={{ width: "12%", background: "hsl(var(--app-cream-dark))" }}
+            />
+            <div
+              className="h-full flex-1"
+              style={{
+                background: "hsl(25 30% 70%)",
+                borderRadius: "0 999px 999px 0",
+              }}
+            />
           </div>
-          <div className="flex gap-3 mt-1">
+          <div className="flex gap-3 mt-1.5">
             {[
-              { color: "hsl(var(--app-yellow-dark))", label: "Aceitação 68%" },
-              { color: "hsl(var(--app-warm-muted))", label: "Neutro 12%" },
-              { color: "hsl(25 40% 65%)", label: "Recusa 20%" },
+              { color: "hsl(var(--app-gold))", label: "Aceitação 68%" },
+              { color: "hsl(var(--app-cream-dark))", label: "Neutro 12%" },
+              { color: "hsl(25 30% 70%)", label: "Recusa 20%" },
             ].map((l) => (
               <div key={l.label} className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: l.color }} />
-                <span className="text-[9px]" style={{ color: "hsl(var(--muted-foreground))" }}>{l.label}</span>
+                <div
+                  className="w-2 h-2 rounded-full flex-shrink-0"
+                  style={{ background: l.color }}
+                />
+                <span
+                  className="text-[9px]"
+                  style={{ color: "hsl(var(--muted-foreground))" }}
+                >
+                  {l.label}
+                </span>
               </div>
             ))}
           </div>
         </div>
 
+        {/* Expanded details */}
         {showDetails && (
-          <div className="space-y-2 mb-3">
-            <div className="text-xs font-bold mb-1" style={{ color: "hsl(var(--app-brown))", fontWeight: 700 }}>
+          <div className="space-y-2 mb-4 pt-2" style={{ borderTop: "1px solid hsl(var(--app-divider))" }}>
+            <div
+              className="text-xs font-bold mb-1"
+              style={{ color: "hsl(var(--app-petrol))", fontWeight: 700 }}
+            >
               🏆 Melhor aceitação
             </div>
             {mockReportData.bestAccepted.slice(0, 3).map((item, i) => (
               <div key={item.food} className="flex items-center gap-2">
                 <span className="text-xs w-4">{["🥇", "🥈", "🥉"][i]}</span>
-                <span className="text-xs flex-1">{item.food}</span>
-                <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
-                  <div className="h-full rounded-full" style={{ width: `${item.rate}%`, background: "hsl(var(--app-yellow-dark))" }} />
+                <span className="text-xs flex-1" style={{ color: "hsl(var(--app-petrol))" }}>
+                  {item.food}
+                </span>
+                <div
+                  className="flex-1 h-2 rounded-full overflow-hidden"
+                  style={{ background: "hsl(var(--app-cream-dark))" }}
+                >
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${item.rate}%`,
+                      background: "hsl(var(--app-gold))",
+                    }}
+                  />
                 </div>
-                <span className="text-xs font-bold w-8 text-right" style={{ color: "hsl(var(--app-yellow-highlight))", fontWeight: 700 }}>
+                <span
+                  className="text-xs font-bold w-8 text-right"
+                  style={{ color: "hsl(var(--app-gold-dark))", fontWeight: 700 }}
+                >
                   {item.rate}%
                 </span>
               </div>
             ))}
-            <div className="text-xs font-bold mt-2 mb-1" style={{ color: "hsl(25 40% 50%)", fontWeight: 700 }}>
+            <div
+              className="text-xs font-bold mt-3 mb-1"
+              style={{ color: "hsl(25 30% 50%)", fontWeight: 700 }}
+            >
               ⚠️ Maior rejeição
             </div>
             {mockReportData.mostRejected.slice(0, 3).map((item) => (
               <div key={item.food} className="flex items-center gap-2">
                 <span className="text-xs w-4">•</span>
-                <span className="text-xs flex-1">{item.food}</span>
-                <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
-                  <div className="h-full rounded-full" style={{ width: `${item.rate}%`, background: "hsl(25 40% 65%)" }} />
+                <span className="text-xs flex-1" style={{ color: "hsl(var(--app-petrol))" }}>
+                  {item.food}
+                </span>
+                <div
+                  className="flex-1 h-2 rounded-full overflow-hidden"
+                  style={{ background: "hsl(var(--app-cream-dark))" }}
+                >
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: `${item.rate}%`, background: "hsl(25 30% 70%)" }}
+                  />
                 </div>
-                <span className="text-xs font-bold w-8 text-right" style={{ color: "hsl(25 40% 55%)", fontWeight: 700 }}>
+                <span
+                  className="text-xs font-bold w-8 text-right"
+                  style={{ color: "hsl(25 30% 55%)", fontWeight: 700 }}
+                >
                   {item.rate}%
                 </span>
               </div>
             ))}
             {mockReportData.reactions.length > 0 && (
-              <div className="mt-2 p-2 rounded-lg text-xs" style={{ background: "hsl(var(--app-yellow) / 0.3)" }}>
-                <span className="font-bold" style={{ fontWeight: 700 }}>⚠️ Reações registradas:</span>{" "}
-                {mockReportData.reactions[0].food} — {mockReportData.reactions[0].type}
+              <div
+                className="mt-2 p-2.5 rounded-xl text-xs"
+                style={{ background: "hsl(0 80% 97%)" }}
+              >
+                <span className="font-bold" style={{ fontWeight: 700, color: "hsl(0 70% 45%)" }}>
+                  ⚠️ Reação registrada:
+                </span>{" "}
+                <span style={{ color: "hsl(var(--app-petrol))" }}>
+                  {mockReportData.reactions[0].food} — {mockReportData.reactions[0].type}
+                </span>
               </div>
             )}
           </div>
         )}
 
+        {/* CTA Button */}
         <button
           onClick={() => setShowModal(true)}
-          className="w-full py-3 rounded-xl flex items-center justify-center gap-2 font-bold text-sm transition-all active:scale-95"
-          style={{ background: "hsl(var(--app-yellow-dark))", color: "hsl(var(--app-brown))", fontWeight: 700 }}>
+          className="btn-primary-clinical w-full"
+        >
           <FileText size={17} />
-          📄 Exportar Relatório para Consulta (PDF)
+          Gerar Relatório Profissional (PDF)
         </button>
-        <p className="text-center text-[10px] mt-1.5" style={{ color: "hsl(var(--muted-foreground))" }}>
+        <p
+          className="text-center text-[10px] mt-1.5"
+          style={{ color: "hsl(var(--muted-foreground))" }}
+        >
           Leve para o pediatra, nutricionista ou alergista
         </p>
       </div>
 
+      {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center"
-          style={{ background: "rgba(0,0,0,0.5)" }}
-          onClick={(e) => e.target === e.currentTarget && setShowModal(false)}>
-          <div className="w-full max-w-md rounded-t-3xl p-5 pb-8"
-            style={{ background: "hsl(var(--card))" }}>
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center"
+          style={{ background: "rgba(0,0,0,0.45)" }}
+          onClick={(e) => e.target === e.currentTarget && setShowModal(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-t-3xl p-5 pb-8"
+            style={{ background: "hsl(var(--card))" }}
+          >
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-extrabold text-base" style={{ fontWeight: 800 }}>
+              <h3
+                className="font-extrabold text-base"
+                style={{ fontWeight: 800, color: "hsl(var(--app-petrol))" }}
+              >
                 📄 Gerar Relatório Clínico
               </h3>
               <button onClick={() => setShowModal(false)}>
@@ -180,8 +284,14 @@ export function ReportSection() {
               </button>
             </div>
 
-            <div className="rounded-xl p-3 mb-4 space-y-1.5 text-xs" style={{ background: "hsl(var(--app-yellow) / 0.25)" }}>
-              <p className="font-bold mb-2" style={{ color: "hsl(var(--app-brown))", fontWeight: 700 }}>
+            <div
+              className="rounded-xl p-3 mb-4 space-y-1.5 text-xs"
+              style={{ background: "hsl(var(--app-cream))" }}
+            >
+              <p
+                className="font-bold mb-2"
+                style={{ color: "hsl(var(--app-petrol))", fontWeight: 700 }}
+              >
                 O relatório incluirá:
               </p>
               {[
@@ -192,16 +302,22 @@ export function ReportSection() {
                 "Gráfico de evolução semanal",
                 "Suas observações para o médico",
               ].map((item) => (
-                <div key={item} className="flex items-center gap-2" style={{ color: "hsl(var(--app-brown))" }}>
-                  <Check size={13} />
+                <div
+                  key={item}
+                  className="flex items-center gap-2"
+                  style={{ color: "hsl(var(--app-petrol))" }}
+                >
+                  <Check size={13} style={{ color: "hsl(var(--app-gold-dark))" }} />
                   <span>{item}</span>
                 </div>
               ))}
             </div>
 
             <div className="mb-4">
-              <label className="block text-xs font-bold mb-1.5"
-                style={{ color: "hsl(var(--foreground))", fontWeight: 700 }}>
+              <label
+                className="block text-xs font-bold mb-1.5"
+                style={{ color: "hsl(var(--app-petrol))", fontWeight: 700 }}
+              >
                 📝 Observações para o médico (opcional)
               </label>
               <textarea
@@ -209,32 +325,45 @@ export function ReportSection() {
                 placeholder="Ex: Bebê tem tido episódios de recusa ao jantar..."
                 value={parentNotes}
                 onChange={(e) => setParentNotes(e.target.value)}
-                className="w-full text-xs rounded-xl p-3 resize-none border outline-none"
+                className="w-full text-xs rounded-xl p-3 resize-none border outline-none focus:ring-2"
                 style={{
                   borderColor: "hsl(var(--border))",
                   background: "hsl(var(--background))",
                   color: "hsl(var(--foreground))",
+                  
                 }}
               />
             </div>
 
-            <button
-              onClick={handleGenerate}
-              disabled={isGenerating}
-              className="w-full py-3.5 rounded-xl flex items-center justify-center gap-2 font-bold text-sm transition-all active:scale-95 disabled:opacity-60"
-              style={{ background: "hsl(var(--app-yellow-dark))", color: "hsl(var(--app-brown))", fontWeight: 700 }}>
-              {isGenerating ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  Gerando PDF...
-                </>
-              ) : (
-                <>
-                  <Download size={17} />
-                  Baixar Relatório PDF
-                </>
-              )}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleGenerate}
+                disabled={isGenerating}
+                className="btn-primary-clinical flex-1"
+              >
+                {isGenerating ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    Gerando...
+                  </>
+                ) : (
+                  <>
+                    <Download size={17} />
+                    Baixar PDF
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => window.location.href = "/em-desenvolvimento"}
+                className="px-4 py-3.5 rounded-xl flex items-center justify-center transition-all active:scale-95"
+                style={{
+                  background: "hsl(var(--app-cream))",
+                  color: "hsl(var(--app-petrol))",
+                }}
+              >
+                <Share2 size={17} />
+              </button>
+            </div>
           </div>
         </div>
       )}
