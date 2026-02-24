@@ -30,7 +30,7 @@ export function ReportSection({ dashboardData: d }: ReportSectionProps) {
     if (!isPremium) { navigate("/planos"); return; }
     setIsGenerating(true);
     await new Promise((r) => setTimeout(r, 800));
-    generateClinicalReport({ ...d.reportData, parentNotes } as any);
+    generateClinicalReport({ ...d.reportData, parentNotes });
     setIsGenerating(false);
     setShowModal(false);
   };
