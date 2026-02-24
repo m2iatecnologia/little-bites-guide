@@ -1,11 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
-import { Star, Apple, UtensilsCrossed, BookOpen, CalendarDays, CheckSquare } from "lucide-react";
+import { Home, Apple, BookOpen, CalendarDays, CheckSquare } from "lucide-react";
 
 const navItems = [
-  { to: "/", label: "Início", icon: Star },
+  { to: "/", label: "Início", icon: Home },
   { to: "/alimentos", label: "Alimentos", icon: Apple },
-  { to: "/receitas", label: "Receitas", icon: UtensilsCrossed },
-  { to: "/guias", label: "Guias", icon: BookOpen },
+  { to: "/receitas", label: "Receitas", icon: BookOpen },
   { to: "/cardapio", label: "Cardápio", icon: CalendarDays },
   { to: "/checklist", label: "Checklist", icon: CheckSquare },
 ];
@@ -23,21 +22,22 @@ export function BottomNav() {
             <Link
               key={to}
               to={to}
-              className="flex flex-col items-center gap-0.5 min-w-0 flex-1 py-1 px-0.5"
+              className="flex flex-col items-center gap-0.5 min-w-0 flex-1 py-1 px-0.5 transition-spring"
+              style={{ transform: isActive ? "scale(1.05)" : "scale(1)" }}
             >
               <Icon
                 size={22}
                 className="transition-all"
                 style={{
-                  color: isActive ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
-                  fill: isActive ? "hsl(var(--primary))" : "none",
-                  strokeWidth: isActive ? 2 : 1.5,
+                  color: isActive ? "hsl(var(--app-yellow-highlight))" : "hsl(var(--app-brown))",
+                  fill: isActive ? "hsl(var(--app-yellow-highlight))" : "none",
+                  strokeWidth: isActive ? 2.2 : 1.5,
                 }}
               />
               <span
-                className="text-[10px] font-700 leading-tight truncate"
+                className="text-[10px] leading-tight truncate"
                 style={{
-                  color: isActive ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+                  color: isActive ? "hsl(var(--app-yellow-highlight))" : "hsl(var(--app-brown-light))",
                   fontWeight: isActive ? 800 : 600,
                 }}
               >

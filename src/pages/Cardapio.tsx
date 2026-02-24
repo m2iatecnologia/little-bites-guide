@@ -73,55 +73,48 @@ export default function Cardapio() {
 
   return (
     <div className="app-container bottom-nav-safe">
-      {/* Teal header */}
+      {/* Header */}
       <div className="px-5 pt-6 pb-6 rounded-b-3xl"
-        style={{ background: "hsl(var(--primary))" }}>
-        <h1 className="text-xl font-900 text-white mb-1" style={{ fontWeight: 900 }}>Cardápios por idade</h1>
-        <p className="text-white text-sm opacity-90">Escolha o cardápio na idade atual do bebê</p>
+        style={{ background: "hsl(var(--app-yellow-dark))" }}>
+        <h1 className="text-xl text-white mb-1" style={{ fontWeight: 900, color: "hsl(var(--app-brown))" }}>Cardápios por idade</h1>
+        <p className="text-sm" style={{ color: "hsl(var(--app-brown-light))" }}>Escolha o cardápio na idade atual do bebê</p>
 
-        {/* Diet mode selector */}
         <div className="flex gap-2 mt-4 overflow-x-auto pb-1">
           {dietModes.map(({ key, emoji }) => (
             <button key={key}
               onClick={() => { setDiet(key); setSelectedAge(null); }}
-              className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-700 transition-all"
+              className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-bold transition-all active:scale-95"
               style={{
                 fontWeight: 700,
-                background: diet === key ? "white" : "rgba(255,255,255,0.25)",
-                color: diet === key ? "hsl(var(--primary))" : "white",
+                background: diet === key ? "white" : "rgba(255,255,255,0.4)",
+                color: diet === key ? "hsl(var(--app-brown))" : "hsl(var(--app-brown))",
               }}>
               {emoji} {key}
             </button>
           ))}
         </div>
 
-        {/* Age buttons */}
         <div className="mt-4 space-y-2">
-          {ageButtons.map(({ label, full }) => (
-            <div key={label} className={full ? "w-full" : "inline-block"}>
-              {full ? (
-                <button
-                  onClick={() => setSelectedAge(label)}
-                  className="w-full py-4 rounded-2xl font-700 text-sm transition-all"
-                  style={{
-                    background: selectedAge === label ? "hsl(var(--app-yellow))" : "white",
-                    color: selectedAge === label ? "hsl(220 20% 15%)" : "hsl(var(--primary))",
-                    fontWeight: 700,
-                  }}>
-                  {label}
-                </button>
-              ) : null}
-            </div>
+          {ageButtons.filter(b => b.full).map(({ label }) => (
+            <button key={label}
+              onClick={() => setSelectedAge(label)}
+              className="w-full py-4 rounded-2xl font-bold text-sm transition-all active:scale-95"
+              style={{
+                background: selectedAge === label ? "hsl(var(--app-yellow))" : "white",
+                color: "hsl(var(--app-brown))",
+                fontWeight: 700,
+              }}>
+              {label}
+            </button>
           ))}
-          {/* Grid for small buttons */}
           <div className="grid grid-cols-2 gap-2">
             {ageButtons.filter(b => !b.full).map(({ label }) => (
               <button key={label}
                 onClick={() => setSelectedAge(label)}
-                className="py-4 rounded-2xl font-700 text-sm transition-all"
+                className="py-4 rounded-2xl font-bold text-sm transition-all active:scale-95"
                 style={{
                   background: selectedAge === label ? "hsl(var(--app-yellow))" : "white",
-                  color: selectedAge === label ? "hsl(220 20% 15%)" : "hsl(var(--primary))",
+                  color: "hsl(var(--app-brown))",
                   fontWeight: 700,
                 }}>
                 {label}
@@ -129,13 +122,12 @@ export default function Cardapio() {
             ))}
           </div>
 
-          {/* Shopping list button */}
           <button
             onClick={() => setSelectedAge("compras")}
-            className="w-full py-4 rounded-2xl font-700 text-sm flex items-center justify-center gap-3 transition-all"
+            className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3 transition-all active:scale-95"
             style={{
               background: selectedAge === "compras" ? "hsl(var(--app-yellow))" : "white",
-              color: selectedAge === "compras" ? "hsl(220 20% 15%)" : "hsl(220 20% 15%)",
+              color: "hsl(var(--app-brown))",
               fontWeight: 700,
             }}>
             <span className="w-8 h-8 rounded-full flex items-center justify-center"
@@ -147,7 +139,6 @@ export default function Cardapio() {
         </div>
       </div>
 
-      {/* Meal detail */}
       {selectedAge && selectedAge !== "compras" && mealForAge && (
         <div className="px-4 mt-5 space-y-3">
           <h2 className="section-title">{selectedAge} — {diet}</h2>
@@ -157,11 +148,11 @@ export default function Cardapio() {
             { key: "jantar", label: "🌙 Jantar" },
           ].map(({ key, label }) => (
             <div key={key} className="card-food p-4">
-              <h3 className="font-700 mb-2" style={{ fontWeight: 700 }}>{label}</h3>
+              <h3 className="font-bold mb-2" style={{ fontWeight: 700 }}>{label}</h3>
               <div className="space-y-1.5">
                 {(mealForAge[key as keyof typeof mealForAge] ?? []).map((item: string) => (
                   <div key={item} className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "hsl(var(--primary))" }} />
+                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "hsl(var(--app-yellow-highlight))" }} />
                     <span className="text-sm">{item}</span>
                   </div>
                 ))}
@@ -171,7 +162,6 @@ export default function Cardapio() {
         </div>
       )}
 
-      {/* Shopping list */}
       {selectedAge === "compras" && (
         <div className="px-4 mt-5">
           <h2 className="section-title">🛒 Lista Geral de Compras</h2>
@@ -180,7 +170,7 @@ export default function Cardapio() {
               <div key={i} className="flex items-center gap-3 py-2 border-b last:border-0"
                 style={{ borderColor: "hsl(var(--border))" }}>
                 <div className="w-5 h-5 rounded border-2 flex-shrink-0"
-                  style={{ borderColor: "hsl(var(--primary))" }} />
+                  style={{ borderColor: "hsl(var(--app-yellow-highlight))" }} />
                 <span className="text-sm">{item}</span>
               </div>
             ))}
@@ -188,16 +178,15 @@ export default function Cardapio() {
         </div>
       )}
 
-      {/* Credit section */}
       <div className="px-4 mt-5 mb-4">
-        <p className="text-sm font-700 mb-3" style={{ fontWeight: 700 }}>*Cardápios elaborados por</p>
+        <p className="text-sm font-bold mb-3" style={{ fontWeight: 700 }}>*Cardápios elaborados por</p>
         <div className="card-food p-4 flex items-center gap-3">
           <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0"
-            style={{ background: "hsl(var(--app-teal-light))" }}>
+            style={{ background: "hsl(var(--app-yellow) / 0.3)" }}>
             👩‍⚕️
           </div>
           <div>
-            <p className="font-700" style={{ fontWeight: 700 }}>Dra. Nutricionista</p>
+            <p className="font-bold" style={{ fontWeight: 700 }}>Dra. Nutricionista</p>
             <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>Nutricionista Pediátrica · CRN3</p>
           </div>
         </div>
