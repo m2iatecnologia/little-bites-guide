@@ -94,6 +94,47 @@ export type Database = {
           },
         ]
       }
+      food_status_overrides: {
+        Row: {
+          baby_id: string | null
+          category: string
+          created_at: string
+          food_name: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          baby_id?: string | null
+          category?: string
+          created_at?: string
+          food_name: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          baby_id?: string | null
+          category?: string
+          created_at?: string
+          food_name?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_status_overrides_baby_id_fkey"
+            columns: ["baby_id"]
+            isOneToOne: false
+            referencedRelation: "babies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
