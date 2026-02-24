@@ -8,8 +8,12 @@ import {
   ChevronDown,
   ChevronUp,
   Share2,
+  Lock,
 } from "lucide-react";
 import { generateClinicalReport } from "@/lib/generateReport";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useNavigate } from "react-router-dom";
+import { PremiumBadge } from "@/components/PremiumGate";
 
 const mockReportData = {
   childName: "Sofia Lima",
@@ -49,13 +53,27 @@ export function ReportSection() {
   const [parentNotes, setParentNotes] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const { isPremium, loading: subLoading } = useSubscription();
+  const navigate = useNavigate();
 
   const handleGenerate = async () => {
+    if (!isPremium) {
+      navigate("/planos");
+      return;
+    }
     setIsGenerating(true);
     await new Promise((r) => setTimeout(r, 800));
     generateClinicalReport({ ...mockReportData, parentNotes });
     setIsGenerating(false);
     setShowModal(false);
+  };
+
+  const handleOpenModal = () => {
+    if (!isPremium) {
+      navigate("/planos");
+      return;
+    }
+    setShowModal(true);
   };
 
   return (
@@ -247,18 +265,38 @@ export function ReportSection() {
 
         {/* CTA Button */}
         <button
-          onClick={() => setShowModal(true)}
+          onClick={handleOpenModal}
           className="btn-primary-clinical w-full"
+          style={!isPremium ? { opacity: 0.85 } : {}}
         >
-          <FileText size={17} />
-          Gerar Relatório Profissional (PDF)
+          {isPremium ? (
+            <>
+              <FileText size={17} />
+              Gerar Relatório Profissional (PDF)
+            </>
+          ) : (
+            <>
+              <Lock size={17} />
+              🔒 Gerar Relatório (Premium)
+            </>
+          )}
         </button>
-        <p
-          className="text-center text-[10px] mt-1.5"
-          style={{ color: "hsl(var(--muted-foreground))" }}
-        >
-          Leve para o pediatra, nutricionista ou alergista
-        </p>
+        {!isPremium && (
+          <p
+            className="text-center text-[10px] mt-1.5 font-bold"
+            style={{ color: "hsl(var(--app-gold-dark))", fontWeight: 700 }}
+          >
+            Assine para desbloquear o relatório PDF
+          </p>
+        )}
+        {isPremium && (
+          <p
+            className="text-center text-[10px] mt-1.5"
+            style={{ color: "hsl(var(--muted-foreground))" }}
+          >
+            Leve para o pediatra, nutricionista ou alergista
+          </p>
+        )}
       </div>
 
       {/* Modal */}
