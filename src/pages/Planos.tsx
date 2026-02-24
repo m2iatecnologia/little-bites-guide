@@ -214,14 +214,15 @@ export default function Planos() {
       <div className="px-5 mt-6 space-y-3">
         <button
           onClick={() => handleSubscribe(true)}
-          className="w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-2 active:scale-95 transition-transform"
+          disabled={loading}
+          className="w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-60"
           style={{
             background: "hsl(var(--app-gold))",
             color: "hsl(var(--app-petrol))",
             boxShadow: "0 4px 16px rgba(244,201,93,0.35)",
           }}
         >
-          🎁 Iniciar 7 dias grátis
+          {loading ? "Ativando..." : "🎁 Iniciar 7 dias grátis"}
         </button>
 
         <p className="text-center text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
@@ -230,14 +231,15 @@ export default function Planos() {
 
         <button
           onClick={() => handleSubscribe(false)}
-          className="w-full py-3 rounded-2xl font-semibold text-sm active:scale-95 transition-transform"
+          disabled={loading}
+          className="w-full py-3 rounded-2xl font-semibold text-sm active:scale-95 transition-transform disabled:opacity-60"
           style={{
             background: "transparent",
             color: "hsl(var(--app-petrol))",
             border: "1.5px solid hsl(var(--app-divider))",
           }}
         >
-          Assinar agora sem teste grátis
+          {loading ? "Ativando..." : "Assinar agora sem teste grátis"}
         </button>
       </div>
 
