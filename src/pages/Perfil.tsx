@@ -52,7 +52,8 @@ export default function Perfil() {
             <div className="flex justify-between"><span style={{ color: "hsl(var(--muted-foreground))" }}>Início</span><span className="font-bold" style={{ fontWeight: 600 }}>15/01/2025</span></div>
             <div className="flex justify-between"><span style={{ color: "hsl(var(--muted-foreground))" }}>Próxima cobrança</span><span className="font-bold" style={{ fontWeight: 600 }}>15/01/2026</span></div>
           </div>
-          <button className="w-full mt-3 py-3 rounded-xl text-sm font-bold transition-all active:scale-95"
+          <button onClick={() => navigate("/cancelamento")}
+            className="w-full mt-3 py-3 rounded-xl text-sm font-bold transition-all active:scale-95"
             style={{ background: "hsl(var(--app-yellow))", color: "hsl(var(--app-brown))", fontWeight: 700 }}>
             Gerenciar Assinatura
           </button>

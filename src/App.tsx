@@ -14,6 +14,8 @@ import ListaCompras from "./pages/ListaCompras";
 import EmDesenvolvimento from "./pages/EmDesenvolvimento";
 import Planos from "./pages/Planos";
 import AssinaturaConfirmada from "./pages/AssinaturaConfirmada";
+import Cancelamento from "./pages/Cancelamento";
+import TesteExpirando from "./pages/TesteExpirando";
 import NotFound from "./pages/NotFound";
 import { BottomNav } from "./components/BottomNav";
 
@@ -38,6 +40,8 @@ const App = () => (
             <Route path="/em-desenvolvimento" element={<EmDesenvolvimento />} />
             <Route path="/planos" element={<Planos />} />
             <Route path="/assinatura-confirmada" element={<AssinaturaConfirmada />} />
+            <Route path="/cancelamento" element={<Cancelamento />} />
+            <Route path="/teste-expirando" element={<TesteExpirando />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />
