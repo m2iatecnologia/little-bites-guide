@@ -1,25 +1,14 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import dicaImg from "@/assets/dica-do-dia.jpg";
-import { FoodImage } from "@/components/FoodImage";
 import { ReportSection } from "@/components/ReportSection";
-import { foods } from "@/data/appData";
 import {
   ChevronRight,
   TrendingUp,
   AlertTriangle,
   Lightbulb,
-  RefreshCw,
 } from "lucide-react";
 import { PremiumBanner } from "@/components/PremiumBanner";
-
-/* mock data */
-const weeklyEvolution = [
-  { week: "Sem 1", count: 6 },
-  { week: "Sem 2", count: 11 },
-  { week: "Sem 3", count: 18 },
-  { week: "Sem 4", count: 24 },
-];
+import { useDashboardData } from "@/hooks/useDashboardData";
 
 const recommendedFoods = [
   { name: "Batata doce", emoji: "🍠", reason: "Rica em vitamina A" },
@@ -28,16 +17,11 @@ const recommendedFoods = [
   { name: "Brócolis", emoji: "🥦", reason: "Cálcio e fibras" },
 ];
 
-const alerts = [
-  { type: "reaction", icon: "⚠️", text: "Morango — manchas ao redor da boca (15/01)" },
-  { type: "rejection", icon: "🔄", text: "Brócolis precisa de nova exposição (recusa 70%)" },
-  { type: "rejection", icon: "🔄", text: "Beterraba — tente novamente esta semana" },
-];
-
 export default function Index() {
   const navigate = useNavigate();
+  const data = useDashboardData();
 
-  const maxEvolution = Math.max(...weeklyEvolution.map((w) => w.count));
+  const maxEvolution = Math.max(...data.weeklyEvolution.map((w) => w.count), 1);
 
   return (
     <div className="app-container bottom-nav-safe">
@@ -45,10 +29,10 @@ export default function Index() {
       <div className="px-5 pt-6 pb-4 flex items-center justify-between">
         <div>
           <p className="text-sm font-semibold" style={{ color: "hsl(var(--muted-foreground))" }}>
-            Olá, Mamãe 👋
+            Olá, {data.profileName || "Mamãe"} 👋
           </p>
           <h1 className="text-xl" style={{ fontWeight: 900, color: "hsl(var(--app-petrol))" }}>
-            Sofia · <span className="font-bold" style={{ fontWeight: 700, color: "hsl(var(--app-petrol-light))" }}>9 meses</span>
+            {data.baby?.name || "Bebê"} · <span className="font-bold" style={{ fontWeight: 700, color: "hsl(var(--app-petrol-light))" }}>{data.babyAge || "—"}</span>
           </h1>
         </div>
         <button
@@ -64,12 +48,10 @@ export default function Index() {
       </div>
 
       <div className="px-4 space-y-4">
-        {/* Premium expired banner */}
         <PremiumBanner />
-        {/* 1. Painel de Acompanhamento Alimentar */}
-        <ReportSection />
+        <ReportSection dashboardData={data} />
 
-        {/* 2. Evolução da Diversidade Alimentar */}
+        {/* Evolução da Diversidade Alimentar */}
         <div className="card-clinical p-4">
           <div className="flex items-center gap-2 mb-3">
             <div
@@ -82,9 +64,8 @@ export default function Index() {
               Evolução da Diversidade Alimentar
             </h2>
           </div>
-          {/* Simple line chart */}
           <div className="flex items-end gap-3 h-28 px-2">
-            {weeklyEvolution.map((w, i) => (
+            {data.weeklyEvolution.map((w, i) => (
               <div key={w.week} className="flex-1 flex flex-col items-center gap-1">
                 <span
                   className="text-xs font-bold"
@@ -96,8 +77,9 @@ export default function Index() {
                   className="w-full rounded-t-lg transition-all"
                   style={{
                     height: `${(w.count / maxEvolution) * 80}px`,
+                    minHeight: w.count > 0 ? "4px" : "0px",
                     background:
-                      i === weeklyEvolution.length - 1
+                      i === data.weeklyEvolution.length - 1
                         ? "hsl(var(--app-gold))"
                         : "hsl(var(--app-gold-light))",
                   }}
@@ -115,11 +97,13 @@ export default function Index() {
             className="text-[10px] text-center mt-2"
             style={{ color: "hsl(var(--muted-foreground))" }}
           >
-            Repertório alimentar crescendo semana a semana 📈
+            {data.totalFoods > 0
+              ? "Repertório alimentar crescendo semana a semana 📈"
+              : "Registre alimentos para acompanhar a evolução 📝"}
           </p>
         </div>
 
-        {/* 3. Próximos Alimentos Recomendados */}
+        {/* Próximos Alimentos Recomendados */}
         <div className="card-clinical p-4">
           <div className="flex items-center gap-2 mb-3">
             <div
@@ -154,7 +138,7 @@ export default function Index() {
           </div>
         </div>
 
-        {/* 4. Alertas e Observações */}
+        {/* Alertas e Observações */}
         <div className="card-clinical p-4">
           <div className="flex items-center gap-2 mb-3">
             <div
@@ -168,22 +152,28 @@ export default function Index() {
             </h2>
           </div>
           <div className="space-y-2">
-            {alerts.map((alert, i) => (
-              <div
-                key={i}
-                className="flex items-start gap-2 p-3 rounded-xl text-xs"
-                style={{
-                  background: alert.type === "reaction" ? "hsl(0 80% 97%)" : "hsl(var(--app-cream))",
-                }}
-              >
-                <span className="flex-shrink-0">{alert.icon}</span>
-                <p style={{ color: "hsl(var(--app-petrol))" }}>{alert.text}</p>
-              </div>
-            ))}
+            {data.alerts.length > 0 ? (
+              data.alerts.map((alert, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-2 p-3 rounded-xl text-xs"
+                  style={{
+                    background: alert.type === "reaction" ? "hsl(0 80% 97%)" : "hsl(var(--app-cream))",
+                  }}
+                >
+                  <span className="flex-shrink-0">{alert.icon}</span>
+                  <p style={{ color: "hsl(var(--app-petrol))" }}>{alert.text}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-xs text-center py-3" style={{ color: "hsl(var(--muted-foreground))" }}>
+                Nenhum alerta no momento. Continue registrando! ✅
+              </p>
+            )}
           </div>
         </div>
 
-        {/* 5. Dica do Dia */}
+        {/* Dica do Dia */}
         <button
           onClick={() => navigate("/em-desenvolvimento")}
           className="card-clinical overflow-hidden w-full text-left"
@@ -213,9 +203,6 @@ export default function Index() {
             <ChevronRight size={18} style={{ color: "hsl(var(--app-gold-dark))" }} />
           </div>
         </button>
-
-
-
 
         <div className="flex justify-center gap-4 py-3 text-3xl">
           <span>🍌</span><span>🍓</span><span>🥦</span><span>🍊</span>
