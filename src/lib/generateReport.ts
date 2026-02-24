@@ -1,11 +1,15 @@
 import jsPDF from "jspdf";
 
 export interface ReportData {
+  // Cover
   childName: string;
   birthDate: string;
   currentAge: string;
   weight?: string;
   period: string;
+  feedingMethod?: string; // BLW / Tradicional / Misto
+  responsibleName?: string;
+  // Summary
   totalFoods: number;
   acceptanceRate: number;
   rejectionRate: number;
@@ -14,29 +18,101 @@ export interface ReportData {
   reactionsCount: number;
   totalMeals: number;
   weeklyFrequency: number;
-  bestAccepted: { food: string; rate: number }[];
-  mostRejected: { food: string; rate: number }[];
+  // Rankings
+  bestAccepted: { food: string; rate: number; count?: number }[];
+  mostRejected: { food: string; rate: number; count?: number }[];
+  // Reactions
   reactions: { date: string; food: string; type: string }[];
+  // Weekly
   weeklyIntroductions: number[];
+  // Food groups
+  foodGroups?: { group: string; count: number; frequency: number }[];
+  // System insights
+  insights?: string[];
+  // Parent notes
   parentNotes: string;
+  // Behavioral / context (optional)
+  behavioralNotes?: string;
+  familyContext?: string;
 }
 
-const TEAL = [43, 196, 162] as const;
-const TEAL_DARK = [28, 138, 111] as const;
-const YELLOW = [255, 215, 80] as const;
+// ─── Colors ────────────────────────────────────────────────────
+const PETROL = [46, 64, 87] as const;
+const PETROL_LIGHT = [70, 95, 120] as const;
+const GOLD = [244, 201, 93] as const;
+const GOLD_DARK = [180, 140, 50] as const;
 const DARK = [30, 35, 45] as const;
 const GRAY = [100, 110, 120] as const;
-const LIGHT_BG = [248, 252, 250] as const;
+const LIGHT_BG = [250, 248, 244] as const;
 const WHITE: [number, number, number] = [255, 255, 255];
+const RED = [200, 60, 50] as const;
+const RED_LIGHT = [255, 240, 238] as const;
+const GREEN = [60, 160, 120] as const;
+const GREEN_LIGHT = [235, 248, 243] as const;
 
-function setFill(doc: jsPDF, rgb: readonly [number, number, number]) {
-  doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+type RGB = readonly [number, number, number];
+
+function setFill(doc: jsPDF, rgb: RGB) { doc.setFillColor(rgb[0], rgb[1], rgb[2]); }
+function setText(doc: jsPDF, rgb: RGB) { doc.setTextColor(rgb[0], rgb[1], rgb[2]); }
+function setDraw(doc: jsPDF, rgb: RGB) { doc.setDrawColor(rgb[0], rgb[1], rgb[2]); }
+
+// Helpers
+function addPageHeader(doc: jsPDF, childName: string, period: string) {
+  const W = 210, margin = 16;
+  setFill(doc, PETROL);
+  doc.rect(0, 0, W, 16, "F");
+  setText(doc, WHITE);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "bold");
+  doc.text("Relatório Nutricional — Introdução Alimentar", margin, 10);
+  doc.setFont("helvetica", "normal");
+  doc.text(`${childName} · ${period}`, W - margin, 10, { align: "right" });
 }
-function setTextColor(doc: jsPDF, rgb: readonly [number, number, number]) {
-  doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+
+function addFooter(doc: jsPDF, pageNum: number) {
+  const W = 210, margin = 16, contentW = W - margin * 2;
+  const y = 278;
+  setDraw(doc, [220, 220, 215]);
+  doc.setLineWidth(0.3);
+  doc.line(margin, y, W - margin, y);
+  setText(doc, GRAY);
+  doc.setFontSize(6.5);
+  doc.setFont("helvetica", "normal");
+  doc.text(
+    "Relatório gerado pelo NutriBaby — Plataforma de acompanhamento alimentar infantil  |  nutribaby.app",
+    margin, y + 5
+  );
+  doc.text(
+    `Gerado em: ${new Date().toLocaleDateString("pt-BR")}  |  Página ${pageNum}`,
+    W - margin, y + 5, { align: "right" }
+  );
+  // Disclaimer
+  doc.setFontSize(5.5);
+  doc.text(
+    "Este relatório tem caráter informativo e auxilia na avaliação nutricional profissional. Não substitui consulta médica.",
+    margin, y + 10
+  );
 }
-function setDrawColor(doc: jsPDF, rgb: readonly [number, number, number]) {
-  doc.setDrawColor(rgb[0], rgb[1], rgb[2]);
+
+function sectionTitle(doc: jsPDF, y: number, title: string, margin: number): number {
+  setText(doc, PETROL);
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text(title, margin, y);
+  return y + 7;
+}
+
+function checkPageBreak(doc: jsPDF, y: number, needed: number, childName: string, period: string, pageRef: { num: number }): number {
+  if (y + needed > 270) {
+    addFooter(doc, pageRef.num);
+    pageRef.num++;
+    doc.addPage();
+    setFill(doc, LIGHT_BG);
+    doc.rect(0, 0, 210, 297, "F");
+    addPageHeader(doc, childName, period);
+    return 26;
+  }
+  return y;
 }
 
 export function generateClinicalReport(data: ReportData): void {
@@ -45,381 +121,525 @@ export function generateClinicalReport(data: ReportData): void {
   const margin = 16;
   const contentW = W - margin * 2;
   let y = 0;
+  const page = { num: 1 };
 
-  // ─── PÁGINA 1: CAPA ───────────────────────────────────────────────────────
-  // Fundo creme
-  setFill(doc, [255, 250, 240]);
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PÁGINA 1: CAPA PROFISSIONAL
+  // ═══════════════════════════════════════════════════════════════════════════
+  setFill(doc, LIGHT_BG);
   doc.rect(0, 0, 210, 297, "F");
 
-  // Topo verde
-  setFill(doc, TEAL);
-  doc.roundedRect(0, 0, 210, 72, 0, 0, "F");
-  setFill(doc, [255, 255, 255, 0.15] as any);
+  // Header bar
+  setFill(doc, PETROL);
+  doc.rect(0, 0, W, 60, "F");
 
-  // Título do app
-  setTextColor(doc, WHITE);
-  doc.setFontSize(28);
-  doc.setFont("helvetica", "bold");
-  doc.text("NutriBaby", margin, 28);
+  // Gold accent line
+  setFill(doc, GOLD);
+  doc.rect(0, 60, W, 3, "F");
 
-  doc.setFontSize(12);
+  // Title
+  setText(doc, WHITE);
+  doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text("Relatório Clínico de Introdução Alimentar", margin, 38);
+  doc.text("RELATÓRIO NUTRICIONAL", margin, 20);
+
+  doc.setFontSize(22);
+  doc.setFont("helvetica", "bold");
+  doc.text("Introdução Alimentar", margin, 32);
+
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text("Acompanhamento clínico para nutricionistas e pediatras", margin, 42);
 
   // Badge
-  setFill(doc, YELLOW);
-  doc.roundedRect(margin, 46, 72, 14, 4, 4, "F");
-  setTextColor(doc, DARK);
-  doc.setFontSize(9);
+  setFill(doc, GOLD);
+  doc.roundedRect(margin, 48, 56, 8, 2, 2, "F");
+  setText(doc, PETROL);
+  doc.setFontSize(7);
   doc.setFont("helvetica", "bold");
-  doc.text("📄 DOCUMENTO PROFISSIONAL", margin + 4, 55);
+  doc.text("DOCUMENTO PROFISSIONAL", margin + 4, 53.5);
 
-  // Dados da criança
-  y = 90;
-  setTextColor(doc, DARK);
-  doc.setFontSize(20);
+  // Child info section
+  y = 76;
+  setText(doc, PETROL);
+  doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text(data.childName, margin, y);
+  doc.text(data.childName || "—", margin, y);
 
-  y += 8;
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "normal");
-  setTextColor(doc, GRAY);
-  doc.text(`Data de nascimento: ${data.birthDate}`, margin, y);
-
-  y += 6;
-  doc.text(`Idade atual: ${data.currentAge}`, margin, y);
-
-  if (data.weight) {
-    y += 6;
-    doc.text(`Peso: ${data.weight} kg`, margin, y);
-  }
-
-  y += 6;
-  doc.text(`Período analisado: ${data.period}`, margin, y);
-
-  // Linha separadora
   y += 10;
-  setDrawColor(doc, [220, 230, 225]);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  setText(doc, GRAY);
+
+  const infoRows = [
+    `Data de nascimento: ${data.birthDate || "—"}`,
+    `Idade atual: ${data.currentAge || "—"}`,
+    data.weight ? `Peso: ${data.weight} kg` : null,
+    `Período analisado: ${data.period}`,
+    `Método alimentar: ${data.feedingMethod || "Não informado"}`,
+    `Responsável: ${data.responsibleName || "—"}`,
+    `Data de emissão: ${new Date().toLocaleDateString("pt-BR")}`,
+  ].filter(Boolean) as string[];
+
+  infoRows.forEach((row) => {
+    doc.text(row, margin, y);
+    y += 6;
+  });
+
+  // Separator
+  y += 4;
+  setDraw(doc, [220, 220, 215]);
   doc.setLineWidth(0.5);
   doc.line(margin, y, W - margin, y);
 
-  // Cards de resumo rápido
+  // Quick stats
   y += 10;
-  setTextColor(doc, TEAL_DARK);
-  doc.setFontSize(13);
+  setText(doc, PETROL);
+  doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text("Resumo do Período", margin, y);
+  doc.text("Resumo Rápido", margin, y);
+  y += 8;
 
-  y += 6;
-  const cards = [
-    { label: "Alimentos introduzidos", value: String(data.totalFoods), icon: "🥗" },
-    { label: "Aceitação positiva", value: `${data.acceptanceRate}%`, icon: "✅" },
-    { label: "Refeições registradas", value: String(data.totalMeals), icon: "🍽" },
-    { label: "Novos alimentos", value: String(data.newFoodsIntroduced), icon: "🆕" },
+  const stats = [
+    { label: "Alimentos introduzidos", value: String(data.totalFoods) },
+    { label: "Refeições registradas", value: String(data.totalMeals) },
+    { label: "Aceitação positiva", value: `${data.acceptanceRate}%` },
+    { label: "Novos este mês", value: String(data.newFoodsIntroduced) },
   ];
 
   const cardW = (contentW - 6) / 2;
-  cards.forEach((card, i) => {
+  stats.forEach((s, i) => {
     const col = i % 2;
     const row = Math.floor(i / 2);
     const cx = margin + col * (cardW + 6);
-    const cy = y + row * 28;
+    const cy = y + row * 24;
 
     setFill(doc, WHITE);
-    doc.roundedRect(cx, cy, cardW, 22, 3, 3, "F");
-    setDrawColor(doc, [230, 240, 236]);
-    doc.roundedRect(cx, cy, cardW, 22, 3, 3, "S");
+    doc.roundedRect(cx, cy, cardW, 20, 3, 3, "F");
+    setDraw(doc, [230, 230, 225]);
+    doc.roundedRect(cx, cy, cardW, 20, 3, 3, "S");
 
-    // Faixa colorida lateral
-    setFill(doc, TEAL);
-    doc.roundedRect(cx, cy, 3, 22, 2, 2, "F");
+    // Left accent
+    setFill(doc, GOLD);
+    doc.roundedRect(cx, cy, 3, 20, 1.5, 1.5, "F");
 
-    setTextColor(doc, DARK);
-    doc.setFontSize(18);
+    setText(doc, PETROL);
+    doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
-    doc.text(card.value, cx + 10, cy + 13);
+    doc.text(s.value, cx + 10, cy + 12);
 
-    doc.setFontSize(8);
+    doc.setFontSize(7);
     doc.setFont("helvetica", "normal");
-    setTextColor(doc, GRAY);
-    doc.text(card.label, cx + 10, cy + 19);
+    setText(doc, GRAY);
+    doc.text(s.label, cx + 10, cy + 17);
   });
 
-  y += 62;
+  y += 54;
 
-  // Barra de aceitação
-  setTextColor(doc, TEAL_DARK);
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "bold");
-  doc.text("Índice de Aceitação", margin, y);
-
-  y += 5;
-  // Fundo da barra
-  setFill(doc, [230, 240, 236]);
-  doc.roundedRect(margin, y, contentW, 10, 3, 3, "F");
-
-  // Aceitação (verde)
-  const acceptPx = (data.acceptanceRate / 100) * contentW;
-  setFill(doc, TEAL);
-  doc.roundedRect(margin, y, acceptPx, 10, 3, 3, "F");
-
-  // Neutro (amarelo)
-  const neutralPx = (data.neutralRate / 100) * contentW;
-  setFill(doc, YELLOW);
-  doc.rect(margin + acceptPx, y, neutralPx, 10, "F");
-
-  // Rejeição (vermelho)
-  setFill(doc, [240, 100, 90]);
-  const rejectPx = (data.rejectionRate / 100) * contentW;
-  doc.rect(margin + acceptPx + neutralPx, y, rejectPx, 10, "F");
-
-  y += 14;
-  doc.setFontSize(8);
-  setTextColor(doc, GRAY);
-  const legend = [
-    { color: TEAL, label: `Aceitação ${data.acceptanceRate}%` },
-    { color: YELLOW, label: `Neutro ${data.neutralRate}%` },
-    { color: [240, 100, 90] as [number, number, number], label: `Recusa ${data.rejectionRate}%` },
-  ];
-  legend.forEach((l, i) => {
-    const lx = margin + i * 58;
-    setFill(doc, l.color);
-    doc.roundedRect(lx, y - 2, 7, 4, 1, 1, "F");
-    setTextColor(doc, GRAY);
-    doc.text(l.label, lx + 9, y + 1);
-  });
-
-  // Nota de geração
-  y = 272;
-  setFill(doc, LIGHT_BG);
-  doc.roundedRect(margin, y, contentW, 16, 3, 3, "F");
-  setTextColor(doc, GRAY);
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "normal");
-  doc.text(
-    "Este relatório foi gerado automaticamente pelo NutriBaby — Ferramenta de acompanhamento alimentar infantil.",
-    margin + 4,
-    y + 6
-  );
-  doc.text(
-    "📲 Indique o app NutriBaby para seus pacientes! Acesse: nutribaby.app",
-    margin + 4,
-    y + 12
-  );
-
-  // ─── PÁGINA 2: DETALHES ───────────────────────────────────────────────────
-  doc.addPage();
-  setFill(doc, [255, 250, 240]);
-  doc.rect(0, 0, 210, 297, "F");
-
-  // Cabeçalho da pág 2
-  setFill(doc, TEAL);
-  doc.rect(0, 0, 210, 18, "F");
-  setTextColor(doc, WHITE);
+  // Acceptance bar
+  setText(doc, PETROL);
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  doc.text("NutriBaby — Relatório Clínico", margin, 12);
-  doc.text(`${data.childName} • ${data.period}`, W - margin, 12, { align: "right" });
+  doc.text("Índice de Aceitação Alimentar", margin, y);
+  y += 5;
 
-  y = 28;
+  setFill(doc, [230, 230, 225]);
+  doc.roundedRect(margin, y, contentW, 8, 3, 3, "F");
 
-  // 2.1 Melhores aceitos
-  setTextColor(doc, TEAL_DARK);
-  doc.setFontSize(13);
-  doc.setFont("helvetica", "bold");
-  doc.text("🏆 Alimentos com Melhor Aceitação", margin, y);
+  if (data.acceptanceRate > 0) {
+    setFill(doc, GREEN);
+    doc.roundedRect(margin, y, (data.acceptanceRate / 100) * contentW, 8, 3, 3, "F");
+  }
+  const neutralStart = (data.acceptanceRate / 100) * contentW;
+  if (data.neutralRate > 0) {
+    setFill(doc, GOLD);
+    doc.rect(margin + neutralStart, y, (data.neutralRate / 100) * contentW, 8, "F");
+  }
+  const rejectStart = neutralStart + (data.neutralRate / 100) * contentW;
+  if (data.rejectionRate > 0) {
+    setFill(doc, RED);
+    doc.rect(margin + rejectStart, y, (data.rejectionRate / 100) * contentW, 8, "F");
+  }
 
-  y += 6;
-  data.bestAccepted.forEach((item, i) => {
-    setFill(doc, i % 2 === 0 ? WHITE : LIGHT_BG);
-    doc.roundedRect(margin, y, contentW, 10, 2, 2, "F");
-
-    // Medal
-    const medals = ["🥇", "🥈", "🥉"];
-    doc.setFontSize(9);
-    setTextColor(doc, DARK);
-    doc.text(`${medals[i] ?? `${i + 1}.`}  ${item.food}`, margin + 4, y + 7);
-
-    // Barra de progresso inline
-    const barX = margin + contentW - 50;
-    const barW = 40;
-    setFill(doc, [220, 240, 234]);
-    doc.roundedRect(barX, y + 2, barW, 6, 2, 2, "F");
-    setFill(doc, TEAL);
-    doc.roundedRect(barX, y + 2, (item.rate / 100) * barW, 6, 2, 2, "F");
-
-    setTextColor(doc, TEAL_DARK);
-    doc.setFont("helvetica", "bold");
-    doc.text(`${item.rate}%`, barX + barW + 2, y + 7);
-    doc.setFont("helvetica", "normal");
-
-    y += 11;
+  y += 12;
+  doc.setFontSize(7);
+  setText(doc, GRAY);
+  const legendItems = [
+    { color: GREEN, label: `Aceitação ${data.acceptanceRate}%` },
+    { color: GOLD, label: `Neutro ${data.neutralRate}%` },
+    { color: RED, label: `Recusa ${data.rejectionRate}%` },
+  ];
+  legendItems.forEach((l, i) => {
+    const lx = margin + i * 55;
+    setFill(doc, l.color);
+    doc.roundedRect(lx, y - 2, 6, 3, 1, 1, "F");
+    setText(doc, GRAY);
+    doc.text(l.label, lx + 8, y);
   });
 
-  y += 6;
+  addFooter(doc, page.num);
 
-  // 2.2 Maior rejeição
-  setTextColor(doc, TEAL_DARK);
-  doc.setFontSize(13);
-  doc.setFont("helvetica", "bold");
-  doc.text("⚠️ Alimentos com Maior Recusa", margin, y);
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PÁGINA 2: DIVERSIDADE + RANKINGS
+  // ═══════════════════════════════════════════════════════════════════════════
+  page.num++;
+  doc.addPage();
+  setFill(doc, LIGHT_BG);
+  doc.rect(0, 0, 210, 297, "F");
+  addPageHeader(doc, data.childName, data.period);
+  y = 26;
 
-  y += 6;
-  data.mostRejected.forEach((item, i) => {
-    setFill(doc, i % 2 === 0 ? WHITE : LIGHT_BG);
-    doc.roundedRect(margin, y, contentW, 10, 2, 2, "F");
+  // ── 4. Diversidade Alimentar por Grupo ──
+  y = sectionTitle(doc, y, "Diversidade Alimentar por Grupo", margin);
 
-    doc.setFontSize(9);
-    setTextColor(doc, DARK);
-    doc.text(`${i + 1}.  ${item.food}`, margin + 4, y + 7);
-
-    const barX = margin + contentW - 50;
-    const barW = 40;
-    setFill(doc, [250, 220, 218]);
-    doc.roundedRect(barX, y + 2, barW, 6, 2, 2, "F");
-    setFill(doc, [220, 70, 60]);
-    doc.roundedRect(barX, y + 2, (item.rate / 100) * barW, 6, 2, 2, "F");
-
-    setTextColor(doc, [200, 50, 40]);
+  const groups = data.foodGroups ?? [];
+  if (groups.length > 0) {
+    // Table header
+    setFill(doc, PETROL);
+    doc.roundedRect(margin, y, contentW, 8, 2, 2, "F");
+    setText(doc, WHITE);
+    doc.setFontSize(7);
     doc.setFont("helvetica", "bold");
-    doc.text(`${item.rate}%`, barX + barW + 2, y + 7);
-    doc.setFont("helvetica", "normal");
+    doc.text("Grupo Alimentar", margin + 4, y + 5.5);
+    doc.text("Qtd. Alimentos", margin + 70, y + 5.5);
+    doc.text("Frequência", margin + 110, y + 5.5);
+    doc.text("Status", margin + 145, y + 5.5);
+    y += 9;
 
-    y += 11;
-  });
+    groups.forEach((g, i) => {
+      setFill(doc, i % 2 === 0 ? WHITE : LIGHT_BG);
+      doc.rect(margin, y, contentW, 8, "F");
+      setText(doc, DARK);
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.text(g.group, margin + 4, y + 5.5);
+      doc.text(String(g.count), margin + 75, y + 5.5);
+      doc.text(`${g.frequency}x`, margin + 115, y + 5.5);
+
+      const status = g.count >= 3 ? "Adequado" : g.count >= 1 ? "Explorar mais" : "Não introduzido";
+      const statusColor = g.count >= 3 ? GREEN : g.count >= 1 ? GOLD_DARK : RED;
+      setText(doc, statusColor);
+      doc.setFont("helvetica", "bold");
+      doc.text(status, margin + 145, y + 5.5);
+      y += 9;
+    });
+  } else {
+    setFill(doc, WHITE);
+    doc.roundedRect(margin, y, contentW, 12, 3, 3, "F");
+    setText(doc, GRAY);
+    doc.setFontSize(8);
+    doc.text("Dados de grupos alimentares serão exibidos conforme registros forem adicionados.", margin + 4, y + 7);
+    y += 16;
+  }
 
   y += 6;
 
-  // 2.3 Reações observadas
-  setTextColor(doc, TEAL_DARK);
-  doc.setFontSize(13);
-  doc.setFont("helvetica", "bold");
-  doc.text("🩺 Possíveis Reações Observadas", margin, y);
+  // ── 5. Melhor Aceitação ──
+  y = checkPageBreak(doc, y, 60, data.childName, data.period, page);
+  y = sectionTitle(doc, y, "Alimentos com Melhor Aceitação", margin);
+
+  if (data.bestAccepted.length > 0) {
+    data.bestAccepted.slice(0, 5).forEach((item, i) => {
+      setFill(doc, i % 2 === 0 ? WHITE : LIGHT_BG);
+      doc.roundedRect(margin, y, contentW, 10, 2, 2, "F");
+      const medals = ["🥇", "🥈", "🥉"];
+      doc.setFontSize(9);
+      setText(doc, DARK);
+      doc.setFont("helvetica", "normal");
+      doc.text(`${medals[i] ?? `${i + 1}.`}  ${item.food}`, margin + 4, y + 7);
+
+      if (item.count) {
+        doc.setFontSize(7);
+        setText(doc, GRAY);
+        doc.text(`${item.count}x oferecido`, margin + 85, y + 7);
+      }
+
+      const barX = margin + contentW - 50;
+      const barW = 38;
+      setFill(doc, [220, 240, 234]);
+      doc.roundedRect(barX, y + 2.5, barW, 5, 2, 2, "F");
+      setFill(doc, GREEN);
+      doc.roundedRect(barX, y + 2.5, (item.rate / 100) * barW, 5, 2, 2, "F");
+
+      setText(doc, GREEN);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.text(`${item.rate}%`, barX + barW + 2, y + 7);
+      y += 11;
+    });
+  } else {
+    setText(doc, GRAY);
+    doc.setFontSize(8);
+    doc.text("Nenhum registro de aceitação disponível.", margin, y + 4);
+    y += 10;
+  }
+
   y += 6;
+
+  // ── 6. Maior Recusa ──
+  y = checkPageBreak(doc, y, 50, data.childName, data.period, page);
+  y = sectionTitle(doc, y, "Alimentos com Maior Recusa", margin);
+
+  if (data.mostRejected.length > 0) {
+    data.mostRejected.slice(0, 5).forEach((item, i) => {
+      setFill(doc, i % 2 === 0 ? WHITE : LIGHT_BG);
+      doc.roundedRect(margin, y, contentW, 10, 2, 2, "F");
+      doc.setFontSize(9);
+      setText(doc, DARK);
+      doc.setFont("helvetica", "normal");
+      doc.text(`${i + 1}.  ${item.food}`, margin + 4, y + 7);
+
+      if (item.count) {
+        doc.setFontSize(7);
+        setText(doc, GRAY);
+        doc.text(`${item.count}x exposto`, margin + 85, y + 7);
+      }
+
+      const barX = margin + contentW - 50;
+      const barW = 38;
+      setFill(doc, [250, 225, 222]);
+      doc.roundedRect(barX, y + 2.5, barW, 5, 2, 2, "F");
+      setFill(doc, RED);
+      doc.roundedRect(barX, y + 2.5, (item.rate / 100) * barW, 5, 2, 2, "F");
+
+      setText(doc, RED);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.text(`${item.rate}%`, barX + barW + 2, y + 7);
+      y += 11;
+    });
+  } else {
+    setText(doc, GRAY);
+    doc.setFontSize(8);
+    doc.text("Nenhum registro de recusa disponível.", margin, y + 4);
+    y += 10;
+  }
+
+  y += 6;
+
+  // ── 7. Reações / Intolerâncias ──
+  y = checkPageBreak(doc, y, 40, data.childName, data.period, page);
+  y = sectionTitle(doc, y, "Possíveis Reações ou Intolerâncias", margin);
 
   if (data.reactions.length === 0) {
-    setFill(doc, [235, 248, 243]);
-    doc.roundedRect(margin, y, contentW, 12, 3, 3, "F");
-    setTextColor(doc, TEAL_DARK);
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.text("✅  Nenhuma reação adversa registrada no período.", margin + 4, y + 8);
-    y += 18;
-  } else {
-    // Header tabela
-    setFill(doc, TEAL);
-    doc.roundedRect(margin, y, contentW, 9, 2, 2, "F");
-    setTextColor(doc, WHITE);
+    setFill(doc, GREEN_LIGHT);
+    doc.roundedRect(margin, y, contentW, 10, 3, 3, "F");
+    setText(doc, GREEN);
     doc.setFontSize(8);
+    doc.text("Não houve reações relatadas no período.", margin + 4, y + 7);
+    y += 14;
+  } else {
+    setFill(doc, PETROL);
+    doc.roundedRect(margin, y, contentW, 8, 2, 2, "F");
+    setText(doc, WHITE);
+    doc.setFontSize(7);
     doc.setFont("helvetica", "bold");
-    doc.text("Data", margin + 4, y + 6);
-    doc.text("Alimento", margin + 30, y + 6);
-    doc.text("Reação", margin + 90, y + 6);
-    y += 10;
+    doc.text("Data", margin + 4, y + 5.5);
+    doc.text("Alimento", margin + 35, y + 5.5);
+    doc.text("Reação Observada", margin + 85, y + 5.5);
+    y += 9;
 
     data.reactions.forEach((r, i) => {
-      setFill(doc, i % 2 === 0 ? WHITE : LIGHT_BG);
-      doc.rect(margin, y, contentW, 9, "F");
-      setTextColor(doc, DARK);
+      y = checkPageBreak(doc, y, 10, data.childName, data.period, page);
+      setFill(doc, i % 2 === 0 ? WHITE : RED_LIGHT);
+      doc.rect(margin, y, contentW, 8, "F");
+      setText(doc, DARK);
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(8);
-      doc.text(r.date, margin + 4, y + 6);
-      doc.text(r.food, margin + 30, y + 6);
-      doc.text(r.type, margin + 90, y + 6);
-      y += 10;
+      doc.setFontSize(7.5);
+      doc.text(r.date, margin + 4, y + 5.5);
+      doc.text(r.food, margin + 35, y + 5.5);
+      const reactionLines = doc.splitTextToSize(r.type, 80);
+      doc.text(reactionLines[0], margin + 85, y + 5.5);
+      y += 9;
     });
     y += 4;
   }
 
-  // 2.4 Evolução semanal (gráfico de barras simples)
-  setTextColor(doc, TEAL_DARK);
-  doc.setFontSize(13);
-  doc.setFont("helvetica", "bold");
-  doc.text("📈 Evolução Semanal de Introdução", margin, y);
-  y += 8;
+  addFooter(doc, page.num);
 
-  const chartH = 40;
-  const chartW = contentW;
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PÁGINA 3: EVOLUÇÃO + INSIGHTS + OBSERVAÇÕES
+  // ═══════════════════════════════════════════════════════════════════════════
+  page.num++;
+  doc.addPage();
+  setFill(doc, LIGHT_BG);
+  doc.rect(0, 0, 210, 297, "F");
+  addPageHeader(doc, data.childName, data.period);
+  y = 26;
+
+  // ── Evolução Semanal ──
+  y = sectionTitle(doc, y, "Evolução Semanal de Diversidade", margin);
+
+  const chartH = 38;
   const weeks = data.weeklyIntroductions;
   const maxVal = Math.max(...weeks, 1);
-  const barWidth = (chartW / weeks.length) * 0.6;
-  const barGap = chartW / weeks.length;
+  const barGap = contentW / Math.max(weeks.length, 1);
+  const barWidth = barGap * 0.55;
 
-  // Eixo Y
-  setDrawColor(doc, [210, 220, 218]);
-  doc.setLineWidth(0.3);
+  // Grid lines
+  setDraw(doc, [230, 230, 225]);
+  doc.setLineWidth(0.2);
   for (let i = 0; i <= 4; i++) {
     const lineY = y + chartH - (i / 4) * chartH;
-    doc.line(margin, lineY, margin + chartW, lineY);
-    setTextColor(doc, GRAY);
-    doc.setFontSize(7);
-    doc.text(String(Math.round((i / 4) * maxVal)), margin - 5, lineY + 1, { align: "right" });
+    doc.line(margin, lineY, margin + contentW, lineY);
+    setText(doc, GRAY);
+    doc.setFontSize(6);
+    doc.text(String(Math.round((i / 4) * maxVal)), margin - 4, lineY + 1, { align: "right" });
   }
 
   weeks.forEach((val, i) => {
-    const barH = (val / maxVal) * chartH;
-    const bx = margin + i * barGap + barGap * 0.2;
+    const barH = Math.max((val / maxVal) * chartH, val > 0 ? 2 : 0);
+    const bx = margin + i * barGap + barGap * 0.22;
     const by = y + chartH - barH;
 
-    setFill(doc, TEAL);
+    setFill(doc, GOLD);
     doc.roundedRect(bx, by, barWidth, barH, 2, 2, "F");
 
-    setTextColor(doc, DARK);
-    doc.setFontSize(8);
+    setText(doc, PETROL);
+    doc.setFontSize(7);
     doc.setFont("helvetica", "bold");
     doc.text(String(val), bx + barWidth / 2, by - 2, { align: "center" });
 
-    setTextColor(doc, GRAY);
+    setText(doc, GRAY);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(7);
-    doc.text(`Sem ${i + 1}`, bx + barWidth / 2, y + chartH + 5, { align: "center" });
+    doc.setFontSize(6);
+    doc.text(`Sem ${i + 1}`, bx + barWidth / 2, y + chartH + 4, { align: "center" });
   });
-
   y += chartH + 14;
 
-  // 2.5 Observações dos pais
-  if (y < 220) {
-    setTextColor(doc, TEAL_DARK);
-    doc.setFontSize(13);
-    doc.setFont("helvetica", "bold");
-    doc.text("📝 Observações dos Pais / Responsáveis", margin, y);
-    y += 6;
-
-    const notesH = 36;
+  // ── 8. Comportamento Alimentar ──
+  if (data.behavioralNotes) {
+    y = checkPageBreak(doc, y, 30, data.childName, data.period, page);
+    y = sectionTitle(doc, y, "Comportamento e Ambiente Alimentar", margin);
     setFill(doc, WHITE);
-    doc.roundedRect(margin, y, contentW, notesH, 3, 3, "F");
-    setDrawColor(doc, [200, 220, 215]);
-    doc.roundedRect(margin, y, contentW, notesH, 3, 3, "S");
-
-    setTextColor(doc, DARK);
-    doc.setFontSize(9);
+    doc.roundedRect(margin, y, contentW, 24, 3, 3, "F");
+    setDraw(doc, [230, 230, 225]);
+    doc.roundedRect(margin, y, contentW, 24, 3, 3, "S");
+    setText(doc, DARK);
+    doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
-    const lines = doc.splitTextToSize(data.parentNotes || "Nenhuma observação adicional.", contentW - 8);
-    doc.text(lines, margin + 4, y + 8);
-    y += notesH + 6;
+    const behLines = doc.splitTextToSize(data.behavioralNotes, contentW - 8);
+    doc.text(behLines.slice(0, 5), margin + 4, y + 6);
+    y += 30;
   }
 
-  // Rodapé da pág 2
-  y = 272;
-  setDrawColor(doc, [200, 220, 215]);
-  doc.setLineWidth(0.3);
-  doc.line(margin, y, W - margin, y);
-  y += 6;
-  setFill(doc, LIGHT_BG);
+  // ── 9. Contexto Familiar ──
+  if (data.familyContext) {
+    y = checkPageBreak(doc, y, 30, data.childName, data.period, page);
+    y = sectionTitle(doc, y, "Rotina e Contexto Familiar", margin);
+    setFill(doc, WHITE);
+    doc.roundedRect(margin, y, contentW, 24, 3, 3, "F");
+    setDraw(doc, [230, 230, 225]);
+    doc.roundedRect(margin, y, contentW, 24, 3, 3, "S");
+    setText(doc, DARK);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    const famLines = doc.splitTextToSize(data.familyContext, contentW - 8);
+    doc.text(famLines.slice(0, 5), margin + 4, y + 6);
+    y += 30;
+  }
+
+  // ── 10. Observações do Responsável ──
+  y = checkPageBreak(doc, y, 30, data.childName, data.period, page);
+  y = sectionTitle(doc, y, "Observações do Responsável", margin);
+
+  setFill(doc, WHITE);
+  const notesText = data.parentNotes || "Nenhuma observação adicional.";
+  const notesLines = doc.splitTextToSize(notesText, contentW - 8);
+  const notesH = Math.max(20, notesLines.length * 4 + 10);
+  doc.roundedRect(margin, y, contentW, notesH, 3, 3, "F");
+  setDraw(doc, [230, 230, 225]);
+  doc.roundedRect(margin, y, contentW, notesH, 3, 3, "S");
+  setText(doc, DARK);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.text(notesLines, margin + 4, y + 7);
+  y += notesH + 6;
+
+  // ── 11. Análise Automática ──
+  const insights = data.insights ?? generateAutoInsights(data);
+  if (insights.length > 0) {
+    y = checkPageBreak(doc, y, 10 + insights.length * 8, data.childName, data.period, page);
+    y = sectionTitle(doc, y, "Análise Automática do Sistema", margin);
+
+    setFill(doc, [245, 248, 255]);
+    const insightH = insights.length * 8 + 6;
+    doc.roundedRect(margin, y, contentW, insightH, 3, 3, "F");
+    setDraw(doc, [200, 210, 230]);
+    doc.roundedRect(margin, y, contentW, insightH, 3, 3, "S");
+
+    insights.forEach((insight, i) => {
+      setText(doc, PETROL);
+      doc.setFontSize(7.5);
+      doc.setFont("helvetica", "normal");
+      doc.text(`•  ${insight}`, margin + 4, y + 6 + i * 8);
+    });
+    y += insightH + 6;
+  }
+
+  // ── 12. Considerações Finais ──
+  y = checkPageBreak(doc, y, 20, data.childName, data.period, page);
+  y = sectionTitle(doc, y, "Considerações Finais", margin);
+  setFill(doc, WHITE);
   doc.roundedRect(margin, y, contentW, 16, 3, 3, "F");
-  setTextColor(doc, GRAY);
+  setDraw(doc, [230, 230, 225]);
+  doc.roundedRect(margin, y, contentW, 16, 3, 3, "S");
+  setText(doc, GRAY);
   doc.setFontSize(7.5);
+  doc.setFont("helvetica", "italic");
   doc.text(
-    "Este relatório foi gerado pelo NutriBaby — ferramenta de acompanhamento da introdução alimentar infantil.",
-    margin + 4,
-    y + 6
+    "Este relatório tem caráter informativo e auxilia na avaliação nutricional profissional.",
+    margin + 4, y + 6
   );
   doc.text(
-    "📲 Indique aos seus pacientes: nutribaby.app  |  Gerado em: " + new Date().toLocaleDateString("pt-BR"),
-    margin + 4,
-    y + 12
+    "Não substitui diagnóstico, orientação ou acompanhamento por nutricionista ou pediatra.",
+    margin + 4, y + 12
   );
 
-  doc.save(`relatorio-nutribaby-${data.childName.toLowerCase().replace(/\s+/g, "-")}.pdf`);
+  addFooter(doc, page.num);
+
+  // Save
+  const filename = `relatorio-nutricional-${(data.childName || "bebe").toLowerCase().replace(/\s+/g, "-")}.pdf`;
+  doc.save(filename);
+}
+
+// ── Auto-insights generator ──
+function generateAutoInsights(data: ReportData): string[] {
+  const insights: string[] = [];
+
+  if (data.totalFoods === 0) {
+    insights.push("Nenhum alimento foi registrado. Inicie os registros para análises detalhadas.");
+    return insights;
+  }
+
+  if (data.acceptanceRate >= 70) {
+    insights.push(`Índice de aceitação de ${data.acceptanceRate}% — considerado adequado.`);
+  } else if (data.acceptanceRate >= 40) {
+    insights.push(`Índice de aceitação de ${data.acceptanceRate}% — pode ser ampliado com reexposição.`);
+  } else {
+    insights.push(`Índice de aceitação de ${data.acceptanceRate}% — recomenda-se avaliar estratégias de oferta.`);
+  }
+
+  if (data.mostRejected.length > 0) {
+    const topRejected = data.mostRejected[0];
+    insights.push(`"${topRejected.food}" apresenta a maior taxa de recusa (${topRejected.rate}%). Considerar reexposição.`);
+  }
+
+  if (data.reactionsCount > 0) {
+    insights.push(`${data.reactionsCount} reação(ões) registrada(s). Recomenda-se atenção e acompanhamento.`);
+  } else {
+    insights.push("Nenhuma reação adversa registrada no período avaliado.");
+  }
+
+  const groups = data.foodGroups ?? [];
+  const lowGroups = groups.filter((g) => g.count < 2);
+  if (lowGroups.length > 0) {
+    insights.push(`Grupos com baixa diversidade: ${lowGroups.map((g) => g.group).join(", ")}.`);
+  }
+
+  if (data.weeklyFrequency < 3) {
+    insights.push("Frequência semanal de refeições registradas abaixo de 3. Considerar aumentar a regularidade.");
+  }
+
+  return insights;
 }

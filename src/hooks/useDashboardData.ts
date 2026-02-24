@@ -25,6 +25,7 @@ interface FoodLog {
 interface FoodStat {
   food: string;
   rate: number;
+  count?: number;
 }
 
 export interface DashboardData {
@@ -134,14 +135,14 @@ export function useDashboardData(): DashboardData {
     });
 
     const bestAccepted: FoodStat[] = Object.entries(foodCounts)
-      .map(([food, c]) => ({ food, rate: Math.round((c.accepted / c.total) * 100) }))
+      .map(([food, c]) => ({ food, rate: Math.round((c.accepted / c.total) * 100), count: c.total }))
       .sort((a, b) => b.rate - a.rate)
       .slice(0, 5);
 
     const mostRejected: FoodStat[] = Object.entries(foodCounts)
-      .map(([food, c]) => ({ food, rate: Math.round(((c.total - c.accepted) / c.total) * 100) }))
+      .map(([food, c]) => ({ food, rate: Math.round(((c.total - c.accepted) / c.total) * 100), count: c.total }))
       .sort((a, b) => b.rate - a.rate)
-      .slice(0, 3);
+      .slice(0, 5);
 
     // Reactions
     const reactions = logs
@@ -184,12 +185,31 @@ export function useDashboardData(): DashboardData {
 
     const babyAge = calcAge(baby?.birth_date ?? null);
 
-    const reportData = {
+    // Food groups classification
+    const groupMap: Record<string, string[]> = {
+      "Frutas": ["banana", "maçã", "manga", "morango", "melancia", "abacate", "pera", "mamão", "laranja", "uva", "kiwi", "melão", "ameixa", "goiaba", "pêssego"],
+      "Legumes": ["cenoura", "abobrinha", "abóbora", "batata", "batata doce", "inhame", "mandioca", "mandioquinha", "beterraba", "chuchu"],
+      "Verduras": ["brócolis", "espinafre", "couve", "alface", "rúcula", "agrião", "acelga", "repolho"],
+      "Proteínas": ["frango", "carne", "ovo", "peixe", "feijão", "lentilha", "grão de bico", "tofu", "fígado"],
+      "Grãos": ["arroz", "aveia", "quinoa", "milho", "trigo", "macarrão", "pão"],
+      "Oleaginosas": ["castanha", "amendoim", "nozes", "amêndoa", "gergelim", "linhaça", "chia"],
+    };
+
+    const foodGroups = Object.entries(groupMap).map(([group, keywords]) => {
+      const matchedFoods = logs.filter((l) =>
+        keywords.some((kw) => l.food_name.toLowerCase().includes(kw))
+      );
+      const uniqueMatched = new Set(matchedFoods.map((l) => l.food_name.toLowerCase()));
+      return { group, count: uniqueMatched.size, frequency: matchedFoods.length };
+    });
+
+    const reportData: import("@/lib/generateReport").ReportData = {
       childName: baby?.name ?? "",
       birthDate: baby?.birth_date ? format(new Date(baby.birth_date), "dd/MM/yyyy") : "",
       currentAge: babyAge,
       weight: baby?.weight_kg?.toString().replace(".", ",") ?? "",
       period: format(new Date(), "MMMM yyyy"),
+      responsibleName: profileName,
       totalFoods,
       acceptanceRate,
       rejectionRate,
@@ -202,6 +222,7 @@ export function useDashboardData(): DashboardData {
       mostRejected,
       reactions,
       weeklyIntroductions: weeklyEvolution.map((w) => w.count),
+      foodGroups,
       parentNotes: "",
     };
 
