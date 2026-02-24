@@ -214,41 +214,8 @@ export default function Index() {
           </div>
         </button>
 
-        {/* 6. Quick access - Alimentos */}
-        <button
-          onClick={() => navigate("/alimentos")}
-          className="card-clinical p-4 w-full text-left"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">🥗</span>
-              <h2 className="font-extrabold text-sm" style={{ fontWeight: 800, color: "hsl(var(--app-petrol))" }}>
-                Alimentos · Como oferecer
-              </h2>
-            </div>
-            <ChevronRight size={18} style={{ color: "hsl(var(--app-gold-dark))" }} />
-          </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            {foods.slice(0, 4).map((food) => (
-              <div key={food.id} className="flex-shrink-0 flex flex-col items-center gap-1">
-                <div className="relative w-18 h-18 rounded-xl overflow-hidden">
-                  <FoodImage
-                    name={food.image}
-                    className="w-full h-full object-cover"
-                    alt={food.name}
-                  />
-                  <span className="age-tag absolute bottom-1 left-1">{food.age}</span>
-                </div>
-                <span
-                  className="text-xs font-semibold text-center"
-                  style={{ fontWeight: 600, color: "hsl(var(--app-petrol))" }}
-                >
-                  {food.name}
-                </span>
-              </div>
-            ))}
-          </div>
-        </button>
+
+
 
         <div className="flex justify-center gap-4 py-3 text-3xl">
           <span>🍌</span><span>🍓</span><span>🥦</span><span>🍊</span>
