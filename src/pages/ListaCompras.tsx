@@ -53,7 +53,17 @@ const initialCategories: Record<string, ShoppingItem[]> = {
   ],
 };
 
-export default function ListaCompras() {
+import { PremiumGate } from "@/components/PremiumGate";
+
+export default function ListaComprasPage() {
+  return (
+    <PremiumGate>
+      <ListaCompras />
+    </PremiumGate>
+  );
+}
+
+function ListaCompras() {
   const navigate = useNavigate();
   const [categories, setCategories] = useState(initialCategories);
 
