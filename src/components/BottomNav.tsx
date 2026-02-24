@@ -13,8 +13,13 @@ export function BottomNav() {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50 border-t border-border"
-      style={{ background: "hsl(var(--card))" }}>
+    <nav
+      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50 border-t"
+      style={{
+        background: "hsl(var(--card))",
+        borderColor: "hsl(var(--app-divider))",
+      }}
+    >
       <div className="flex items-center justify-around py-2 px-1">
         {navItems.map(({ to, label, icon: Icon }) => {
           const isActive = location.pathname === to;
@@ -29,15 +34,15 @@ export function BottomNav() {
                 size={22}
                 className="transition-all"
                 style={{
-                  color: isActive ? "hsl(var(--app-yellow-highlight))" : "hsl(var(--app-brown))",
-                  fill: isActive ? "hsl(var(--app-yellow-highlight))" : "none",
+                  color: isActive ? "hsl(var(--app-gold-dark))" : "hsl(var(--app-petrol))",
+                  fill: isActive ? "hsl(var(--app-gold-dark))" : "none",
                   strokeWidth: isActive ? 2.2 : 1.5,
                 }}
               />
               <span
                 className="text-[10px] leading-tight truncate"
                 style={{
-                  color: isActive ? "hsl(var(--app-yellow-highlight))" : "hsl(var(--app-brown-light))",
+                  color: isActive ? "hsl(var(--app-gold-dark))" : "hsl(var(--app-petrol-light))",
                   fontWeight: isActive ? 800 : 600,
                 }}
               >
