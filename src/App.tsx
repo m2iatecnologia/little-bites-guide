@@ -12,6 +12,8 @@ import Checklist from "./pages/Checklist";
 import Perfil from "./pages/Perfil";
 import ListaCompras from "./pages/ListaCompras";
 import EmDesenvolvimento from "./pages/EmDesenvolvimento";
+import Planos from "./pages/Planos";
+import AssinaturaConfirmada from "./pages/AssinaturaConfirmada";
 import NotFound from "./pages/NotFound";
 import { BottomNav } from "./components/BottomNav";
 
@@ -34,6 +36,8 @@ const App = () => (
             <Route path="/perfil" element={<Perfil />} />
             <Route path="/lista-compras" element={<ListaCompras />} />
             <Route path="/em-desenvolvimento" element={<EmDesenvolvimento />} />
+            <Route path="/planos" element={<Planos />} />
+            <Route path="/assinatura-confirmada" element={<AssinaturaConfirmada />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />
