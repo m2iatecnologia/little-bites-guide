@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Star, Heart, Crown, X } from "lucide-react";
+import { Star, Heart, Crown, X, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { FoodImage } from "@/components/FoodImage";
 import { recipes } from "@/data/appData";
+import { useSubscription } from "@/hooks/useSubscription";
+import { PremiumBadge } from "@/components/PremiumGate";
 
 const ageFilters = ["Todos", "+6m", "+8m", "+9m", "+12m"];
 const dietFilters = ["Tradicional", "Vegetariano", "Vegano"];
@@ -74,10 +76,19 @@ function RecipeDetail({ recipe, onClose }: { recipe: typeof allRecipes[0]; onClo
 
 export default function Receitas() {
   const navigate = useNavigate();
+  const { isPremium } = useSubscription();
   const [selectedAge, setSelectedAge] = useState("Todos");
   const [selectedDiet, setSelectedDiet] = useState("Tradicional");
   const [favorites, setFavorites] = useState<number[]>([]);
   const [selected, setSelected] = useState<typeof allRecipes[0] | null>(null);
+
+  const handleSelectRecipe = (recipe: typeof allRecipes[0]) => {
+    if (recipe.premium && !isPremium) {
+      navigate("/planos");
+      return;
+    }
+    setSelected(recipe);
+  };
 
   const filtered = allRecipes.filter(r =>
     (selectedAge === "Todos" || r.age === selectedAge)
@@ -131,11 +142,20 @@ export default function Receitas() {
       <div className="px-4">
         <div className="grid grid-cols-2 gap-3">
           {filtered.map(recipe => (
-            <button key={recipe.id} onClick={() => setSelected(recipe)}
-              className="card-food flex flex-col overflow-hidden text-left transition-all active:scale-95">
+            <button key={recipe.id} onClick={() => handleSelectRecipe(recipe)}
+              className="card-food flex flex-col overflow-hidden text-left transition-all active:scale-95 relative">
               <div className="relative aspect-[4/3]">
-                <FoodImage name={recipe.image} className="w-full h-full object-cover" alt={recipe.name} />
-                {recipe.premium && (
+                <FoodImage
+                  name={recipe.image}
+                  className={`w-full h-full object-cover ${recipe.premium && !isPremium ? "blur-[2px]" : ""}`}
+                  alt={recipe.name}
+                />
+                {recipe.premium && !isPremium && (
+                  <div className="absolute top-2 right-2">
+                    <PremiumBadge />
+                  </div>
+                )}
+                {recipe.premium && isPremium && (
                   <div className="absolute top-2 right-2">
                     <Crown size={16} style={{ color: "hsl(var(--app-yellow-highlight))" }} />
                   </div>

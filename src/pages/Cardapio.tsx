@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { PremiumGate } from "@/components/PremiumGate";
 import {
   ChevronDown,
   ChevronUp,
@@ -160,7 +161,15 @@ const suggestions = [
   { name: "Brócolis", emoji: "🥦", reason: "Baixa aceitação — tente nova forma de preparo" },
 ];
 
-export default function Cardapio() {
+export default function CardapioPage() {
+  return (
+    <PremiumGate>
+      <CardapioContent />
+    </PremiumGate>
+  );
+}
+
+function CardapioContent() {
   const navigate = useNavigate();
   const [diet, setDiet] = useState<DietMode>("Tradicional");
   const [weekOffset, setWeekOffset] = useState(0);

@@ -11,6 +11,7 @@ import {
   Lightbulb,
   RefreshCw,
 } from "lucide-react";
+import { PremiumBanner } from "@/components/PremiumBanner";
 
 /* mock data */
 const weeklyEvolution = [
@@ -63,6 +64,8 @@ export default function Index() {
       </div>
 
       <div className="px-4 space-y-4">
+        {/* Premium expired banner */}
+        <PremiumBanner />
         {/* 1. Painel de Acompanhamento Alimentar */}
         <ReportSection />
 
