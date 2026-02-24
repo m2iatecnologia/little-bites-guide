@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileText, TrendingUp, Check, X, Minus, Download, ChevronDown, ChevronUp } from "lucide-react";
+import { FileText, TrendingUp, Check, X, Download, ChevronDown, ChevronUp } from "lucide-react";
 import { generateClinicalReport } from "@/lib/generateReport";
 
 const mockReportData = {
@@ -51,46 +51,33 @@ export function ReportSection() {
 
   return (
     <>
-      {/* ── Bloco Resumo Alimentar ── */}
       <div className="card-food p-4">
-        {/* Cabeçalho */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center"
-              style={{ background: "hsl(var(--app-teal-light))" }}
-            >
-              <TrendingUp size={16} style={{ color: "hsl(var(--primary))" }} />
+            <div className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ background: "hsl(var(--app-yellow) / 0.4)" }}>
+              <TrendingUp size={16} style={{ color: "hsl(var(--app-yellow-highlight))" }} />
             </div>
             <h2 className="font-extrabold text-base" style={{ fontWeight: 800 }}>
               📊 Resumo Alimentar do Mês
             </h2>
           </div>
-          <button
-            onClick={() => setShowDetails((v) => !v)}
-            style={{ color: "hsl(var(--muted-foreground))" }}
-          >
+          <button onClick={() => setShowDetails((v) => !v)} style={{ color: "hsl(var(--muted-foreground))" }}>
             {showDetails ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
           </button>
         </div>
 
-        {/* Stats grid */}
         <div className="grid grid-cols-3 gap-2 mb-3">
           {[
             { label: "Alimentos ofertados", value: "42", icon: "🥗" },
             { label: "Novos introduzidos", value: "8", icon: "🆕" },
             { label: "Refeições registradas", value: "87", icon: "🍽️" },
           ].map((s) => (
-            <div
-              key={s.label}
-              className="rounded-xl p-2 text-center"
-              style={{ background: "hsl(var(--app-teal-light))" }}
-            >
+            <div key={s.label} className="rounded-xl p-2 text-center"
+              style={{ background: "hsl(var(--app-yellow) / 0.25)" }}>
               <div className="text-lg">{s.icon}</div>
-              <div
-                className="text-lg font-extrabold leading-none"
-                style={{ color: "hsl(var(--app-teal-dark))", fontWeight: 900 }}
-              >
+              <div className="text-lg font-extrabold leading-none"
+                style={{ color: "hsl(var(--app-brown))", fontWeight: 900 }}>
                 {s.value}
               </div>
               <div className="text-[9px] leading-tight mt-0.5" style={{ color: "hsl(var(--muted-foreground))" }}>
@@ -100,22 +87,22 @@ export function ReportSection() {
           ))}
         </div>
 
-        {/* Barra de aceitação */}
+        {/* Acceptance bar */}
         <div className="mb-3">
           <div className="flex justify-between text-xs mb-1" style={{ color: "hsl(var(--muted-foreground))" }}>
             <span>Índice de Aceitação</span>
-            <span className="font-bold" style={{ color: "hsl(var(--primary))", fontWeight: 700 }}>68%</span>
+            <span className="font-bold" style={{ color: "hsl(var(--app-yellow-highlight))", fontWeight: 700 }}>68%</span>
           </div>
           <div className="h-3 rounded-full overflow-hidden flex" style={{ background: "hsl(var(--muted))" }}>
-            <div className="h-full" style={{ width: "68%", background: "hsl(var(--primary))", borderRadius: "999px 0 0 999px" }} />
-            <div className="h-full" style={{ width: "12%", background: "hsl(var(--app-yellow-dark))" }} />
-            <div className="h-full flex-1" style={{ background: "#f04040", borderRadius: "0 999px 999px 0" }} />
+            <div className="h-full" style={{ width: "68%", background: "hsl(var(--app-yellow-dark))", borderRadius: "999px 0 0 999px" }} />
+            <div className="h-full" style={{ width: "12%", background: "hsl(var(--app-warm-muted))" }} />
+            <div className="h-full flex-1" style={{ background: "hsl(25 40% 65%)", borderRadius: "0 999px 999px 0" }} />
           </div>
           <div className="flex gap-3 mt-1">
             {[
-              { color: "hsl(var(--primary))", label: "Aceitação 68%" },
-              { color: "hsl(var(--app-yellow-dark))", label: "Neutro 12%" },
-              { color: "#f04040", label: "Recusa 20%" },
+              { color: "hsl(var(--app-yellow-dark))", label: "Aceitação 68%" },
+              { color: "hsl(var(--app-warm-muted))", label: "Neutro 12%" },
+              { color: "hsl(25 40% 65%)", label: "Recusa 20%" },
             ].map((l) => (
               <div key={l.label} className="flex items-center gap-1">
                 <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: l.color }} />
@@ -125,10 +112,9 @@ export function ReportSection() {
           </div>
         </div>
 
-        {/* Detalhes expandíveis */}
         {showDetails && (
           <div className="space-y-2 mb-3">
-            <div className="text-xs font-bold mb-1" style={{ color: "hsl(var(--app-teal-dark))", fontWeight: 700 }}>
+            <div className="text-xs font-bold mb-1" style={{ color: "hsl(var(--app-brown))", fontWeight: 700 }}>
               🏆 Melhor aceitação
             </div>
             {mockReportData.bestAccepted.slice(0, 3).map((item, i) => (
@@ -136,14 +122,14 @@ export function ReportSection() {
                 <span className="text-xs w-4">{["🥇", "🥈", "🥉"][i]}</span>
                 <span className="text-xs flex-1">{item.food}</span>
                 <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
-                  <div className="h-full rounded-full" style={{ width: `${item.rate}%`, background: "hsl(var(--primary))" }} />
+                  <div className="h-full rounded-full" style={{ width: `${item.rate}%`, background: "hsl(var(--app-yellow-dark))" }} />
                 </div>
-                <span className="text-xs font-bold w-8 text-right" style={{ color: "hsl(var(--primary))", fontWeight: 700 }}>
+                <span className="text-xs font-bold w-8 text-right" style={{ color: "hsl(var(--app-yellow-highlight))", fontWeight: 700 }}>
                   {item.rate}%
                 </span>
               </div>
             ))}
-            <div className="text-xs font-bold mt-2 mb-1" style={{ color: "#c0392b", fontWeight: 700 }}>
+            <div className="text-xs font-bold mt-2 mb-1" style={{ color: "hsl(25 40% 50%)", fontWeight: 700 }}>
               ⚠️ Maior rejeição
             </div>
             {mockReportData.mostRejected.slice(0, 3).map((item) => (
@@ -151,15 +137,15 @@ export function ReportSection() {
                 <span className="text-xs w-4">•</span>
                 <span className="text-xs flex-1">{item.food}</span>
                 <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
-                  <div className="h-full rounded-full" style={{ width: `${item.rate}%`, background: "#e74c3c" }} />
+                  <div className="h-full rounded-full" style={{ width: `${item.rate}%`, background: "hsl(25 40% 65%)" }} />
                 </div>
-                <span className="text-xs font-bold w-8 text-right" style={{ color: "#e74c3c", fontWeight: 700 }}>
+                <span className="text-xs font-bold w-8 text-right" style={{ color: "hsl(25 40% 55%)", fontWeight: 700 }}>
                   {item.rate}%
                 </span>
               </div>
             ))}
             {mockReportData.reactions.length > 0 && (
-              <div className="mt-2 p-2 rounded-lg text-xs" style={{ background: "#fff3cd" }}>
+              <div className="mt-2 p-2 rounded-lg text-xs" style={{ background: "hsl(var(--app-yellow) / 0.3)" }}>
                 <span className="font-bold" style={{ fontWeight: 700 }}>⚠️ Reações registradas:</span>{" "}
                 {mockReportData.reactions[0].food} — {mockReportData.reactions[0].type}
               </div>
@@ -167,12 +153,10 @@ export function ReportSection() {
           </div>
         )}
 
-        {/* Botão gerar PDF */}
         <button
           onClick={() => setShowModal(true)}
-          className="w-full py-3 rounded-xl flex items-center justify-center gap-2 font-bold text-sm text-white transition-all active:scale-95"
-          style={{ background: "hsl(var(--primary))", fontWeight: 700 }}
-        >
+          className="w-full py-3 rounded-xl flex items-center justify-center gap-2 font-bold text-sm transition-all active:scale-95"
+          style={{ background: "hsl(var(--app-yellow-dark))", color: "hsl(var(--app-brown))", fontWeight: 700 }}>
           <FileText size={17} />
           📄 Exportar Relatório para Consulta (PDF)
         </button>
@@ -181,18 +165,12 @@ export function ReportSection() {
         </p>
       </div>
 
-      {/* ── Modal de geração do PDF ── */}
       {showModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center"
+        <div className="fixed inset-0 z-50 flex items-end justify-center"
           style={{ background: "rgba(0,0,0,0.5)" }}
-          onClick={(e) => e.target === e.currentTarget && setShowModal(false)}
-        >
-          <div
-            className="w-full max-w-md rounded-t-3xl p-5 pb-8"
-            style={{ background: "hsl(var(--card))" }}
-          >
-            {/* Handle */}
+          onClick={(e) => e.target === e.currentTarget && setShowModal(false)}>
+          <div className="w-full max-w-md rounded-t-3xl p-5 pb-8"
+            style={{ background: "hsl(var(--card))" }}>
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-extrabold text-base" style={{ fontWeight: 800 }}>
                 📄 Gerar Relatório Clínico
@@ -202,9 +180,8 @@ export function ReportSection() {
               </button>
             </div>
 
-            {/* Preview do conteúdo */}
-            <div className="rounded-xl p-3 mb-4 space-y-1.5 text-xs" style={{ background: "hsl(var(--app-teal-light))" }}>
-              <p className="font-bold mb-2" style={{ color: "hsl(var(--app-teal-dark))", fontWeight: 700 }}>
+            <div className="rounded-xl p-3 mb-4 space-y-1.5 text-xs" style={{ background: "hsl(var(--app-yellow) / 0.25)" }}>
+              <p className="font-bold mb-2" style={{ color: "hsl(var(--app-brown))", fontWeight: 700 }}>
                 O relatório incluirá:
               </p>
               {[
@@ -215,24 +192,21 @@ export function ReportSection() {
                 "Gráfico de evolução semanal",
                 "Suas observações para o médico",
               ].map((item) => (
-                <div key={item} className="flex items-center gap-2" style={{ color: "hsl(var(--app-teal-dark))" }}>
+                <div key={item} className="flex items-center gap-2" style={{ color: "hsl(var(--app-brown))" }}>
                   <Check size={13} />
                   <span>{item}</span>
                 </div>
               ))}
             </div>
 
-            {/* Campo de observações */}
             <div className="mb-4">
-              <label
-                className="block text-xs font-bold mb-1.5"
-                style={{ color: "hsl(var(--foreground))", fontWeight: 700 }}
-              >
+              <label className="block text-xs font-bold mb-1.5"
+                style={{ color: "hsl(var(--foreground))", fontWeight: 700 }}>
                 📝 Observações para o médico (opcional)
               </label>
               <textarea
                 rows={3}
-                placeholder="Ex: Bebê tem tido episódios de recusa ao jantar. Prefere texturas mais macias..."
+                placeholder="Ex: Bebê tem tido episódios de recusa ao jantar..."
                 value={parentNotes}
                 onChange={(e) => setParentNotes(e.target.value)}
                 className="w-full text-xs rounded-xl p-3 resize-none border outline-none"
@@ -244,16 +218,14 @@ export function ReportSection() {
               />
             </div>
 
-            {/* Botão */}
             <button
               onClick={handleGenerate}
               disabled={isGenerating}
-              className="w-full py-3.5 rounded-xl flex items-center justify-center gap-2 font-bold text-sm text-white transition-all active:scale-95 disabled:opacity-60"
-              style={{ background: "hsl(var(--primary))", fontWeight: 700 }}
-            >
+              className="w-full py-3.5 rounded-xl flex items-center justify-center gap-2 font-bold text-sm transition-all active:scale-95 disabled:opacity-60"
+              style={{ background: "hsl(var(--app-yellow-dark))", color: "hsl(var(--app-brown))", fontWeight: 700 }}>
               {isGenerating ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                   Gerando PDF...
                 </>
               ) : (

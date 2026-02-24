@@ -4,7 +4,6 @@ import { FoodImage } from "@/components/FoodImage";
 import { foods } from "@/data/appData";
 
 const categories = ["Todos", "Fruta", "Legume", "Proteína", "Grão"];
-const ages = ["Todos", "+6m", "+7m", "+8m", "+9m"];
 
 const allFoods = [
   ...foods,
@@ -40,25 +39,25 @@ function FoodDetail({ food, onClose }: FoodDetailProps) {
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-5 space-y-4">
-        <h2 className="text-2xl font-900" style={{ fontWeight: 900 }}>{food.name}</h2>
+        <h2 className="text-2xl" style={{ fontWeight: 900 }}>{food.name}</h2>
         {[
           { label: "✂️ Como oferecer", value: food.howToOffer },
           { label: "🍽️ Textura ideal", value: food.texture },
           { label: "⚠️ Atenções", value: food.attention },
         ].map(({ label, value }) => (
           <div key={label} className="p-4 rounded-2xl" style={{ background: "hsl(var(--card))" }}>
-            <p className="font-700 text-sm mb-1" style={{ fontWeight: 700 }}>{label}</p>
+            <p className="font-bold text-sm mb-1" style={{ fontWeight: 700 }}>{label}</p>
             <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>{value}</p>
           </div>
         ))}
         <div className="flex gap-3">
-          <div className="flex-1 p-3 rounded-2xl text-center" style={{ background: food.canFreeze ? "hsl(var(--app-teal-light))" : "hsl(var(--muted))" }}>
+          <div className="flex-1 p-3 rounded-2xl text-center" style={{ background: food.canFreeze ? "hsl(var(--app-yellow) / 0.3)" : "hsl(var(--muted))" }}>
             <p className="text-lg">{food.canFreeze ? "✅" : "❌"}</p>
-            <p className="text-xs font-700" style={{ fontWeight: 700 }}>Pode congelar</p>
+            <p className="text-xs font-bold" style={{ fontWeight: 700 }}>Pode congelar</p>
           </div>
-          <div className="flex-1 p-3 rounded-2xl text-center" style={{ background: food.canLunchbox ? "hsl(var(--app-teal-light))" : "hsl(var(--muted))" }}>
+          <div className="flex-1 p-3 rounded-2xl text-center" style={{ background: food.canLunchbox ? "hsl(var(--app-yellow) / 0.3)" : "hsl(var(--muted))" }}>
             <p className="text-lg">{food.canLunchbox ? "✅" : "❌"}</p>
-            <p className="text-xs font-700" style={{ fontWeight: 700 }}>Lancheira</p>
+            <p className="text-xs font-bold" style={{ fontWeight: 700 }}>Lancheira</p>
           </div>
         </div>
       </div>
@@ -68,13 +67,13 @@ function FoodDetail({ food, onClose }: FoodDetailProps) {
 
 function FoodCard({ food, onClick }: { food: typeof allFoods[0]; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="flex flex-col items-center gap-1.5 text-left">
+    <button onClick={onClick} className="flex flex-col items-center gap-1.5 text-left transition-all active:scale-95">
       <div className="relative w-full aspect-square rounded-2xl overflow-hidden"
         style={{ background: "hsl(var(--muted))" }}>
         <FoodImage name={food.image} className="w-full h-full object-cover" alt={food.name} />
         <span className="age-tag absolute bottom-2 left-2">{food.age}</span>
       </div>
-      <span className="text-sm font-600 text-center w-full" style={{ fontWeight: 600 }}>{food.name}</span>
+      <span className="text-sm font-semibold text-center w-full" style={{ fontWeight: 600 }}>{food.name}</span>
     </button>
   );
 }
@@ -96,15 +95,14 @@ export default function Alimentos() {
   return (
     <div className="app-container bottom-nav-safe">
       <div className="px-4 pt-6 pb-3">
-        <h1 className="text-xl font-900 mb-4" style={{ fontWeight: 900 }}>
-          Alimentos <span style={{ color: "hsl(var(--primary))" }}>• Como oferecer</span>
+        <h1 className="text-xl mb-4" style={{ fontWeight: 900 }}>
+          Alimentos <span style={{ color: "hsl(var(--app-yellow-highlight))" }}>• Como oferecer</span>
         </h1>
 
-        {/* Search */}
         <div className="flex gap-2">
           <div className="flex-1 flex items-center gap-2 px-4 py-3 rounded-2xl"
-            style={{ background: "hsl(var(--card))", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-            <Search size={18} style={{ color: "hsl(var(--primary))" }} />
+            style={{ background: "hsl(var(--card))", boxShadow: "0 2px 8px rgba(92,75,59,0.06)" }}>
+            <Search size={18} style={{ color: "hsl(var(--app-yellow-highlight))" }} />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
@@ -114,24 +112,23 @@ export default function Alimentos() {
             />
           </div>
           <button onClick={() => setShowFilter(!showFilter)}
-            className="px-4 py-3 rounded-2xl flex items-center gap-2 text-sm font-700"
-            style={{ background: "hsl(var(--card))", color: "hsl(var(--primary))", fontWeight: 700, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+            className="px-4 py-3 rounded-2xl flex items-center gap-2 text-sm font-bold transition-all active:scale-95"
+            style={{ background: "hsl(var(--card))", color: "hsl(var(--app-yellow-highlight))", fontWeight: 700, boxShadow: "0 2px 8px rgba(92,75,59,0.06)" }}>
             <SlidersHorizontal size={16} />
             Filtrar
           </button>
         </div>
 
-        {/* Category filter */}
         {showFilter && (
           <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
             {categories.map(cat => (
               <button key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-700 transition-all"
+                className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all active:scale-95"
                 style={{
                   fontWeight: 700,
-                  background: activeCategory === cat ? "hsl(var(--primary))" : "hsl(var(--card))",
-                  color: activeCategory === cat ? "white" : "hsl(var(--foreground))",
+                  background: activeCategory === cat ? "hsl(var(--app-yellow-dark))" : "hsl(var(--card))",
+                  color: activeCategory === cat ? "hsl(var(--app-brown))" : "hsl(var(--foreground))",
                 }}>
                 {cat}
               </button>
@@ -150,21 +147,18 @@ export default function Alimentos() {
           </div>
         ) : (
           <>
-            {/* Alimentos da semana */}
             <div>
               <h2 className="section-title">Alimentos da semana</h2>
               <div className="grid grid-cols-3 gap-3">
                 {weeklyFoods.map(f => <FoodCard key={f.id} food={f} onClick={() => setSelectedFood(f)} />)}
               </div>
             </div>
-            {/* Frutas da estação */}
             <div>
               <h2 className="section-title">Frutas da estação</h2>
               <div className="grid grid-cols-3 gap-3">
                 {seasonFruits.map(f => <FoodCard key={f.id} food={f} onClick={() => setSelectedFood(f)} />)}
               </div>
             </div>
-            {/* Legumes e verduras */}
             <div>
               <h2 className="section-title">Legumes e verduras da estação</h2>
               <div className="grid grid-cols-3 gap-3">

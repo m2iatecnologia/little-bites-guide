@@ -6,45 +6,46 @@
 
 @layer base {
   :root {
-    --background: 40 60% 97%;
-    --foreground: 220 20% 15%;
+    --background: 33 45% 94%;
+    --foreground: 25 25% 22%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 15%;
+    --card-foreground: 25 25% 22%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 15%;
+    --popover-foreground: 25 25% 22%;
 
-    --primary: 168 62% 46%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 43 100% 67%;
+    --primary-foreground: 25 25% 22%;
 
-    --secondary: 44 100% 82%;
-    --secondary-foreground: 220 20% 15%;
+    --secondary: 33 45% 90%;
+    --secondary-foreground: 25 25% 22%;
 
-    --muted: 210 20% 94%;
-    --muted-foreground: 220 15% 50%;
+    --muted: 30 15% 90%;
+    --muted-foreground: 25 15% 50%;
 
-    --accent: 44 100% 82%;
-    --accent-foreground: 220 20% 15%;
+    --accent: 43 100% 67%;
+    --accent-foreground: 25 25% 22%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 88%;
-    --input: 220 15% 88%;
-    --ring: 168 62% 46%;
+    --border: 30 15% 85%;
+    --input: 30 15% 85%;
+    --ring: 43 100% 67%;
 
     --radius: 1rem;
 
     /* App-specific tokens */
-    --app-teal: 168 62% 46%;
-    --app-teal-dark: 168 62% 38%;
-    --app-teal-light: 168 62% 92%;
-    --app-yellow: 44 100% 82%;
-    --app-yellow-dark: 44 95% 60%;
-    --app-cream: 40 60% 97%;
+    --app-brown: 25 25% 30%;
+    --app-brown-light: 25 15% 50%;
+    --app-yellow: 43 100% 78%;
+    --app-yellow-dark: 43 100% 67%;
+    --app-yellow-highlight: 43 100% 55%;
+    --app-cream: 33 45% 94%;
+    --app-cream-light: 33 50% 97%;
     --app-card: 0 0% 100%;
-    --app-green-tag: 142 70% 40%;
+    --app-warm-muted: 30 20% 88%;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -57,25 +58,25 @@
   }
 
   .dark {
-    --background: 220 20% 10%;
-    --foreground: 210 40% 98%;
-    --card: 220 20% 14%;
-    --card-foreground: 210 40% 98%;
-    --popover: 220 20% 14%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 168 62% 50%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 44 80% 35%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 220 15% 20%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 44 80% 35%;
-    --accent-foreground: 210 40% 98%;
+    --background: 25 20% 10%;
+    --foreground: 33 40% 95%;
+    --card: 25 20% 14%;
+    --card-foreground: 33 40% 95%;
+    --popover: 25 20% 14%;
+    --popover-foreground: 33 40% 95%;
+    --primary: 43 100% 67%;
+    --primary-foreground: 25 25% 15%;
+    --secondary: 43 60% 25%;
+    --secondary-foreground: 33 40% 95%;
+    --muted: 25 15% 20%;
+    --muted-foreground: 30 15% 60%;
+    --accent: 43 60% 25%;
+    --accent-foreground: 33 40% 95%;
     --destructive: 0 62.8% 40%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 220 15% 22%;
-    --input: 220 15% 22%;
-    --ring: 168 62% 50%;
+    --destructive-foreground: 33 40% 95%;
+    --border: 25 15% 22%;
+    --input: 25 15% 22%;
+    --ring: 43 100% 67%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -115,25 +116,27 @@
 
   .card-food {
     @apply bg-card rounded-2xl overflow-hidden;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 16px rgba(92, 75, 59, 0.08);
+    border-radius: 20px;
   }
 
   .age-tag {
     @apply text-xs font-bold px-2 py-0.5 rounded-full;
-    background: rgba(255,255,255,0.9);
-    color: hsl(var(--app-teal-dark));
+    background: hsl(var(--app-yellow));
+    color: hsl(var(--app-brown));
     font-weight: 700;
-  }
-
-  .tag-green {
-    @apply text-xs font-bold px-3 py-1 rounded-full text-white;
-    background: hsl(var(--app-teal));
   }
 
   .tag-yellow {
     @apply text-xs font-bold px-3 py-1 rounded-full;
     background: hsl(var(--app-yellow));
-    color: hsl(220 20% 20%);
+    color: hsl(var(--app-brown));
+  }
+
+  .tag-highlight {
+    @apply text-xs font-bold px-3 py-1 rounded-full;
+    background: hsl(var(--app-yellow-dark));
+    color: hsl(var(--app-brown));
   }
 
   .section-title {
@@ -145,18 +148,23 @@
   .cardapio-btn {
     @apply w-full py-4 rounded-2xl font-bold text-base transition-all;
     background: hsl(var(--card));
-    color: hsl(var(--app-teal-dark));
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    color: hsl(var(--app-brown));
+    box-shadow: 0 2px 8px rgba(92, 75, 59, 0.06);
     font-weight: 700;
     border: none;
     cursor: pointer;
   }
 
   .cardapio-btn:hover {
-    background: hsl(var(--app-teal-light));
+    background: hsl(var(--app-yellow) / 0.3);
   }
 
   .premium-crown {
-    color: hsl(220 20% 20%);
+    color: hsl(var(--app-yellow-highlight));
+  }
+
+  /* Smooth transitions */
+  .transition-spring {
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 }

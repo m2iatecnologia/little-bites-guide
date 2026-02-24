@@ -9,6 +9,8 @@ import Receitas from "./pages/Receitas";
 import Guias from "./pages/Guias";
 import Cardapio from "./pages/Cardapio";
 import Checklist from "./pages/Checklist";
+import Perfil from "./pages/Perfil";
+import EmDesenvolvimento from "./pages/EmDesenvolvimento";
 import NotFound from "./pages/NotFound";
 import { BottomNav } from "./components/BottomNav";
 
@@ -28,6 +30,8 @@ const App = () => (
             <Route path="/guias" element={<Guias />} />
             <Route path="/cardapio" element={<Cardapio />} />
             <Route path="/checklist" element={<Checklist />} />
+            <Route path="/perfil" element={<Perfil />} />
+            <Route path="/em-desenvolvimento" element={<EmDesenvolvimento />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />

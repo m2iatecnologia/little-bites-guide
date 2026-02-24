@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Star, Heart, Crown, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { FoodImage } from "@/components/FoodImage";
 import { recipes } from "@/data/appData";
 
 const ageFilters = ["Todos", "+6m", "+8m", "+9m", "+12m"];
-const diffFilters = ["Todos", "Fácil", "Médio"];
 const dietFilters = ["Tradicional", "Vegetariano", "Vegano"];
 
 const allRecipes = [
@@ -40,8 +40,8 @@ function RecipeDetail({ recipe, onClose }: { recipe: typeof allRecipes[0]; onClo
       </div>
       <div className="p-5 space-y-4 pb-24">
         <div className="flex items-start justify-between">
-          <h2 className="text-xl font-900 flex-1" style={{ fontWeight: 900 }}>{recipe.name}</h2>
-          <Heart size={22} style={{ color: "hsl(var(--primary))" }} />
+          <h2 className="text-xl flex-1" style={{ fontWeight: 900 }}>{recipe.name}</h2>
+          <Heart size={22} style={{ color: "hsl(var(--app-yellow-highlight))" }} />
         </div>
         <div className="flex gap-3 text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
           <span>⏱️ {recipe.time}</span>
@@ -49,22 +49,22 @@ function RecipeDetail({ recipe, onClose }: { recipe: typeof allRecipes[0]; onClo
           {recipe.canFreeze && <span>❄️ Pode congelar</span>}
         </div>
         {recipe.premium && (
-          <div className="p-3 rounded-xl text-sm font-700 text-center"
-            style={{ background: "hsl(var(--app-yellow))", fontWeight: 700 }}>
+          <div className="p-3 rounded-xl text-sm font-bold text-center"
+            style={{ background: "hsl(var(--app-yellow))", fontWeight: 700, color: "hsl(var(--app-brown))" }}>
             👑 Receita Premium — Faça upgrade para ver
           </div>
         )}
         <div className="p-4 rounded-2xl" style={{ background: "hsl(var(--card))" }}>
-          <h3 className="font-700 mb-2" style={{ fontWeight: 700 }}>Ingredientes</h3>
+          <h3 className="font-bold mb-2" style={{ fontWeight: 700 }}>Ingredientes</h3>
           {recipe.ingredients.map((ing, i) => (
             <div key={i} className="flex items-center gap-2 py-1">
-              <div className="w-1.5 h-1.5 rounded-full" style={{ background: "hsl(var(--primary))" }} />
+              <div className="w-1.5 h-1.5 rounded-full" style={{ background: "hsl(var(--app-yellow-highlight))" }} />
               <span className="text-sm">{ing}</span>
             </div>
           ))}
         </div>
         <div className="p-4 rounded-2xl" style={{ background: "hsl(var(--card))" }}>
-          <h3 className="font-700 mb-2" style={{ fontWeight: 700 }}>Modo de preparo</h3>
+          <h3 className="font-bold mb-2" style={{ fontWeight: 700 }}>Modo de preparo</h3>
           <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>{recipe.instructions}</p>
         </div>
       </div>
@@ -73,6 +73,7 @@ function RecipeDetail({ recipe, onClose }: { recipe: typeof allRecipes[0]; onClo
 }
 
 export default function Receitas() {
+  const navigate = useNavigate();
   const [selectedAge, setSelectedAge] = useState("Todos");
   const [selectedDiet, setSelectedDiet] = useState("Tradicional");
   const [favorites, setFavorites] = useState<number[]>([]);
@@ -92,36 +93,34 @@ export default function Receitas() {
   return (
     <div className="app-container bottom-nav-safe">
       <div className="px-4 pt-6 pb-4">
-        <h1 className="text-xl font-900 mb-4" style={{ fontWeight: 900 }}>
-          +650 <span style={{ color: "hsl(var(--primary))" }}>Receitas</span>
+        <h1 className="text-xl mb-4" style={{ fontWeight: 900 }}>
+          +650 <span style={{ color: "hsl(var(--app-yellow-highlight))" }}>Receitas</span>
         </h1>
 
-        {/* Age filter */}
         <div className="flex gap-2 overflow-x-auto pb-2 mb-3">
           {ageFilters.map(f => (
             <button key={f} onClick={() => setSelectedAge(f)}
-              className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-700 transition-all"
+              className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all active:scale-95"
               style={{
                 fontWeight: 700,
-                background: selectedAge === f ? "hsl(var(--primary))" : "hsl(var(--card))",
-                color: selectedAge === f ? "white" : "hsl(var(--foreground))",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+                background: selectedAge === f ? "hsl(var(--app-yellow-dark))" : "hsl(var(--card))",
+                color: selectedAge === f ? "hsl(var(--app-brown))" : "hsl(var(--foreground))",
+                boxShadow: "0 1px 4px rgba(92,75,59,0.06)",
               }}>
               {f}
             </button>
           ))}
         </div>
 
-        {/* Diet filter */}
         <div className="flex gap-2">
           {dietFilters.map(d => (
             <button key={d} onClick={() => setSelectedDiet(d)}
-              className="flex-1 py-2 rounded-xl text-xs font-700 transition-all"
+              className="flex-1 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
               style={{
                 fontWeight: 700,
                 background: selectedDiet === d ? "hsl(var(--app-yellow))" : "hsl(var(--card))",
                 color: "hsl(var(--foreground))",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+                boxShadow: "0 1px 4px rgba(92,75,59,0.06)",
               }}>
               {d}
             </button>
@@ -129,17 +128,16 @@ export default function Receitas() {
         </div>
       </div>
 
-      {/* Recipes grid */}
       <div className="px-4">
         <div className="grid grid-cols-2 gap-3">
           {filtered.map(recipe => (
             <button key={recipe.id} onClick={() => setSelected(recipe)}
-              className="card-food flex flex-col overflow-hidden text-left">
+              className="card-food flex flex-col overflow-hidden text-left transition-all active:scale-95">
               <div className="relative aspect-[4/3]">
                 <FoodImage name={recipe.image} className="w-full h-full object-cover" alt={recipe.name} />
                 {recipe.premium && (
                   <div className="absolute top-2 right-2">
-                    <Crown size={16} color="white" />
+                    <Crown size={16} style={{ color: "hsl(var(--app-yellow-highlight))" }} />
                   </div>
                 )}
                 <div className="absolute bottom-2 left-2 flex gap-1">
@@ -148,10 +146,10 @@ export default function Receitas() {
                 </div>
               </div>
               <div className="p-2.5">
-                <p className="text-xs font-700 leading-tight mb-1" style={{ fontWeight: 700 }}>{recipe.name}</p>
+                <p className="text-xs font-bold leading-tight mb-1" style={{ fontWeight: 700 }}>{recipe.name}</p>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1">
-                    <Star size={11} style={{ fill: "hsl(var(--app-yellow-dark))", color: "hsl(var(--app-yellow-dark))" }} />
+                    <Star size={11} style={{ fill: "hsl(var(--app-yellow-highlight))", color: "hsl(var(--app-yellow-highlight))" }} />
                     <span className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>{recipe.rating}</span>
                   </div>
                   <button onClick={e => toggleFav(recipe.id, e)}>
@@ -169,23 +167,24 @@ export default function Receitas() {
 
         {/* Premium CTA */}
         <div className="mt-6 p-5 rounded-2xl text-center space-y-3"
-          style={{ background: "hsl(var(--primary))" }}>
-          <p className="text-white font-900 text-lg" style={{ fontWeight: 900 }}>+600 receitas esperando! 🍽️</p>
-          <p className="text-white text-sm opacity-90">7 dias grátis. Cancele quando quiser.</p>
+          style={{ background: "hsl(var(--app-yellow-dark))" }}>
+          <p className="font-extrabold text-lg" style={{ fontWeight: 900, color: "hsl(var(--app-brown))" }}>+600 receitas esperando! 🍽️</p>
+          <p className="text-sm" style={{ color: "hsl(var(--app-brown-light))" }}>7 dias grátis. Cancele quando quiser.</p>
           <div className="flex gap-2">
-            <div className="flex-1 p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.2)" }}>
-              <p className="text-white text-xs font-700" style={{ fontWeight: 700 }}>⭐ Anual</p>
-              <p className="text-white font-900 text-lg" style={{ fontWeight: 900 }}>R$ 83,90</p>
-              <p className="text-white text-xs opacity-80">/ano</p>
+            <div className="flex-1 p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.5)" }}>
+              <p className="text-xs font-bold" style={{ fontWeight: 700, color: "hsl(var(--app-brown))" }}>⭐ Anual</p>
+              <p className="font-extrabold text-lg" style={{ fontWeight: 900, color: "hsl(var(--app-brown))" }}>R$ 83,90</p>
+              <p className="text-xs" style={{ color: "hsl(var(--app-brown-light))" }}>/ano</p>
             </div>
-            <div className="flex-1 p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.2)" }}>
-              <p className="text-white text-xs font-700" style={{ fontWeight: 700 }}>Mensal</p>
-              <p className="text-white font-900 text-lg" style={{ fontWeight: 900 }}>R$ 10,90</p>
-              <p className="text-white text-xs opacity-80">/mês</p>
+            <div className="flex-1 p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.5)" }}>
+              <p className="text-xs font-bold" style={{ fontWeight: 700, color: "hsl(var(--app-brown))" }}>Mensal</p>
+              <p className="font-extrabold text-lg" style={{ fontWeight: 900, color: "hsl(var(--app-brown))" }}>R$ 10,90</p>
+              <p className="text-xs" style={{ color: "hsl(var(--app-brown-light))" }}>/mês</p>
             </div>
           </div>
-          <button className="w-full py-3 rounded-xl font-900 text-sm transition-all"
-            style={{ background: "hsl(var(--app-yellow))", color: "hsl(220 20% 15%)", fontWeight: 900 }}>
+          <button onClick={() => navigate("/em-desenvolvimento")}
+            className="w-full py-3 rounded-xl font-extrabold text-sm transition-all active:scale-95"
+            style={{ background: "white", color: "hsl(var(--app-brown))", fontWeight: 900 }}>
             🎁 Experimentar grátis por 7 dias
           </button>
         </div>
