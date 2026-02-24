@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Check, Star, Shield, CreditCard, Clock } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const benefits = [
   "+600 receitas completas",
@@ -40,10 +43,45 @@ const plans = [
 
 export default function Planos() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selected, setSelected] = useState("anual");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubscribe = (trial: boolean) => {
+  const handleSubscribe = async (trial: boolean) => {
+    if (!user || loading) return;
+    setLoading(true);
+
     const plan = plans.find((p) => p.id === selected);
+    const now = new Date();
+    let endsAt: Date;
+
+    if (trial) {
+      endsAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    } else {
+      if (selected === "mensal") endsAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      else if (selected === "semestral") endsAt = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
+      else endsAt = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+    }
+
+    const { error } = await supabase.from("subscriptions").upsert(
+      {
+        user_id: user.id,
+        plan: selected,
+        status: trial ? "trial" : "active",
+        started_at: now.toISOString(),
+        ends_at: endsAt.toISOString(),
+      },
+      { onConflict: "user_id" }
+    );
+
+    setLoading(false);
+
+    if (error) {
+      toast.error("Erro ao ativar assinatura. Tente novamente.");
+      console.error("Subscription error:", error);
+      return;
+    }
+
     navigate("/assinatura-confirmada", {
       state: {
         plan: plan?.name,
