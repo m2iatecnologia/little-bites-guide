@@ -23,90 +23,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("[Auth] Initializing...");
-    let settled = false;
-
-    const settle = (s: Session | null) => {
-      if (!settled) {
-        settled = true;
-        setSession(s);
-        setLoading(false);
-        console.log("[Auth] Settled:", s ? "logged in" : "logged out");
-      }
-    };
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("[Auth] Event:", event);
-      if (event === "TOKEN_REFRESHED" || event === "SIGNED_IN") {
-        settle(session);
-        // Also update after settle
-        setSession(session);
-      } else if (event === "SIGNED_OUT") {
-        setSession(null);
-        if (!settled) settle(null);
-      } else {
-        // INITIAL_SESSION or other events
-        settle(session);
-      }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setLoading(false);
     });
 
-    // Also try getSession as fallback
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error("[Auth] getSession error:", error.message);
-        // If refresh token is invalid, clear the corrupted session
-        if (error.message?.includes("Failed to fetch") || 
-            error.message?.includes("Invalid Refresh Token") ||
-            error.message?.includes("Refresh Token Not Found")) {
-          console.warn("[Auth] Clearing corrupted session");
-          supabase.auth.signOut().catch(() => {});
-        }
-        settle(null);
-        return;
-      }
-      settle(session);
-    }).catch((e) => {
-      console.error("[Auth] getSession catch:", e);
-      settle(null);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
     });
 
-    // Safety timeout - never wait more than 8s for auth
-    const timeout = setTimeout(() => {
-      if (!settled) {
-        console.warn("[Auth] Timeout - forcing loading=false");
-        settle(null);
-      }
-    }, 8000);
-
-    // Global unhandled rejection handler to prevent crashes
-    const handleRejection = (event: PromiseRejectionEvent) => {
-      const reason = event.reason;
-      if (reason?.name === "AuthRetryableFetchError" || 
-          reason?.message?.includes("Failed to fetch")) {
-        console.warn("[Auth] Suppressed retryable fetch error");
-        event.preventDefault();
-        // If still loading, settle as logged out
-        if (!settled) settle(null);
-      }
-    };
-    window.addEventListener("unhandledrejection", handleRejection);
-
-    return () => {
-      subscription.unsubscribe();
-      clearTimeout(timeout);
-      window.removeEventListener("unhandledrejection", handleRejection);
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   const signOut = async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch (e) {
-      console.error("[Auth] signOut error:", e);
-      // Force clear even if signOut fails
-      setSession(null);
-    }
+    await supabase.auth.signOut();
   };
 
   return (

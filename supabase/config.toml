@@ -1,7 +1,1 @@
 project_id = "zjkggmjmajwahjpsdwye"
-
-[functions.seed-recipes]
-verify_jwt = false
-
-[functions.generate-recipe-image]
-verify_jwt = false

@@ -6,7 +6,7 @@ export interface FoodOverride {
   id: string;
   food_name: string;
   category: string;
-  status: string;
+  status: string; // 'introduced' | 'rejected' | 'to_introduce'
   user_id: string;
 }
 
@@ -16,22 +16,13 @@ export function useFoodOverrides() {
   const [loading, setLoading] = useState(true);
 
   const fetchOverrides = useCallback(async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-    try {
-      const { data, error } = await supabase
-        .from("food_status_overrides")
-        .select("*")
-        .eq("user_id", user.id);
-      if (error) console.error("[FoodOverrides] Error:", error);
-      setOverrides((data as FoodOverride[]) || []);
-    } catch (e) {
-      console.error("[FoodOverrides] Catch:", e);
-    } finally {
-      setLoading(false);
-    }
+    if (!user) return;
+    const { data } = await supabase
+      .from("food_status_overrides")
+      .select("*")
+      .eq("user_id", user.id);
+    setOverrides((data as FoodOverride[]) || []);
+    setLoading(false);
   }, [user]);
 
   useEffect(() => {
