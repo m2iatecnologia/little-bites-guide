@@ -26,19 +26,17 @@ const difficultyColor: Record<string, string> = {
   "Avançado": "hsl(25, 70%, 60%)",
 };
 
-function RecipeImage({ recipe }: { recipe: Recipe }) {
-  const { imageUrl, loading } = useRecipeImage(recipe.id, recipe.name, recipe.ingredients);
-
-  if (loading || !imageUrl) {
-    return (
-      <div className="w-full h-full flex items-center justify-center text-4xl"
-        style={{ background: "hsl(var(--app-cream-dark))" }}>
-        {categoryEmoji[recipe.category] || "🍽️"}
-      </div>
-    );
+function RecipeCardImage({ recipe }: { recipe: Recipe }) {
+  // Cards use emojis only — NO edge function calls
+  if (recipe.image_url) {
+    return <img src={recipe.image_url} alt={recipe.name} className="w-full h-full object-cover" loading="lazy" />;
   }
-
-  return <img src={imageUrl} alt={recipe.name} className="w-full h-full object-cover" loading="lazy" />;
+  return (
+    <div className="w-full h-full flex items-center justify-center text-4xl"
+      style={{ background: "hsl(var(--app-cream-dark))" }}>
+      {categoryEmoji[recipe.category] || "🍽️"}
+    </div>
+  );
 }
 
 function RecipeCardSkeleton() {
@@ -64,7 +62,7 @@ function RecipeCard({ recipe, onClick, isLocked }: { recipe: Recipe; onClick: ()
             {categoryEmoji[recipe.category] || "🍽️"}
           </div>
         ) : (
-          <RecipeImage recipe={recipe} />
+          <RecipeCardImage recipe={recipe} />
         )}
         {isLocked && (
           <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
