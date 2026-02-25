@@ -119,7 +119,7 @@
   }
 
   .bottom-nav-safe {
-    @apply pb-24;
+    @apply pb-28;
   }
 
   .card-clinical {

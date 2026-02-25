@@ -23,7 +23,7 @@ function RecipeDetail({ recipe, onClose }: { recipe: PremiumRecipe; onClose: () 
           <span className="age-tag">{recipe.difficulty}</span>
         </div>
       </div>
-      <div className="p-5 space-y-4 pb-24">
+      <div className="p-5 space-y-4 pb-28">
         <div className="flex items-start justify-between">
           <h2 className="text-xl flex-1" style={{ fontWeight: 900 }}>{recipe.name}</h2>
           <Heart size={22} style={{ color: "hsl(var(--app-yellow-highlight))" }} />
