@@ -30,8 +30,14 @@ export default function Auth() {
         if (error) throw error;
         toast.success("Verifique seu email para confirmar o cadastro!");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          if (error.message?.includes("Failed to fetch")) {
+            throw new Error("Sem conexão com o servidor. Tente novamente em alguns instantes.");
+          }
+          throw error;
+        }
+        if (!data.session) throw new Error("Sessão não criada. Tente novamente.");
         navigate("/");
       }
     } catch (err: any) {
