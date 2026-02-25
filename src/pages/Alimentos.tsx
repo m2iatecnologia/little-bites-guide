@@ -80,7 +80,7 @@ function FoodDetail({ food, onClose }: { food: PremiumFood; onClose: () => void 
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-5 space-y-4">
+      <div className="flex-1 overflow-y-auto p-5 pb-28 space-y-4">
         <h2 className="text-2xl" style={{ fontWeight: 900 }}>{food.name}</h2>
 
         {/* General info */}
