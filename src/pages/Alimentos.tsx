@@ -1,17 +1,57 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Search, SlidersHorizontal, X, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { FoodImage } from "@/components/FoodImage";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PremiumBadge } from "@/components/PremiumGate";
-import { PremiumCTA } from "@/components/PremiumCTA";
 import { premiumFoods, freeFoods, foodCategories, type PremiumFood } from "@/data/premiumFoods";
+import { Skeleton } from "@/components/ui/skeleton";
 
+/* ── Emoji-based food visual (no heavy images) ── */
+function FoodEmoji({ emoji, className }: { emoji: string; className?: string }) {
+  return (
+    <div
+      className={`flex items-center justify-center ${className || ""}`}
+      style={{ background: "hsl(var(--muted))" }}
+    >
+      <span className="text-4xl select-none">{emoji}</span>
+    </div>
+  );
+}
+
+/* ── Lazy-loaded card wrapper ── */
+function LazyCard({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { rootMargin: "200px" }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref}>
+      {visible ? children : (
+        <div className="flex flex-col items-center gap-1.5">
+          <Skeleton className="w-full aspect-square rounded-2xl" />
+          <Skeleton className="h-4 w-3/4 rounded" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Food Detail ── */
 function FoodDetail({ food, onClose }: { food: PremiumFood; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col" style={{ background: "hsl(var(--background))", maxWidth: "28rem", margin: "0 auto" }}>
-      <div className="relative h-56">
-        <FoodImage name={food.image} className="w-full h-full object-cover" alt={food.name} />
+      <div className="relative h-56 flex items-center justify-center" style={{ background: "hsl(var(--muted))" }}>
+        <span className="text-7xl select-none">{food.emoji}</span>
         <button onClick={onClose}
           className="absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center"
           style={{ background: "rgba(0,0,0,0.5)" }}>
@@ -48,6 +88,7 @@ function FoodDetail({ food, onClose }: { food: PremiumFood; onClose: () => void 
   );
 }
 
+/* ── Premium Modal ── */
 function PremiumModal({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate();
   return (
@@ -62,7 +103,7 @@ function PremiumModal({ onClose }: { onClose: () => void }) {
         </div>
         <h3 className="text-lg" style={{ fontWeight: 900, color: "hsl(var(--app-petrol))" }}>Conteúdo Premium</h3>
         <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-          Assine para acessar +1.000 alimentos e recursos exclusivos.
+          Assine para acessar +100 alimentos e recursos exclusivos.
         </p>
         <button
           onClick={() => navigate("/planos")}
@@ -79,23 +120,35 @@ function PremiumModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+/* ── Food Card ── */
 function FoodCard({ food, isPremiumItem, onClick }: { food: PremiumFood; isPremiumItem: boolean; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="flex flex-col items-center gap-1.5 text-left transition-all active:scale-95">
-      <div className="relative w-full aspect-square rounded-2xl overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
-        <FoodImage name={food.image} className={`w-full h-full object-cover ${isPremiumItem ? "blur-[2px] opacity-70" : ""}`} alt={food.name} />
-        <span className="age-tag absolute bottom-2 left-2">{food.age}</span>
-        {isPremiumItem && (
-          <div className="absolute top-2 right-2">
-            <PremiumBadge />
-          </div>
-        )}
-      </div>
-      <span className="text-sm font-semibold text-center w-full" style={{ fontWeight: 600 }}>{food.name}</span>
-    </button>
+    <LazyCard>
+      <button onClick={onClick} className="flex flex-col items-center gap-1.5 text-left transition-all active:scale-95 w-full">
+        <div
+          className="relative w-full aspect-square rounded-2xl overflow-hidden flex items-center justify-center"
+          style={{
+            background: "hsl(var(--muted))",
+            boxShadow: "0 2px 8px rgba(92,75,59,0.08)",
+          }}
+        >
+          <span className={`text-4xl select-none ${isPremiumItem ? "blur-[2px] opacity-60" : ""}`}>
+            {food.emoji}
+          </span>
+          <span className="age-tag absolute bottom-2 left-2 text-xs">{food.age}</span>
+          {isPremiumItem && (
+            <div className="absolute top-2 right-2">
+              <PremiumBadge />
+            </div>
+          )}
+        </div>
+        <span className="text-xs font-semibold text-center w-full truncate" style={{ fontWeight: 600 }}>{food.name}</span>
+      </button>
+    </LazyCard>
   );
 }
 
+/* ── Main Page ── */
 export default function Alimentos() {
   const navigate = useNavigate();
   const { isPremium } = useSubscription();
@@ -113,14 +166,10 @@ export default function Alimentos() {
     return matchesSearch && matchesCat;
   });
 
-  // For free users, show a few "locked" preview items
   const lockedPreview = !isPremium ? premiumFoods.slice(12, 18) : [];
 
   const handleFoodClick = (food: PremiumFood, isLocked: boolean) => {
-    if (isLocked) {
-      setShowPremiumModal(true);
-      return;
-    }
+    if (isLocked) { setShowPremiumModal(true); return; }
     setSelectedFood(food);
   };
 
@@ -131,7 +180,7 @@ export default function Alimentos() {
       {showPremiumModal && <PremiumModal onClose={() => setShowPremiumModal(false)} />}
       <div className="px-4 pt-6 pb-3">
         <h1 className="text-xl mb-1" style={{ fontWeight: 900 }}>
-          {isPremium ? "+1.000" : ""} Alimentos <span style={{ color: "hsl(var(--app-yellow-highlight))" }}>• Como oferecer</span>
+          +100 Alimentos <span style={{ color: "hsl(var(--app-yellow-highlight))" }}>• Como oferecer</span>
         </h1>
         {!isPremium && (
           <p className="text-xs mb-3" style={{ color: "hsl(var(--muted-foreground))" }}>
@@ -177,7 +226,7 @@ export default function Alimentos() {
         )}
       </div>
 
-      <div className="px-4 space-y-5">
+      <div className="px-4 space-y-5 pb-4">
         {search || activeCategory !== "Todos" ? (
           <div>
             <h2 className="section-title">Resultados ({filtered.length})</h2>
@@ -209,7 +258,32 @@ export default function Alimentos() {
           </>
         )}
 
-        {!isPremium && <PremiumCTA />}
+        {/* CTA only for non-premium users */}
+        {!isPremium && (
+          <div
+            className="mt-6 mb-4 p-5 rounded-2xl text-center space-y-3"
+            style={{ background: "hsl(var(--app-gold-light))", border: "1.5px solid hsl(var(--app-gold))" }}
+          >
+            <p className="font-extrabold text-lg" style={{ fontWeight: 900, color: "hsl(var(--app-petrol))" }}>
+              Desbloqueie todos os +100 alimentos
+            </p>
+            <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+              Tenha acesso completo aos alimentos, formas de preparo e orientações detalhadas.
+            </p>
+            <button
+              onClick={() => navigate("/planos")}
+              className="w-full py-3.5 rounded-xl font-extrabold text-sm transition-all active:scale-95"
+              style={{
+                background: "hsl(var(--app-gold))",
+                color: "hsl(var(--app-petrol))",
+                fontWeight: 900,
+                boxShadow: "0 4px 16px rgba(244,201,93,0.35)",
+              }}
+            >
+              🎁 Experimentar grátis por 7 dias
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
