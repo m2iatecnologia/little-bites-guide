@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { useBaby } from "./hooks/useBaby";
+import { LoadingTimeout } from "./components/LoadingTimeout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import CadastroBebe from "./pages/CadastroBebe";
@@ -25,17 +26,19 @@ import { BottomNav } from "./components/BottomNav";
 
 const queryClient = new QueryClient();
 
-const LoadingSpinner = () => (
-  <div className="min-h-screen flex items-center justify-center" style={{ background: "hsl(var(--app-cream))" }}>
-    <div className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin" style={{ borderColor: "hsl(var(--app-gold))", borderTopColor: "transparent" }} />
-  </div>
-);
-
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  const { hasBaby, loading: babyLoading } = useBaby();
+  const { hasBaby, loading: babyLoading, refetch } = useBaby();
 
-  if (loading || babyLoading) return <LoadingSpinner />;
+  const isLoading = loading || (user && babyLoading);
+
+  if (isLoading) {
+    return (
+      <LoadingTimeout loading onRetry={refetch}>
+        <></>
+      </LoadingTimeout>
+    );
+  }
   if (!user) return <Navigate to="/auth" replace />;
   if (!hasBaby) return <Navigate to="/cadastro-bebe" replace />;
   return <>{children}</>;
@@ -43,9 +46,19 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 const AppRoutes = () => {
   const { user, loading } = useAuth();
-  const { hasBaby, loading: babyLoading } = useBaby();
+  const { hasBaby, loading: babyLoading, refetch } = useBaby();
 
-  if (loading || (user && babyLoading)) return <LoadingSpinner />;
+  const isLoading = loading || (user && babyLoading);
+
+  if (isLoading) {
+    return (
+      <LoadingTimeout loading onRetry={refetch}>
+        <></>
+      </LoadingTimeout>
+    );
+  }
+
+  console.log("[Route] Resolved — user:", !!user, "hasBaby:", hasBaby);
 
   return (
     <div className="app-container">
