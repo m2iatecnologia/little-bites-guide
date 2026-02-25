@@ -33,21 +33,16 @@ export interface DashboardData {
   baby: Baby | null;
   babyAge: string;
   profileName: string;
-  // Stats
   totalFoods: number;
   newFoodsThisMonth: number;
   totalMeals: number;
   acceptanceRate: number;
   rejectionRate: number;
   neutralRate: number;
-  // Rankings
   bestAccepted: FoodStat[];
   mostRejected: FoodStat[];
-  // Reactions
   reactions: { date: string; food: string; type: string }[];
-  // Weekly evolution (unique foods per week, last 4 weeks)
   weeklyEvolution: { week: string; count: number }[];
-  // Alerts
   alerts: { type: "reaction" | "rejection"; icon: string; text: string }[];
   reportData: ReportData;
 }
@@ -81,16 +76,26 @@ export function useDashboardData(): DashboardData {
 
     const fetchAll = async () => {
       setLoading(true);
-      const [babyRes, logsRes, profileRes] = await Promise.all([
-        supabase.from("babies").select("*").eq("user_id", user.id).limit(1).maybeSingle(),
-        supabase.from("food_logs").select("*").eq("user_id", user.id).order("offered_at", { ascending: false }),
-        supabase.from("profiles").select("name").eq("user_id", user.id).maybeSingle(),
-      ]);
+      try {
+        console.log("[Dashboard] Fetching data...");
+        const [babyRes, logsRes, profileRes] = await Promise.all([
+          supabase.from("babies").select("*").eq("user_id", user.id).limit(1).maybeSingle(),
+          supabase.from("food_logs").select("*").eq("user_id", user.id).order("offered_at", { ascending: false }),
+          supabase.from("profiles").select("name").eq("user_id", user.id).maybeSingle(),
+        ]);
 
-      setBaby(babyRes.data ?? null);
-      setLogs(logsRes.data ?? []);
-      setProfileName(profileRes.data?.name ?? user.user_metadata?.full_name ?? "");
-      setLoading(false);
+        if (babyRes.error) console.error("[Dashboard] Baby error:", babyRes.error);
+        if (logsRes.error) console.error("[Dashboard] Logs error:", logsRes.error);
+
+        setBaby(babyRes.data ?? null);
+        setLogs(logsRes.data ?? []);
+        setProfileName(profileRes.data?.name ?? user.user_metadata?.full_name ?? "");
+        console.log("[Dashboard] Data loaded");
+      } catch (e) {
+        console.error("[Dashboard] Error:", e);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchAll();
@@ -125,7 +130,6 @@ export function useDashboardData(): DashboardData {
     const rejectionRate = Math.round((rejected / total) * 100);
     const neutralRate = Math.round((neutral / total) * 100);
 
-    // Food rankings
     const foodCounts: Record<string, { accepted: number; total: number }> = {};
     logs.forEach((l) => {
       const key = l.food_name;
@@ -144,7 +148,6 @@ export function useDashboardData(): DashboardData {
       .sort((a, b) => b.rate - a.rate)
       .slice(0, 5);
 
-    // Reactions
     const reactions = logs
       .filter((l) => l.reaction && l.reaction.trim() !== "")
       .map((l) => ({
@@ -153,7 +156,6 @@ export function useDashboardData(): DashboardData {
         type: l.reaction!,
       }));
 
-    // Weekly evolution - unique foods per week for last 4 weeks
     const now = new Date();
     const weeklyEvolution = [3, 2, 1, 0].map((weeksAgo) => {
       const weekStart = subWeeks(now, weeksAgo + 1);
@@ -168,7 +170,6 @@ export function useDashboardData(): DashboardData {
       };
     });
 
-    // Alerts
     const alerts: DashboardData["alerts"] = [];
     reactions.slice(0, 2).forEach((r) => {
       alerts.push({ type: "reaction", icon: "⚠️", text: `${r.food} — ${r.type} (${r.date})` });
@@ -185,7 +186,6 @@ export function useDashboardData(): DashboardData {
 
     const babyAge = calcAge(baby?.birth_date ?? null);
 
-    // Food groups classification
     const groupMap: Record<string, string[]> = {
       "Frutas": ["banana", "maçã", "manga", "morango", "melancia", "abacate", "pera", "mamão", "laranja", "uva", "kiwi", "melão", "ameixa", "goiaba", "pêssego"],
       "Legumes": ["cenoura", "abobrinha", "abóbora", "batata", "batata doce", "inhame", "mandioca", "mandioquinha", "beterraba", "chuchu"],

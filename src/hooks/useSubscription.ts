@@ -34,6 +34,7 @@ export function useSubscription() {
     }
 
     try {
+      console.log("[Subscription] Checking...");
       const { data, error } = await supabase
         .from("subscriptions")
         .select("*")
@@ -43,6 +44,7 @@ export function useSubscription() {
         .maybeSingle();
 
       if (error || !data) {
+        console.log("[Subscription] None found");
         setState({ status: "none", plan: null, endsAt: null, loading: false });
         return;
       }
@@ -51,24 +53,17 @@ export function useSubscription() {
       const endsAt = data.ends_at ? new Date(data.ends_at) : null;
       const now = new Date();
 
-      // Auto-expire if ends_at has passed and status is active/trial
       if (endsAt && endsAt < now && (currentStatus === "active" || currentStatus === "trial")) {
         currentStatus = "expired";
-        await supabase
-          .from("subscriptions")
-          .update({ status: "expired" })
-          .eq("id", data.id);
+        await supabase.from("subscriptions").update({ status: "expired" }).eq("id", data.id);
       }
 
-      // Auto-expire canceled if past end date
       if (currentStatus === "canceled" && endsAt && endsAt < now) {
         currentStatus = "expired";
-        await supabase
-          .from("subscriptions")
-          .update({ status: "expired" })
-          .eq("id", data.id);
+        await supabase.from("subscriptions").update({ status: "expired" }).eq("id", data.id);
       }
 
+      console.log("[Subscription] Status:", currentStatus);
       setState({
         status: currentStatus,
         plan: (data.plan as SubscriptionPlan) || null,
@@ -76,7 +71,7 @@ export function useSubscription() {
         loading: false,
       });
     } catch (e) {
-      console.error("useSubscription error:", e);
+      console.error("[Subscription] Error:", e);
       setState({ status: "none", plan: null, endsAt: null, loading: false });
     }
   }, [user]);

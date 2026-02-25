@@ -6,7 +6,7 @@ export interface MealLog {
   id: string;
   food_name: string;
   meal_type: string;
-  acceptance: string; // "ate" | "did_not_eat" | "tried"
+  acceptance: string;
   notes: string | null;
   offered_at: string;
   user_id: string;
@@ -19,21 +19,30 @@ export function useMealLogs(date?: string) {
   const [loading, setLoading] = useState(true);
 
   const fetchLogs = useCallback(async () => {
-    if (!user) return;
-    setLoading(true);
-    let query = supabase
-      .from("food_logs")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-
-    if (date) {
-      query = query.eq("offered_at", date);
+    if (!user) {
+      setLoading(false);
+      return;
     }
+    setLoading(true);
+    try {
+      let query = supabase
+        .from("food_logs")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
-    const { data } = await query;
-    setLogs((data as MealLog[]) || []);
-    setLoading(false);
+      if (date) {
+        query = query.eq("offered_at", date);
+      }
+
+      const { data, error } = await query;
+      if (error) console.error("[MealLogs] Error:", error);
+      setLogs((data as MealLog[]) || []);
+    } catch (e) {
+      console.error("[MealLogs] Catch:", e);
+    } finally {
+      setLoading(false);
+    }
   }, [user, date]);
 
   useEffect(() => {
@@ -49,7 +58,6 @@ export function useMealLogs(date?: string) {
   ) => {
     if (!user) return;
 
-    // Check if log exists for this food+meal+date
     const existing = logs.find(
       (l) => l.food_name === foodName && l.meal_type === mealType && l.offered_at === offeredAt
     );
@@ -94,16 +102,28 @@ export function useAllMealLogs() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
-    supabase
-      .from("food_logs")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("offered_at", { ascending: false })
-      .then(({ data }) => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchAll = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("food_logs")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("offered_at", { ascending: false });
+        if (error) console.error("[AllMealLogs] Error:", error);
         setLogs((data as MealLog[]) || []);
+      } catch (e) {
+        console.error("[AllMealLogs] Catch:", e);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchAll();
   }, [user]);
 
   return { logs, loading };
