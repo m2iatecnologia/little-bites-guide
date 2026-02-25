@@ -183,6 +183,7 @@ export default function Index() {
               src={dicaImg}
               alt="Dica do dia"
               className="w-full h-full object-cover"
+              loading="lazy"
             />
             <div
               className="absolute bottom-0 left-0 right-0 p-3"

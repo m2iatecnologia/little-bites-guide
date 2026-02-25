@@ -32,5 +32,5 @@ export function FoodImage({ name, className, alt }: FoodImageProps) {
       🥦
     </div>
   );
-  return <img src={src} alt={alt || name} className={className} />;
+  return <img src={src} alt={alt || name} className={className} loading="lazy" />;
 }
