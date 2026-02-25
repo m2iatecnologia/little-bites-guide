@@ -18,6 +18,8 @@ export type Database = {
         Row: {
           birth_date: string | null
           created_at: string
+          gender: string | null
+          height_cm: number | null
           id: string
           name: string
           restrictions: string | null
@@ -28,6 +30,8 @@ export type Database = {
         Insert: {
           birth_date?: string | null
           created_at?: string
+          gender?: string | null
+          height_cm?: number | null
           id?: string
           name?: string
           restrictions?: string | null
@@ -38,6 +42,8 @@ export type Database = {
         Update: {
           birth_date?: string | null
           created_at?: string
+          gender?: string | null
+          height_cm?: number | null
           id?: string
           name?: string
           restrictions?: string | null

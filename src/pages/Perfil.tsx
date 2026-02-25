@@ -14,7 +14,7 @@ export default function Perfil() {
   const [foodCount, setFoodCount] = useState(0);
   const [mealCount, setMealCount] = useState(0);
   const [editingBaby, setEditingBaby] = useState(false);
-  const [babyForm, setBabyForm] = useState({ name: "", birth_date: "", weight_kg: "", restrictions: "" });
+  const [babyForm, setBabyForm] = useState({ name: "", birth_date: "", weight_kg: "", height_cm: "", gender: "not_informed", restrictions: "" });
 
   useEffect(() => {
     if (!user) return;
@@ -31,7 +31,7 @@ export default function Perfil() {
       setSub(s);
       setFoodCount(fc || 0);
       setMealCount(mc || 0);
-      if (b) setBabyForm({ name: b.name, birth_date: b.birth_date || "", weight_kg: b.weight_kg?.toString() || "", restrictions: b.restrictions || "" });
+      if (b) setBabyForm({ name: b.name, birth_date: b.birth_date || "", weight_kg: b.weight_kg?.toString() || "", height_cm: b.height_cm?.toString() || "", gender: b.gender || "not_informed", restrictions: b.restrictions || "" });
     };
     load();
   }, [user]);
@@ -43,6 +43,8 @@ export default function Perfil() {
       name: babyForm.name,
       birth_date: babyForm.birth_date || null,
       weight_kg: babyForm.weight_kg ? parseFloat(babyForm.weight_kg) : null,
+      height_cm: babyForm.height_cm ? parseFloat(babyForm.height_cm) : null,
+      gender: babyForm.gender,
       restrictions: babyForm.restrictions,
     };
     if (baby) {
@@ -146,6 +148,8 @@ export default function Perfil() {
                 <div className="flex justify-between"><span style={{ color: "hsl(var(--muted-foreground))" }}>Nascimento</span><span className="font-semibold">{baby?.birth_date ? new Date(baby.birth_date).toLocaleDateString("pt-BR") : "—"}</span></div>
                 <div className="flex justify-between"><span style={{ color: "hsl(var(--muted-foreground))" }}>Idade</span><span className="font-semibold">{babyAge}</span></div>
                 <div className="flex justify-between"><span style={{ color: "hsl(var(--muted-foreground))" }}>Peso</span><span className="font-semibold">{baby?.weight_kg ? `${baby.weight_kg} kg` : "—"}</span></div>
+                <div className="flex justify-between"><span style={{ color: "hsl(var(--muted-foreground))" }}>Altura</span><span className="font-semibold">{baby?.height_cm ? `${baby.height_cm} cm` : "—"}</span></div>
+                <div className="flex justify-between"><span style={{ color: "hsl(var(--muted-foreground))" }}>Sexo</span><span className="font-semibold">{baby?.gender === "male" ? "Masculino" : baby?.gender === "female" ? "Feminino" : "Não informado"}</span></div>
                 <div className="flex justify-between"><span style={{ color: "hsl(var(--muted-foreground))" }}>Restrições</span><span className="font-semibold">{baby?.restrictions || "Nenhuma"}</span></div>
               </div>
               <button onClick={() => setEditingBaby(true)}
@@ -159,6 +163,12 @@ export default function Perfil() {
               <input value={babyForm.name} onChange={(e) => setBabyForm({ ...babyForm, name: e.target.value })} placeholder="Nome do bebê" className="w-full py-3 px-4 rounded-xl text-sm" style={inputStyle} />
               <input type="date" value={babyForm.birth_date} onChange={(e) => setBabyForm({ ...babyForm, birth_date: e.target.value })} className="w-full py-3 px-4 rounded-xl text-sm" style={inputStyle} />
               <input value={babyForm.weight_kg} onChange={(e) => setBabyForm({ ...babyForm, weight_kg: e.target.value })} placeholder="Peso (kg)" className="w-full py-3 px-4 rounded-xl text-sm" style={inputStyle} />
+              <input value={babyForm.height_cm} onChange={(e) => setBabyForm({ ...babyForm, height_cm: e.target.value })} placeholder="Altura (cm)" className="w-full py-3 px-4 rounded-xl text-sm" style={inputStyle} />
+              <select value={babyForm.gender} onChange={(e) => setBabyForm({ ...babyForm, gender: e.target.value })} className="w-full py-3 px-4 rounded-xl text-sm" style={inputStyle}>
+                <option value="not_informed">Prefiro não informar</option>
+                <option value="male">Masculino</option>
+                <option value="female">Feminino</option>
+              </select>
               <input value={babyForm.restrictions} onChange={(e) => setBabyForm({ ...babyForm, restrictions: e.target.value })} placeholder="Restrições alimentares" className="w-full py-3 px-4 rounded-xl text-sm" style={inputStyle} />
               <div className="flex gap-2">
                 <button onClick={() => setEditingBaby(false)} className="flex-1 py-3 rounded-xl text-sm font-bold" style={{ border: "1.5px solid hsl(var(--app-divider))", color: "hsl(var(--app-petrol))" }}>Cancelar</button>
