@@ -1,23 +1,12 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Search, SlidersHorizontal, X, Lock } from "lucide-react";
+import { Search, SlidersHorizontal, X, Lock, ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PremiumBadge } from "@/components/PremiumGate";
-import { premiumFoods, freeFoods, foodCategories, type PremiumFood } from "@/data/premiumFoods";
+import { premiumFoods, freeFoods, foodCategories, type PremiumFood, type Preparation } from "@/data/premiumFoods";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-/* ── Emoji-based food visual (no heavy images) ── */
-function FoodEmoji({ emoji, className }: { emoji: string; className?: string }) {
-  return (
-    <div
-      className={`flex items-center justify-center ${className || ""}`}
-      style={{ background: "hsl(var(--muted))" }}
-    >
-      <span className="text-4xl select-none">{emoji}</span>
-    </div>
-  );
-}
 
 /* ── Lazy-loaded card wrapper ── */
 function LazyCard({ children }: { children: React.ReactNode }) {
@@ -47,33 +36,59 @@ function LazyCard({ children }: { children: React.ReactNode }) {
   );
 }
 
-/* ── Food Detail ── */
+/* ── Preparation Card ── */
+function PrepCard({ prep, isActive, onClick }: { prep: Preparation; isActive: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all active:scale-95"
+      style={{
+        fontWeight: 700,
+        background: isActive ? "hsl(var(--app-yellow-dark))" : "hsl(var(--card))",
+        color: isActive ? "hsl(var(--app-brown))" : "hsl(var(--foreground))",
+      }}
+    >
+      {prep.type}
+    </button>
+  );
+}
+
+/* ── Food Detail (with preparation tabs) ── */
 function FoodDetail({ food, onClose }: { food: PremiumFood; onClose: () => void }) {
+  const [activePrep, setActivePrep] = useState(0);
+  const prep = food.preparations[activePrep];
+
   return (
     <div className="fixed inset-0 z-50 flex flex-col" style={{ background: "hsl(var(--background))", maxWidth: "28rem", margin: "0 auto" }}>
-      <div className="relative h-56 flex items-center justify-center" style={{ background: "hsl(var(--muted))" }}>
+      {/* Header */}
+      <div className="relative h-48 flex items-center justify-center" style={{ background: "hsl(var(--muted))" }}>
         <span className="text-7xl select-none">{food.emoji}</span>
         <button onClick={onClose}
-          className="absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center"
+          className="absolute top-4 left-4 w-9 h-9 rounded-full flex items-center justify-center"
           style={{ background: "rgba(0,0,0,0.5)" }}>
-          <X size={18} color="white" />
+          <ChevronLeft size={18} color="white" />
         </button>
         <div className="absolute bottom-3 left-3">
           <span className="age-tag text-sm px-3 py-1">{food.age}</span>
         </div>
+        <div className="absolute bottom-3 right-3">
+          <span className="text-xs px-3 py-1 rounded-full font-bold capitalize"
+            style={{ background: "hsl(var(--card))", fontWeight: 700 }}>
+            {food.category}
+          </span>
+        </div>
       </div>
+
+      {/* Content */}
       <div className="flex-1 overflow-y-auto p-5 space-y-4">
         <h2 className="text-2xl" style={{ fontWeight: 900 }}>{food.name}</h2>
-        {[
-          { label: "✂️ Como oferecer", value: food.howToOffer },
-          { label: "🍽️ Textura ideal", value: food.texture },
-          { label: "⚠️ Atenções", value: food.attention },
-        ].map(({ label, value }) => (
-          <div key={label} className="p-4 rounded-2xl" style={{ background: "hsl(var(--card))" }}>
-            <p className="font-bold text-sm mb-1" style={{ fontWeight: 700 }}>{label}</p>
-            <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>{value}</p>
-          </div>
-        ))}
+
+        {/* General info */}
+        <div className="p-4 rounded-2xl" style={{ background: "hsl(var(--card))" }}>
+          <p className="font-bold text-sm mb-1" style={{ fontWeight: 700 }}>⚠️ Atenções</p>
+          <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>{food.attention}</p>
+        </div>
+
         <div className="flex gap-3">
           <div className="flex-1 p-3 rounded-2xl text-center" style={{ background: food.canFreeze ? "hsl(var(--app-yellow) / 0.3)" : "hsl(var(--muted))" }}>
             <p className="text-lg">{food.canFreeze ? "✅" : "❌"}</p>
@@ -83,6 +98,36 @@ function FoodDetail({ food, onClose }: { food: PremiumFood; onClose: () => void 
             <p className="text-lg">{food.canLunchbox ? "✅" : "❌"}</p>
             <p className="text-xs font-bold" style={{ fontWeight: 700 }}>Lancheira</p>
           </div>
+        </div>
+
+        {/* Preparations section */}
+        <div>
+          <h3 className="text-base mb-3" style={{ fontWeight: 800 }}>🍽️ Como oferecer</h3>
+
+          {/* Prep tabs */}
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {food.preparations.map((p, i) => (
+              <PrepCard key={p.type} prep={p} isActive={i === activePrep} onClick={() => setActivePrep(i)} />
+            ))}
+          </div>
+
+          {/* Active prep detail */}
+          {prep && (
+            <div className="space-y-3 mt-2">
+              <div className="p-4 rounded-2xl" style={{ background: "hsl(var(--card))" }}>
+                <p className="font-bold text-sm mb-1" style={{ fontWeight: 700 }}>📝 Preparo</p>
+                <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>{prep.instructions}</p>
+              </div>
+              <div className="p-4 rounded-2xl" style={{ background: "hsl(var(--card))" }}>
+                <p className="font-bold text-sm mb-1" style={{ fontWeight: 700 }}>🤲 Textura ideal</p>
+                <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>{prep.texture}</p>
+              </div>
+              <div className="p-4 rounded-2xl" style={{ background: "hsl(var(--card))" }}>
+                <p className="font-bold text-sm mb-1" style={{ fontWeight: 700 }}>💡 Dicas</p>
+                <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>{prep.tips}</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -128,19 +173,14 @@ function FoodCard({ food, isPremiumItem, onClick }: { food: PremiumFood; isPremi
       <button onClick={onClick} className="flex flex-col items-center gap-1.5 text-left transition-all active:scale-95 w-full">
         <div
           className="relative w-full aspect-square rounded-2xl overflow-hidden flex items-center justify-center"
-          style={{
-            background: "hsl(var(--muted))",
-            boxShadow: "0 2px 8px rgba(92,75,59,0.08)",
-          }}
+          style={{ background: "hsl(var(--muted))", boxShadow: "0 2px 8px rgba(92,75,59,0.08)" }}
         >
           <span className={`text-4xl select-none ${isPremiumItem ? "blur-[2px] opacity-60" : ""}`}>
             {food.emoji}
           </span>
           <span className="age-tag absolute bottom-2 left-2 text-xs">{food.age}</span>
           {isPremiumItem && (
-            <div className="absolute top-2 right-2">
-              <PremiumBadge />
-            </div>
+            <div className="absolute top-2 right-2"><PremiumBadge /></div>
           )}
         </div>
         <span className="text-xs font-semibold text-center w-full truncate" style={{ fontWeight: 600 }}>{food.name}</span>
@@ -162,7 +202,6 @@ export default function Alimentos() {
 
   const visibleFoods = isPremium ? premiumFoods : freeFoods;
 
-  // Sort alphabetically and filter
   const filtered = useMemo(() => {
     return visibleFoods
       .filter(f => {
@@ -170,19 +209,16 @@ export default function Alimentos() {
         const matchesCat = activeCategory === "Todos" || f.category.toLowerCase() === activeCategory.toLowerCase();
         const matchesLetter = !activeLetter || f.name.charAt(0).toUpperCase() === activeLetter;
         return matchesSearch && matchesCat && matchesLetter;
-      })
-      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+      });
+    // Already sorted alphabetically from data
   }, [visibleFoods, search, activeCategory, activeLetter]);
 
-  // Available letters from current visible foods
   const availableLetters = useMemo(() => {
     const letters = new Set(visibleFoods.map(f => f.name.charAt(0).toUpperCase()));
     return ALPHABET.filter(l => letters.has(l));
   }, [visibleFoods]);
 
-  const lockedPreview = !isPremium
-    ? premiumFoods.slice(12, 18).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
-    : [];
+  const lockedPreview = !isPremium ? premiumFoods.slice(12, 18) : [];
 
   const handleFoodClick = (food: PremiumFood, isLocked: boolean) => {
     if (isLocked) { setShowPremiumModal(true); return; }
@@ -301,7 +337,6 @@ export default function Alimentos() {
           </>
         )}
 
-        {/* CTA only for non-premium users */}
         {!isPremium && (
           <div
             className="mt-6 mb-4 p-5 rounded-2xl text-center space-y-3"
