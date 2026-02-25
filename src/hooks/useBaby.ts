@@ -8,16 +8,24 @@ export function useBaby() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) { setLoading(false); return; }
-    supabase
-      .from("babies")
-      .select("*")
-      .eq("user_id", user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        setBaby(data);
+    if (!user) { setBaby(null); setLoading(false); return; }
+    setLoading(true);
+    const fetch = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("babies")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (error) console.error("useBaby error:", error);
+        setBaby(data ?? null);
+      } catch (e) {
+        console.error("useBaby catch:", e);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+    fetch();
   }, [user]);
 
   return { baby, loading, hasBaby: !!baby };
