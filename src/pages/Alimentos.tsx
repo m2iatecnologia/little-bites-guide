@@ -1,30 +1,13 @@
 import { useState } from "react";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, SlidersHorizontal, X, Lock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { FoodImage } from "@/components/FoodImage";
-import { foods } from "@/data/appData";
+import { useSubscription } from "@/hooks/useSubscription";
+import { PremiumBadge } from "@/components/PremiumGate";
+import { PremiumCTA } from "@/components/PremiumCTA";
+import { premiumFoods, freeFoods, foodCategories, type PremiumFood } from "@/data/premiumFoods";
 
-const categories = ["Todos", "Fruta", "Legume", "Proteína", "Grão"];
-
-const allFoods = [
-  ...foods,
-  { id: 7, name: "Beterraba", image: "cenoura", age: "+6m", category: "legume", howToOffer: "Cozinhe e corte em palitos.", texture: "Macia.", attention: "Pode tingir fezes.", canFreeze: true, canLunchbox: true },
-  { id: 8, name: "Brócolis", image: "abobrinha", age: "+6m", category: "legume", howToOffer: "Cozinhe no vapor, buquês.", texture: "Firme mas macia.", attention: "Sem restrições.", canFreeze: true, canLunchbox: true },
-  { id: 9, name: "Manga", image: "morango", age: "+6m", category: "fruta", howToOffer: "Tiras ou cubos maduros.", texture: "Macia e suculenta.", attention: "Pode causar alergia.", canFreeze: true, canLunchbox: true },
-  { id: 10, name: "Pêssego", image: "morango", age: "+6m", category: "fruta", howToOffer: "Fatias sem casca.", texture: "Macia.", attention: "Sem restrições.", canFreeze: true, canLunchbox: true },
-  { id: 11, name: "Figo", image: "abacate", age: "+6m", category: "fruta", howToOffer: "Aberto ao meio.", texture: "Macia e doce.", attention: "Sem restrições.", canFreeze: false, canLunchbox: true },
-  { id: 12, name: "Abóbora", image: "cenoura", age: "+6m", category: "legume", howToOffer: "Assada ou cozida em cubos.", texture: "Bem macia.", attention: "Sem restrições.", canFreeze: true, canLunchbox: true },
-];
-
-const weeklyFoods = allFoods.slice(0, 3);
-const seasonFruits = allFoods.filter(f => f.category === "fruta").slice(0, 3);
-const seasonVegs = allFoods.filter(f => f.category === "legume").slice(0, 3);
-
-interface FoodDetailProps {
-  food: typeof allFoods[0];
-  onClose: () => void;
-}
-
-function FoodDetail({ food, onClose }: FoodDetailProps) {
+function FoodDetail({ food, onClose }: { food: PremiumFood; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col" style={{ background: "hsl(var(--background))", maxWidth: "28rem", margin: "0 auto" }}>
       <div className="relative h-56">
@@ -65,13 +48,48 @@ function FoodDetail({ food, onClose }: FoodDetailProps) {
   );
 }
 
-function FoodCard({ food, onClick }: { food: typeof allFoods[0]; onClick: () => void }) {
+function PremiumModal({ onClose }: { onClose: () => void }) {
+  const navigate = useNavigate();
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+      <div
+        className="mx-6 p-6 rounded-2xl text-center space-y-4 max-w-sm w-full"
+        style={{ background: "hsl(var(--background))" }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{ background: "hsl(var(--app-gold-light))" }}>
+          <Lock size={28} style={{ color: "hsl(var(--app-petrol))" }} />
+        </div>
+        <h3 className="text-lg" style={{ fontWeight: 900, color: "hsl(var(--app-petrol))" }}>Conteúdo Premium</h3>
+        <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+          Assine para acessar +1.000 alimentos e recursos exclusivos.
+        </p>
+        <button
+          onClick={() => navigate("/planos")}
+          className="w-full py-3.5 rounded-xl font-bold text-sm transition-all active:scale-95"
+          style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))", fontWeight: 700 }}
+        >
+          Ver planos
+        </button>
+        <button onClick={onClose} className="w-full py-2 text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+          Fechar
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function FoodCard({ food, isPremiumItem, onClick }: { food: PremiumFood; isPremiumItem: boolean; onClick: () => void }) {
   return (
     <button onClick={onClick} className="flex flex-col items-center gap-1.5 text-left transition-all active:scale-95">
-      <div className="relative w-full aspect-square rounded-2xl overflow-hidden"
-        style={{ background: "hsl(var(--muted))" }}>
-        <FoodImage name={food.image} className="w-full h-full object-cover" alt={food.name} />
+      <div className="relative w-full aspect-square rounded-2xl overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
+        <FoodImage name={food.image} className={`w-full h-full object-cover ${isPremiumItem ? "blur-[2px] opacity-70" : ""}`} alt={food.name} />
         <span className="age-tag absolute bottom-2 left-2">{food.age}</span>
+        {isPremiumItem && (
+          <div className="absolute top-2 right-2">
+            <PremiumBadge />
+          </div>
+        )}
       </div>
       <span className="text-sm font-semibold text-center w-full" style={{ fontWeight: 600 }}>{food.name}</span>
     </button>
@@ -79,25 +97,47 @@ function FoodCard({ food, onClick }: { food: typeof allFoods[0]; onClick: () => 
 }
 
 export default function Alimentos() {
+  const navigate = useNavigate();
+  const { isPremium } = useSubscription();
   const [search, setSearch] = useState("");
-  const [selectedFood, setSelectedFood] = useState<typeof allFoods[0] | null>(null);
+  const [selectedFood, setSelectedFood] = useState<PremiumFood | null>(null);
   const [showFilter, setShowFilter] = useState(false);
   const [activeCategory, setActiveCategory] = useState("Todos");
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
-  const filtered = allFoods.filter(f => {
+  const visibleFoods = isPremium ? premiumFoods : freeFoods;
+
+  const filtered = visibleFoods.filter(f => {
     const matchesSearch = f.name.toLowerCase().includes(search.toLowerCase());
-    const matchesCat = activeCategory === "Todos" || f.category === activeCategory.toLowerCase();
+    const matchesCat = activeCategory === "Todos" || f.category.toLowerCase() === activeCategory.toLowerCase();
     return matchesSearch && matchesCat;
   });
+
+  // For free users, show a few "locked" preview items
+  const lockedPreview = !isPremium ? premiumFoods.slice(12, 18) : [];
+
+  const handleFoodClick = (food: PremiumFood, isLocked: boolean) => {
+    if (isLocked) {
+      setShowPremiumModal(true);
+      return;
+    }
+    setSelectedFood(food);
+  };
 
   if (selectedFood) return <FoodDetail food={selectedFood} onClose={() => setSelectedFood(null)} />;
 
   return (
     <div className="app-container bottom-nav-safe">
+      {showPremiumModal && <PremiumModal onClose={() => setShowPremiumModal(false)} />}
       <div className="px-4 pt-6 pb-3">
-        <h1 className="text-xl mb-4" style={{ fontWeight: 900 }}>
-          Alimentos <span style={{ color: "hsl(var(--app-yellow-highlight))" }}>• Como oferecer</span>
+        <h1 className="text-xl mb-1" style={{ fontWeight: 900 }}>
+          {isPremium ? "+1.000" : ""} Alimentos <span style={{ color: "hsl(var(--app-yellow-highlight))" }}>• Como oferecer</span>
         </h1>
+        {!isPremium && (
+          <p className="text-xs mb-3" style={{ color: "hsl(var(--muted-foreground))" }}>
+            Mostrando preview — assine para acessar todos os alimentos
+          </p>
+        )}
 
         <div className="flex gap-2">
           <div className="flex-1 flex items-center gap-2 px-4 py-3 rounded-2xl"
@@ -121,7 +161,7 @@ export default function Alimentos() {
 
         {showFilter && (
           <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
-            {categories.map(cat => (
+            {foodCategories.map(cat => (
               <button key={cat}
                 onClick={() => setActiveCategory(cat)}
                 className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all active:scale-95"
@@ -142,31 +182,34 @@ export default function Alimentos() {
           <div>
             <h2 className="section-title">Resultados ({filtered.length})</h2>
             <div className="grid grid-cols-3 gap-3">
-              {filtered.map(f => <FoodCard key={f.id} food={f} onClick={() => setSelectedFood(f)} />)}
+              {filtered.map(f => <FoodCard key={f.id} food={f} isPremiumItem={false} onClick={() => handleFoodClick(f, false)} />)}
             </div>
           </div>
         ) : (
           <>
             <div>
-              <h2 className="section-title">Alimentos da semana</h2>
+              <h2 className="section-title">{isPremium ? "Todos os alimentos" : "Top alimentos da semana"}</h2>
               <div className="grid grid-cols-3 gap-3">
-                {weeklyFoods.map(f => <FoodCard key={f.id} food={f} onClick={() => setSelectedFood(f)} />)}
+                {filtered.slice(0, isPremium ? undefined : 6).map(f => (
+                  <FoodCard key={f.id} food={f} isPremiumItem={false} onClick={() => handleFoodClick(f, false)} />
+                ))}
               </div>
             </div>
-            <div>
-              <h2 className="section-title">Frutas da estação</h2>
-              <div className="grid grid-cols-3 gap-3">
-                {seasonFruits.map(f => <FoodCard key={f.id} food={f} onClick={() => setSelectedFood(f)} />)}
+
+            {!isPremium && lockedPreview.length > 0 && (
+              <div>
+                <h2 className="section-title">Mais alimentos 🔒</h2>
+                <div className="grid grid-cols-3 gap-3">
+                  {lockedPreview.map(f => (
+                    <FoodCard key={f.id} food={f} isPremiumItem={true} onClick={() => handleFoodClick(f, true)} />
+                  ))}
+                </div>
               </div>
-            </div>
-            <div>
-              <h2 className="section-title">Legumes e verduras da estação</h2>
-              <div className="grid grid-cols-3 gap-3">
-                {seasonVegs.map(f => <FoodCard key={f.id} food={f} onClick={() => setSelectedFood(f)} />)}
-              </div>
-            </div>
+            )}
           </>
         )}
+
+        {!isPremium && <PremiumCTA />}
       </div>
     </div>
   );

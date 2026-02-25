@@ -1,31 +1,14 @@
 import { useState } from "react";
-import { Star, Heart, Crown, X, Lock } from "lucide-react";
+import { Star, Heart, Crown, X, Lock, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { FoodImage } from "@/components/FoodImage";
-import { recipes } from "@/data/appData";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PremiumBadge } from "@/components/PremiumGate";
+import { PremiumCTA } from "@/components/PremiumCTA";
+import { premiumRecipes, freeRecipes, recipeCategories, recipeAgeFilters, type PremiumRecipe } from "@/data/premiumRecipes";
+import { useBaby } from "@/hooks/useBaby";
 
-const ageFilters = ["Todos", "+6m", "+8m", "+9m", "+12m"];
-const dietFilters = ["Tradicional", "Vegetariano", "Vegano"];
-
-const allRecipes = [
-  ...recipes,
-  {
-    id: 5, name: "Smoothie de Frutas", image: "morango", age: "+8m", difficulty: "Fácil",
-    time: "5 min", rating: 4.6, premium: false, canFreeze: false,
-    ingredients: ["1 banana", "1 xíc. morango", "Leite materno"],
-    instructions: "Bata tudo no liquidificador.", diet: "vegetariano",
-  },
-  {
-    id: 6, name: "Bolo de Banana Integral", image: "banana", age: "+12m", difficulty: "Médio",
-    time: "45 min", rating: 4.8, premium: true, canFreeze: true,
-    ingredients: ["3 bananas", "2 ovos", "2 xíc. farinha integral", "Mel"],
-    instructions: "Amasse bananas, misture ovos e farinha. Asse 180°C por 35 min.", diet: "vegetariano",
-  },
-];
-
-function RecipeDetail({ recipe, onClose }: { recipe: typeof allRecipes[0]; onClose: () => void }) {
+function RecipeDetail({ recipe, onClose }: { recipe: PremiumRecipe; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto" style={{ background: "hsl(var(--background))", maxWidth: "28rem", margin: "0 auto" }}>
       <div className="relative h-56 flex-shrink-0">
@@ -50,12 +33,6 @@ function RecipeDetail({ recipe, onClose }: { recipe: typeof allRecipes[0]; onClo
           <span>⭐ {recipe.rating}</span>
           {recipe.canFreeze && <span>❄️ Pode congelar</span>}
         </div>
-        {recipe.premium && (
-          <div className="p-3 rounded-xl text-sm font-bold text-center"
-            style={{ background: "hsl(var(--app-yellow))", fontWeight: 700, color: "hsl(var(--app-brown))" }}>
-            👑 Receita Premium — Faça upgrade para ver
-          </div>
-        )}
         <div className="p-4 rounded-2xl" style={{ background: "hsl(var(--card))" }}>
           <h3 className="font-bold mb-2" style={{ fontWeight: 700 }}>Ingredientes</h3>
           {recipe.ingredients.map((ing, i) => (
@@ -74,25 +51,72 @@ function RecipeDetail({ recipe, onClose }: { recipe: typeof allRecipes[0]; onClo
   );
 }
 
+function PremiumModal({ onClose }: { onClose: () => void }) {
+  const navigate = useNavigate();
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+      <div
+        className="mx-6 p-6 rounded-2xl text-center space-y-4 max-w-sm w-full"
+        style={{ background: "hsl(var(--background))" }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{ background: "hsl(var(--app-gold-light))" }}>
+          <Lock size={28} style={{ color: "hsl(var(--app-petrol))" }} />
+        </div>
+        <h3 className="text-lg" style={{ fontWeight: 900, color: "hsl(var(--app-petrol))" }}>Conteúdo Premium</h3>
+        <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+          Assine para acessar +1.000 receitas e recursos exclusivos.
+        </p>
+        <button
+          onClick={() => navigate("/planos")}
+          className="w-full py-3.5 rounded-xl font-bold text-sm transition-all active:scale-95"
+          style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))", fontWeight: 700 }}
+        >
+          Ver planos
+        </button>
+        <button onClick={onClose} className="w-full py-2 text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+          Fechar
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function Receitas() {
   const navigate = useNavigate();
   const { isPremium } = useSubscription();
+  const { baby } = useBaby();
   const [selectedAge, setSelectedAge] = useState("Todos");
-  const [selectedDiet, setSelectedDiet] = useState("Tradicional");
+  const [selectedCategory, setSelectedCategory] = useState("Todos");
+  const [search, setSearch] = useState("");
   const [favorites, setFavorites] = useState<number[]>([]);
-  const [selected, setSelected] = useState<typeof allRecipes[0] | null>(null);
+  const [selected, setSelected] = useState<PremiumRecipe | null>(null);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
-  const handleSelectRecipe = (recipe: typeof allRecipes[0]) => {
-    if (recipe.premium && !isPremium) {
-      navigate("/planos");
+  // Auto-suggest age filter based on baby age
+  const babyAgeMonths = baby?.birth_date
+    ? Math.floor((Date.now() - new Date(baby.birth_date).getTime()) / (1000 * 60 * 60 * 24 * 30.44))
+    : null;
+
+  const visibleRecipes = isPremium ? premiumRecipes : freeRecipes;
+
+  const filtered = visibleRecipes.filter(r => {
+    const matchesAge = selectedAge === "Todos" || r.age === selectedAge;
+    const matchesCat = selectedCategory === "Todos" || r.category.toLowerCase() === selectedCategory.toLowerCase();
+    const matchesSearch = !search || r.name.toLowerCase().includes(search.toLowerCase()) || r.ingredients.some(i => i.toLowerCase().includes(search.toLowerCase()));
+    return matchesAge && matchesCat && matchesSearch;
+  });
+
+  // Locked previews for free users
+  const lockedPreview = !isPremium ? premiumRecipes.filter(r => r.premium).slice(0, 4) : [];
+
+  const handleSelectRecipe = (recipe: PremiumRecipe, isLocked: boolean) => {
+    if (isLocked || (recipe.premium && !isPremium)) {
+      setShowPremiumModal(true);
       return;
     }
     setSelected(recipe);
   };
-
-  const filtered = allRecipes.filter(r =>
-    (selectedAge === "Todos" || r.age === selectedAge)
-  );
 
   const toggleFav = (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -103,13 +127,33 @@ export default function Receitas() {
 
   return (
     <div className="app-container bottom-nav-safe">
+      {showPremiumModal && <PremiumModal onClose={() => setShowPremiumModal(false)} />}
       <div className="px-4 pt-6 pb-4">
-        <h1 className="text-xl mb-4" style={{ fontWeight: 900 }}>
-          +650 <span style={{ color: "hsl(var(--app-yellow-highlight))" }}>Receitas</span>
+        <h1 className="text-xl mb-1" style={{ fontWeight: 900 }}>
+          {isPremium ? "+1.000" : "+650"} <span style={{ color: "hsl(var(--app-yellow-highlight))" }}>Receitas</span>
         </h1>
+        {babyAgeMonths !== null && (
+          <p className="text-xs mb-3" style={{ color: "hsl(var(--muted-foreground))" }}>
+            Sugestões para {babyAgeMonths} meses
+          </p>
+        )}
 
+        {/* Search */}
+        <div className="flex items-center gap-2 px-4 py-3 rounded-2xl mb-3"
+          style={{ background: "hsl(var(--card))", boxShadow: "0 2px 8px rgba(92,75,59,0.06)" }}>
+          <Search size={18} style={{ color: "hsl(var(--app-yellow-highlight))" }} />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Buscar receita ou ingrediente..."
+            className="flex-1 bg-transparent text-sm outline-none"
+            style={{ fontFamily: "Nunito, sans-serif" }}
+          />
+        </div>
+
+        {/* Age filters */}
         <div className="flex gap-2 overflow-x-auto pb-2 mb-3">
-          {ageFilters.map(f => (
+          {recipeAgeFilters.map(f => (
             <button key={f} onClick={() => setSelectedAge(f)}
               className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all active:scale-95"
               style={{
@@ -123,38 +167,32 @@ export default function Receitas() {
           ))}
         </div>
 
-        <div className="flex gap-2">
-          {dietFilters.map(d => (
-            <button key={d} onClick={() => setSelectedDiet(d)}
-              className="flex-1 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
-              style={{
-                fontWeight: 700,
-                background: selectedDiet === d ? "hsl(var(--app-yellow))" : "hsl(var(--card))",
-                color: "hsl(var(--foreground))",
-                boxShadow: "0 1px 4px rgba(92,75,59,0.06)",
-              }}>
-              {d}
-            </button>
-          ))}
-        </div>
+        {/* Category filters */}
+        {isPremium && (
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {recipeCategories.map(c => (
+              <button key={c} onClick={() => setSelectedCategory(c)}
+                className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all active:scale-95"
+                style={{
+                  fontWeight: 700,
+                  background: selectedCategory === c ? "hsl(var(--app-yellow))" : "hsl(var(--card))",
+                  color: "hsl(var(--foreground))",
+                  boxShadow: "0 1px 4px rgba(92,75,59,0.06)",
+                }}>
+                {c}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="px-4">
         <div className="grid grid-cols-2 gap-3">
           {filtered.map(recipe => (
-            <button key={recipe.id} onClick={() => handleSelectRecipe(recipe)}
+            <button key={recipe.id} onClick={() => handleSelectRecipe(recipe, false)}
               className="card-food flex flex-col overflow-hidden text-left transition-all active:scale-95 relative">
               <div className="relative aspect-[4/3]">
-                <FoodImage
-                  name={recipe.image}
-                  className={`w-full h-full object-cover ${recipe.premium && !isPremium ? "blur-[2px]" : ""}`}
-                  alt={recipe.name}
-                />
-                {recipe.premium && !isPremium && (
-                  <div className="absolute top-2 right-2">
-                    <PremiumBadge />
-                  </div>
-                )}
+                <FoodImage name={recipe.image} className="w-full h-full object-cover" alt={recipe.name} />
                 {recipe.premium && isPremium && (
                   <div className="absolute top-2 right-2">
                     <Crown size={16} style={{ color: "hsl(var(--app-yellow-highlight))" }} />
@@ -173,11 +211,10 @@ export default function Receitas() {
                     <span className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>{recipe.rating}</span>
                   </div>
                   <button onClick={e => toggleFav(recipe.id, e)}>
-                    <Heart size={14}
-                      style={{
-                        fill: favorites.includes(recipe.id) ? "hsl(var(--destructive))" : "none",
-                        color: favorites.includes(recipe.id) ? "hsl(var(--destructive))" : "hsl(var(--muted-foreground))",
-                      }} />
+                    <Heart size={14} style={{
+                      fill: favorites.includes(recipe.id) ? "hsl(var(--destructive))" : "none",
+                      color: favorites.includes(recipe.id) ? "hsl(var(--destructive))" : "hsl(var(--muted-foreground))",
+                    }} />
                   </button>
                 </div>
               </div>
@@ -185,29 +222,34 @@ export default function Receitas() {
           ))}
         </div>
 
-        {/* Premium CTA */}
-        <div className="mt-6 p-5 rounded-2xl text-center space-y-3"
-          style={{ background: "hsl(var(--app-yellow-dark))" }}>
-          <p className="font-extrabold text-lg" style={{ fontWeight: 900, color: "hsl(var(--app-brown))" }}>+600 receitas esperando! 🍽️</p>
-          <p className="text-sm" style={{ color: "hsl(var(--app-brown-light))" }}>7 dias grátis. Cancele quando quiser.</p>
-          <div className="flex gap-2">
-            <div className="flex-1 p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.5)" }}>
-              <p className="text-xs font-bold" style={{ fontWeight: 700, color: "hsl(var(--app-brown))" }}>⭐ Anual</p>
-              <p className="font-extrabold text-lg" style={{ fontWeight: 900, color: "hsl(var(--app-brown))" }}>R$ 83,90</p>
-              <p className="text-xs" style={{ color: "hsl(var(--app-brown-light))" }}>/ano</p>
+        {/* Locked previews for free users */}
+        {!isPremium && lockedPreview.length > 0 && (
+          <>
+            <h2 className="section-title mt-5">Receitas Premium 🔒</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {lockedPreview.map(recipe => (
+                <button key={recipe.id} onClick={() => handleSelectRecipe(recipe, true)}
+                  className="card-food flex flex-col overflow-hidden text-left transition-all active:scale-95 relative">
+                  <div className="relative aspect-[4/3]">
+                    <FoodImage name={recipe.image} className="w-full h-full object-cover blur-[2px] opacity-70" alt={recipe.name} />
+                    <div className="absolute top-2 right-2">
+                      <PremiumBadge />
+                    </div>
+                    <div className="absolute bottom-2 left-2 flex gap-1">
+                      <span className="age-tag">{recipe.age}</span>
+                    </div>
+                  </div>
+                  <div className="p-2.5">
+                    <p className="text-xs font-bold leading-tight mb-1" style={{ fontWeight: 700 }}>{recipe.name}</p>
+                  </div>
+                </button>
+              ))}
             </div>
-            <div className="flex-1 p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.5)" }}>
-              <p className="text-xs font-bold" style={{ fontWeight: 700, color: "hsl(var(--app-brown))" }}>Mensal</p>
-              <p className="font-extrabold text-lg" style={{ fontWeight: 900, color: "hsl(var(--app-brown))" }}>R$ 10,90</p>
-              <p className="text-xs" style={{ color: "hsl(var(--app-brown-light))" }}>/mês</p>
-            </div>
-          </div>
-          <button onClick={() => navigate("/em-desenvolvimento")}
-            className="w-full py-3 rounded-xl font-extrabold text-sm transition-all active:scale-95"
-            style={{ background: "white", color: "hsl(var(--app-brown))", fontWeight: 900 }}>
-            🎁 Experimentar grátis por 7 dias
-          </button>
-        </div>
+          </>
+        )}
+
+        {/* CTA */}
+        {!isPremium && <PremiumCTA />}
       </div>
     </div>
   );
