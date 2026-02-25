@@ -4,8 +4,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { useBaby } from "./hooks/useBaby";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import CadastroBebe from "./pages/CadastroBebe";
 import Alimentos from "./pages/Alimentos";
 import Receitas from "./pages/Receitas";
 import Guias from "./pages/Guias";
@@ -23,30 +25,33 @@ import { BottomNav } from "./components/BottomNav";
 
 const queryClient = new QueryClient();
 
+const LoadingSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center" style={{ background: "hsl(var(--app-cream))" }}>
+    <div className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin" style={{ borderColor: "hsl(var(--app-gold))", borderTopColor: "transparent" }} />
+  </div>
+);
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: "hsl(var(--app-cream))" }}>
-      <div className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin" style={{ borderColor: "hsl(var(--app-gold))", borderTopColor: "transparent" }} />
-    </div>
-  );
+  const { hasBaby, loading: babyLoading } = useBaby();
+
+  if (loading || babyLoading) return <LoadingSpinner />;
   if (!user) return <Navigate to="/auth" replace />;
+  if (!hasBaby) return <Navigate to="/cadastro-bebe" replace />;
   return <>{children}</>;
 }
 
 const AppRoutes = () => {
   const { user, loading } = useAuth();
+  const { hasBaby, loading: babyLoading } = useBaby();
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: "hsl(var(--app-cream))" }}>
-      <div className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin" style={{ borderColor: "hsl(var(--app-gold))", borderTopColor: "transparent" }} />
-    </div>
-  );
+  if (loading || (user && babyLoading)) return <LoadingSpinner />;
 
   return (
     <div className="app-container">
       <Routes>
-        <Route path="/auth" element={user ? <Navigate to="/" replace /> : <Auth />} />
+        <Route path="/auth" element={user ? (hasBaby ? <Navigate to="/" replace /> : <Navigate to="/cadastro-bebe" replace />) : <Auth />} />
+        <Route path="/cadastro-bebe" element={user ? (hasBaby ? <Navigate to="/" replace /> : <CadastroBebe />) : <Navigate to="/auth" replace />} />
         <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
         <Route path="/alimentos" element={<ProtectedRoute><Alimentos /></ProtectedRoute>} />
         <Route path="/receitas" element={<ProtectedRoute><Receitas /></ProtectedRoute>} />
@@ -62,7 +67,7 @@ const AppRoutes = () => {
         <Route path="/teste-expirando" element={<ProtectedRoute><TesteExpirando /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-      {user && <BottomNav />}
+      {user && hasBaby && <BottomNav />}
     </div>
   );
 };
