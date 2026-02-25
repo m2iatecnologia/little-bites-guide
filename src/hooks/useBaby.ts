@@ -9,15 +9,21 @@ export function useBaby() {
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
-    supabase
-      .from("babies")
-      .select("*")
-      .eq("user_id", user.id)
-      .maybeSingle()
-      .then(({ data }) => {
+    const fetchBaby = async () => {
+      try {
+        const { data } = await supabase
+          .from("babies")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
         setBaby(data);
+      } catch (e) {
+        console.error("Error fetching baby:", e);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+    fetchBaby();
   }, [user]);
 
   return { baby, loading, hasBaby: !!baby };
