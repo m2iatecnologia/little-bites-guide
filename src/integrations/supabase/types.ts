@@ -171,6 +171,63 @@ export type Database = {
         }
         Relationships: []
       }
+      recipes: {
+        Row: {
+          age: string
+          can_freeze: boolean
+          can_lunchbox: boolean
+          category: string
+          created_at: string
+          difficulty: string
+          id: string
+          image_url: string | null
+          ingredients: Json
+          instructions: string
+          name: string
+          nutritional_tip: string | null
+          premium: boolean
+          tags_ingredientes: string[]
+          time_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          age?: string
+          can_freeze?: boolean
+          can_lunchbox?: boolean
+          category?: string
+          created_at?: string
+          difficulty?: string
+          id?: string
+          image_url?: string | null
+          ingredients?: Json
+          instructions?: string
+          name: string
+          nutritional_tip?: string | null
+          premium?: boolean
+          tags_ingredientes?: string[]
+          time_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          age?: string
+          can_freeze?: boolean
+          can_lunchbox?: boolean
+          category?: string
+          created_at?: string
+          difficulty?: string
+          id?: string
+          image_url?: string | null
+          ingredients?: Json
+          instructions?: string
+          name?: string
+          nutritional_tip?: string | null
+          premium?: boolean
+          tags_ingredientes?: string[]
+          time_minutes?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_reason: string | null
