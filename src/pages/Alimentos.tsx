@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Search, SlidersHorizontal, X, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -6,6 +6,7 @@ import { PremiumBadge } from "@/components/PremiumGate";
 import { premiumFoods, freeFoods, foodCategories, type PremiumFood } from "@/data/premiumFoods";
 import { Skeleton } from "@/components/ui/skeleton";
 
+const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 /* ── Emoji-based food visual (no heavy images) ── */
 function FoodEmoji({ emoji, className }: { emoji: string; className?: string }) {
   return (
@@ -156,17 +157,32 @@ export default function Alimentos() {
   const [selectedFood, setSelectedFood] = useState<PremiumFood | null>(null);
   const [showFilter, setShowFilter] = useState(false);
   const [activeCategory, setActiveCategory] = useState("Todos");
+  const [activeLetter, setActiveLetter] = useState<string | null>(null);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   const visibleFoods = isPremium ? premiumFoods : freeFoods;
 
-  const filtered = visibleFoods.filter(f => {
-    const matchesSearch = f.name.toLowerCase().includes(search.toLowerCase());
-    const matchesCat = activeCategory === "Todos" || f.category.toLowerCase() === activeCategory.toLowerCase();
-    return matchesSearch && matchesCat;
-  });
+  // Sort alphabetically and filter
+  const filtered = useMemo(() => {
+    return visibleFoods
+      .filter(f => {
+        const matchesSearch = f.name.toLowerCase().includes(search.toLowerCase());
+        const matchesCat = activeCategory === "Todos" || f.category.toLowerCase() === activeCategory.toLowerCase();
+        const matchesLetter = !activeLetter || f.name.charAt(0).toUpperCase() === activeLetter;
+        return matchesSearch && matchesCat && matchesLetter;
+      })
+      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+  }, [visibleFoods, search, activeCategory, activeLetter]);
 
-  const lockedPreview = !isPremium ? premiumFoods.slice(12, 18) : [];
+  // Available letters from current visible foods
+  const availableLetters = useMemo(() => {
+    const letters = new Set(visibleFoods.map(f => f.name.charAt(0).toUpperCase()));
+    return ALPHABET.filter(l => letters.has(l));
+  }, [visibleFoods]);
+
+  const lockedPreview = !isPremium
+    ? premiumFoods.slice(12, 18).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
+    : [];
 
   const handleFoodClick = (food: PremiumFood, isLocked: boolean) => {
     if (isLocked) { setShowPremiumModal(true); return; }
@@ -224,10 +240,37 @@ export default function Alimentos() {
             ))}
           </div>
         )}
+
+        {/* Letter filter */}
+        <div className="flex gap-1.5 mt-3 overflow-x-auto pb-1">
+          <button
+            onClick={() => setActiveLetter(null)}
+            className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all active:scale-95"
+            style={{
+              fontWeight: 700,
+              background: !activeLetter ? "hsl(var(--app-yellow-dark))" : "hsl(var(--card))",
+              color: !activeLetter ? "hsl(var(--app-brown))" : "hsl(var(--foreground))",
+            }}>
+            Aa
+          </button>
+          {availableLetters.map(letter => (
+            <button
+              key={letter}
+              onClick={() => setActiveLetter(activeLetter === letter ? null : letter)}
+              className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all active:scale-95"
+              style={{
+                fontWeight: 700,
+                background: activeLetter === letter ? "hsl(var(--app-yellow-dark))" : "hsl(var(--card))",
+                color: activeLetter === letter ? "hsl(var(--app-brown))" : "hsl(var(--foreground))",
+              }}>
+              {letter}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="px-4 space-y-5 pb-4">
-        {search || activeCategory !== "Todos" ? (
+        {search || activeCategory !== "Todos" || activeLetter ? (
           <div>
             <h2 className="section-title">Resultados ({filtered.length})</h2>
             <div className="grid grid-cols-3 gap-3">
