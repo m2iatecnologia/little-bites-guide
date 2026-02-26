@@ -29,6 +29,8 @@ export interface ReportData {
   foodGroups?: { group: string; count: number; frequency: number }[];
   // System insights
   insights?: string[];
+  // Meal observations from Cardápio
+  mealObservations?: { date: string; meal: string; food: string; status: string; note: string }[];
   // Parent notes
   parentNotes: string;
   // Behavioral / context (optional)
@@ -539,7 +541,56 @@ export function generateClinicalReport(data: ReportData): void {
     y += 30;
   }
 
-  // ── 10. Observações do Responsável ──
+  // ── 10. Observações Registradas nas Refeições ──
+  const obs = data.mealObservations ?? [];
+  y = checkPageBreak(doc, y, 30, data.childName, data.period, page);
+  y = sectionTitle(doc, y, "Observações Registradas nas Refeições", margin);
+
+  if (obs.length === 0) {
+    setFill(doc, WHITE);
+    doc.roundedRect(margin, y, contentW, 12, 3, 3, "F");
+    setDraw(doc, [230, 230, 225]);
+    doc.roundedRect(margin, y, contentW, 12, 3, 3, "S");
+    setText(doc, GRAY);
+    doc.setFontSize(8);
+    doc.text("Nenhuma observação foi registrada no período.", margin + 4, y + 7);
+    y += 16;
+  } else {
+    // Table header
+    setFill(doc, PETROL);
+    doc.roundedRect(margin, y, contentW, 8, 2, 2, "F");
+    setText(doc, WHITE);
+    doc.setFontSize(6.5);
+    doc.setFont("helvetica", "bold");
+    doc.text("Data", margin + 3, y + 5.5);
+    doc.text("Refeição", margin + 25, y + 5.5);
+    doc.text("Alimento", margin + 55, y + 5.5);
+    doc.text("Status", margin + 100, y + 5.5);
+    doc.text("Observação", margin + 125, y + 5.5);
+    y += 9;
+
+    const statusLabels: Record<string, string> = { ate: "Comeu", did_not_eat: "Não comeu", tried: "Provou" };
+    const mealLabels: Record<string, string> = { cafe: "Café", almoco: "Almoço", jantar: "Jantar", lanche: "Lanche" };
+
+    obs.forEach((o, i) => {
+      y = checkPageBreak(doc, y, 10, data.childName, data.period, page);
+      setFill(doc, i % 2 === 0 ? WHITE : LIGHT_BG);
+      doc.rect(margin, y, contentW, 8, "F");
+      setText(doc, DARK);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6.5);
+      doc.text(o.date, margin + 3, y + 5.5);
+      doc.text(mealLabels[o.meal] || o.meal, margin + 25, y + 5.5);
+      doc.text(doc.splitTextToSize(o.food, 40)[0], margin + 55, y + 5.5);
+      doc.text(statusLabels[o.status] || o.status, margin + 100, y + 5.5);
+      const noteLines = doc.splitTextToSize(o.note, 48);
+      doc.text(noteLines[0] || "", margin + 125, y + 5.5);
+      y += 9;
+    });
+    y += 4;
+  }
+
+  // ── 10b. Observações do Responsável ──
   y = checkPageBreak(doc, y, 30, data.childName, data.period, page);
   y = sectionTitle(doc, y, "Observações do Responsável", margin);
 

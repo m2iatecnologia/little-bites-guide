@@ -314,6 +314,7 @@ export function ReportSection({ dashboardData: d }: ReportSectionProps) {
                 "Resumo geral com estatísticas do mês",
                 "Ranking de alimentos aceitos e recusados",
                 "Histórico de possíveis reações",
+                "Observações registradas nas refeições",
                 "Gráfico de evolução semanal",
                 "Suas observações para o médico",
               ].map((item) => (
