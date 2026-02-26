@@ -83,7 +83,7 @@ function addFooter(doc: jsPDF, pageNum: number) {
   doc.setFontSize(6.5);
   doc.setFont("helvetica", "normal");
   doc.text(
-    "Relatório gerado pelo NutriBaby — Plataforma de acompanhamento alimentar infantil  |  nutribaby.app",
+    "Relatório gerado pelo NutrooBaby — Plataforma de acompanhamento alimentar infantil  |  nutroobaby.app",
     margin, y + 5
   );
   doc.text(

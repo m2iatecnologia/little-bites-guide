@@ -193,7 +193,7 @@ function ListaCompras() {
       text += "\n";
     });
 
-    text += "Gerado pelo NutriBaby 🍼";
+    text += "Gerado pelo NutrooBaby 🥭";
 
     if (navigator.share) {
       try {

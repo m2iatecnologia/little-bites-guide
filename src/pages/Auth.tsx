@@ -60,11 +60,8 @@ export default function Auth() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl mx-auto mb-3 flex items-center justify-center text-3xl"
-            style={{ background: "hsl(var(--app-gold))" }}>
-            🍼
-          </div>
-          <h1 className="text-2xl font-extrabold" style={{ color: "hsl(var(--app-petrol))" }}>NutriBaby</h1>
+          <img src="/logo.png" alt="NutrooBaby" className="w-20 h-20 mx-auto mb-3 object-contain" />
+          <h1 className="text-2xl font-extrabold" style={{ color: "hsl(var(--app-petrol))" }}>NutrooBaby</h1>
           <p className="text-sm mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>
             {mode === "login" ? "Entre na sua conta" : "Crie sua conta gratuita"}
           </p>

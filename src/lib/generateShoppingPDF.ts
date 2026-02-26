@@ -145,7 +145,7 @@ function addFooter(doc: jsPDF) {
   doc.setFontSize(6.5);
   doc.setFont("helvetica", "normal");
   doc.text(
-    "Lista gerada pelo NutriBaby — Plataforma de acompanhamento alimentar infantil  |  nutribaby.app",
+    "Lista gerada pelo NutrooBaby — Plataforma de acompanhamento alimentar infantil  |  nutroobaby.app",
     margin, y + 4
   );
   doc.text(
