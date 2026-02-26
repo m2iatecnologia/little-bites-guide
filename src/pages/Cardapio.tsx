@@ -2,8 +2,10 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { PremiumGate } from "@/components/PremiumGate";
 import { useMealLogs } from "@/hooks/useMealLogs";
-import { ShoppingCart, Check, X, Minus, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
+import { ShoppingCart, Check, X, Minus, MessageSquare, ChevronDown, ChevronUp, ChefHat } from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { getPreparations, type FoodPreparation } from "@/data/foodPreparations";
 
 type DietMode = "Tradicional" | "Vegetariano" | "Vegano";
 
@@ -52,7 +54,7 @@ function isToday(d: Date): boolean {
 
 const generateDayPlan = (diet: DietMode, dayIndex: number): DayPlan => {
   const plans: Record<number, DayPlan> = {
-    0: { // Monday
+    0: {
       cafe: [{ name: "Banana amassada", emoji: "🍌", group: "Fruta" }, { name: "Aveia", emoji: "🥣", group: "Grão" }],
       almoco: [
         { name: diet === "Vegano" ? "Grão-de-bico" : diet === "Vegetariano" ? "Ovo mexido" : "Frango desfiado", emoji: diet === "Vegano" ? "🫘" : diet === "Vegetariano" ? "🍳" : "🍗", group: "Proteína" },
@@ -152,10 +154,11 @@ function CardapioContent() {
   const [expandedMeals, setExpandedMeals] = useState<Record<string, boolean>>({
     cafe: true, almoco: true, jantar: true, lanche: true,
   });
+  const [prepFood, setPrepFood] = useState<FoodPreparation | null>(null);
+  const [prepOpen, setPrepOpen] = useState(false);
 
   const selectedDate = weekDates[selectedDayIndex];
   const dateStr = formatDate(selectedDate);
-  // dayIndex for plan: 0=Mon ... 6=Sun; JS getDay: 0=Sun. Convert.
   const planIndex = (selectedDate.getDay() + 6) % 7;
   const dayPlan = useMemo(() => generateDayPlan(diet, planIndex), [diet, planIndex]);
 
@@ -175,16 +178,18 @@ function CardapioContent() {
     return logs.find((l) => l.food_name === foodName && l.meal_type === mealType)?.acceptance || null;
   };
 
+  const getLogNotes = (foodName: string, mealType: string) => {
+    return logs.find((l) => l.food_name === foodName && l.meal_type === mealType)?.notes || null;
+  };
+
   const markedCount = allItems.filter((i) => getLogStatus(i.name, i.mealKey) !== null).length;
   const ateCount = allItems.filter((i) => getLogStatus(i.name, i.mealKey) === "ate").length;
   const didNotEatCount = allItems.filter((i) => getLogStatus(i.name, i.mealKey) === "did_not_eat").length;
 
   const handleMark = async (foodName: string, mealType: string, status: string) => {
     const current = getLogStatus(foodName, mealType);
-    // Toggle off if same status
-    const newStatus = current === status ? "ate" : status; // default back to ate if toggling off
-    if (current === status) return; // already set, do nothing
-    const ok = await upsertLog(foodName, mealType, newStatus, dateStr);
+    if (current === status) return;
+    const ok = await upsertLog(foodName, mealType, status, dateStr);
     if (ok) toast.success("Registro salvo!");
   };
 
@@ -194,6 +199,12 @@ function CardapioContent() {
     setNoteFood(null);
     setNoteText("");
     toast.success("Observação salva!");
+  };
+
+  const handleOpenPrep = (foodName: string) => {
+    const prep = getPreparations(foodName);
+    setPrepFood(prep || { name: foodName, preparations: [] });
+    setPrepOpen(true);
   };
 
   const toggleMealSection = (key: string) => {
@@ -318,6 +329,7 @@ function CardapioContent() {
                 <div className="px-4 pb-3 space-y-2">
                   {items.map((meal) => {
                     const status = getLogStatus(meal.name, key);
+                    const savedNote = getLogNotes(meal.name, key);
                     return (
                       <div key={meal.name}>
                         <div
@@ -347,6 +359,18 @@ function CardapioContent() {
 
                           {/* Action buttons */}
                           <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleOpenPrep(meal.name)}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-90"
+                              style={{
+                                background: "hsl(var(--card))",
+                                color: "hsl(var(--app-gold-dark))",
+                                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                              }}
+                              title="Modo de preparo"
+                            >
+                              <ChefHat size={13} />
+                            </button>
                             <button
                               onClick={() => handleMark(meal.name, key, "ate")}
                               className="w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-90"
@@ -384,11 +408,14 @@ function CardapioContent() {
                               <X size={14} strokeWidth={2.5} />
                             </button>
                             <button
-                              onClick={() => { setNoteFood(`${meal.name}::${key}`); setNoteText(""); }}
+                              onClick={() => {
+                                setNoteFood(`${meal.name}::${key}`);
+                                setNoteText(savedNote || "");
+                              }}
                               className="w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-90"
                               style={{
-                                background: "hsl(var(--card))",
-                                color: "hsl(var(--muted-foreground))",
+                                background: savedNote ? "hsl(var(--app-gold-light))" : "hsl(var(--card))",
+                                color: savedNote ? "hsl(var(--app-petrol))" : "hsl(var(--muted-foreground))",
                                 boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
                               }}
                               title="Observação"
@@ -397,6 +424,18 @@ function CardapioContent() {
                             </button>
                           </div>
                         </div>
+
+                        {/* Saved note display */}
+                        {savedNote && noteFood !== `${meal.name}::${key}` && (
+                          <div className="mt-1 px-2">
+                            <p className="text-[10px] px-2 py-1 rounded-lg" style={{
+                              background: "hsl(var(--app-gold-light))",
+                              color: "hsl(var(--app-petrol))",
+                            }}>
+                              📝 {savedNote}
+                            </p>
+                          </div>
+                        )}
 
                         {/* Notes input */}
                         {noteFood === `${meal.name}::${key}` && (
@@ -438,6 +477,64 @@ function CardapioContent() {
           </button>
         )}
       </div>
+
+      {/* Preparation Modal */}
+      <Dialog open={prepOpen} onOpenChange={setPrepOpen}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base font-extrabold" style={{ fontWeight: 800, color: "hsl(var(--app-petrol))" }}>
+              🍳 Como preparar: {prepFood?.name}
+            </DialogTitle>
+          </DialogHeader>
+
+          {prepFood && prepFood.preparations.length > 0 ? (
+            <div className="space-y-4 mt-2">
+              {prepFood.preparations.map((prep, i) => (
+                <div key={i} className="rounded-xl p-4" style={{ background: "hsl(var(--app-cream))" }}>
+                  <h4 className="text-sm font-bold mb-3" style={{ fontWeight: 700, color: "hsl(var(--app-petrol))" }}>
+                    {prep.method}
+                  </h4>
+
+                  <div className="space-y-2.5">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: "hsl(var(--app-gold-dark))", fontWeight: 700 }}>
+                        Preparo
+                      </p>
+                      <p className="text-xs" style={{ color: "hsl(var(--app-petrol))", lineHeight: 1.5 }}>
+                        {prep.steps}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: "hsl(var(--app-gold-dark))", fontWeight: 700 }}>
+                        Textura ideal
+                      </p>
+                      <p className="text-xs" style={{ color: "hsl(var(--app-petrol))", lineHeight: 1.5 }}>
+                        {prep.texture}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: "hsl(var(--app-gold-dark))", fontWeight: 700 }}>
+                        Dicas e cuidados
+                      </p>
+                      <p className="text-xs" style={{ color: "hsl(var(--app-petrol))", lineHeight: 1.5 }}>
+                        {prep.tips}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-6 text-center">
+              <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+                Sem modo de preparo cadastrado para este alimento.
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

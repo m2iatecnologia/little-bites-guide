@@ -203,6 +203,17 @@ export function useDashboardData(): DashboardData {
       return { group, count: uniqueMatched.size, frequency: matchedFoods.length };
     });
 
+    // Meal observations (logs with notes)
+    const mealObservations = logs
+      .filter((l) => l.notes && l.notes.trim() !== "")
+      .map((l) => ({
+        date: format(new Date(l.offered_at), "dd/MM/yyyy"),
+        meal: l.meal_type,
+        food: l.food_name,
+        status: l.acceptance,
+        note: l.notes!,
+      }));
+
     const reportData: import("@/lib/generateReport").ReportData = {
       childName: baby?.name ?? "",
       birthDate: baby?.birth_date ? format(new Date(baby.birth_date), "dd/MM/yyyy") : "",
@@ -223,6 +234,7 @@ export function useDashboardData(): DashboardData {
       reactions,
       weeklyIntroductions: weeklyEvolution.map((w) => w.count),
       foodGroups,
+      mealObservations,
       parentNotes: "",
     };
 
