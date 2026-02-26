@@ -31,6 +31,8 @@ export interface ReportData {
   insights?: string[];
   // Meal observations from Cardápio
   mealObservations?: { date: string; meal: string; food: string; status: string; note: string }[];
+  // Food occurrences (post-consumption reactions)
+  foodOccurrences?: { date: string; food: string; reaction: string; timeAfter: string; intensity: string; notes: string }[];
   // Parent notes
   parentNotes: string;
   // Behavioral / context (optional)
@@ -590,7 +592,51 @@ export function generateClinicalReport(data: ReportData): void {
     y += 4;
   }
 
-  // ── 10b. Observações do Responsável ──
+  // ── 10b. Ocorrências Registradas após Consumo ──
+  const occs = data.foodOccurrences ?? [];
+  y = checkPageBreak(doc, y, 30, data.childName, data.period, page);
+  y = sectionTitle(doc, y, "Ocorrências Registradas após Consumo", margin);
+
+  if (occs.length === 0) {
+    setFill(doc, WHITE);
+    doc.roundedRect(margin, y, contentW, 12, 3, 3, "F");
+    setDraw(doc, [230, 230, 225]);
+    doc.roundedRect(margin, y, contentW, 12, 3, 3, "S");
+    setText(doc, GRAY);
+    doc.setFontSize(8);
+    doc.text("Nenhuma ocorrência registrada no período.", margin + 4, y + 7);
+    y += 16;
+  } else {
+    setFill(doc, PETROL);
+    doc.roundedRect(margin, y, contentW, 8, 2, 2, "F");
+    setText(doc, WHITE);
+    doc.setFontSize(6.5);
+    doc.setFont("helvetica", "bold");
+    doc.text("Data", margin + 3, y + 5.5);
+    doc.text("Alimento", margin + 25, y + 5.5);
+    doc.text("Reação", margin + 65, y + 5.5);
+    doc.text("Tempo", margin + 110, y + 5.5);
+    doc.text("Intensidade", margin + 135, y + 5.5);
+    y += 9;
+
+    occs.forEach((o, i) => {
+      y = checkPageBreak(doc, y, 10, data.childName, data.period, page);
+      setFill(doc, i % 2 === 0 ? WHITE : RED_LIGHT);
+      doc.rect(margin, y, contentW, 8, "F");
+      setText(doc, DARK);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6.5);
+      doc.text(o.date, margin + 3, y + 5.5);
+      doc.text(doc.splitTextToSize(o.food, 35)[0], margin + 25, y + 5.5);
+      doc.text(doc.splitTextToSize(o.reaction, 40)[0], margin + 65, y + 5.5);
+      doc.text(o.timeAfter, margin + 110, y + 5.5);
+      doc.text(o.intensity || "—", margin + 135, y + 5.5);
+      y += 9;
+    });
+    y += 4;
+  }
+
+  // ── 10c. Observações do Responsável ──
   y = checkPageBreak(doc, y, 30, data.childName, data.period, page);
   y = sectionTitle(doc, y, "Observações do Responsável", margin);
 

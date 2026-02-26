@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { differenceInMonths, differenceInDays, startOfMonth, subWeeks, format } from "date-fns";
 import type { ReportData } from "@/lib/generateReport";
+import type { FoodOccurrence } from "@/hooks/useFoodOccurrences";
 
 interface Baby {
   id: string;
@@ -70,6 +71,7 @@ export function useDashboardData(): DashboardData {
   const { user } = useAuth();
   const [baby, setBaby] = useState<Baby | null>(null);
   const [logs, setLogs] = useState<FoodLog[]>([]);
+  const [foodOccurrences, setFoodOccurrences] = useState<FoodOccurrence[]>([]);
   const [profileName, setProfileName] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -81,14 +83,16 @@ export function useDashboardData(): DashboardData {
 
     const fetchAll = async () => {
       setLoading(true);
-      const [babyRes, logsRes, profileRes] = await Promise.all([
+      const [babyRes, logsRes, profileRes, occRes] = await Promise.all([
         supabase.from("babies").select("*").eq("user_id", user.id).limit(1).maybeSingle(),
         supabase.from("food_logs").select("*").eq("user_id", user.id).order("offered_at", { ascending: false }),
         supabase.from("profiles").select("name").eq("user_id", user.id).maybeSingle(),
+        supabase.from("food_occurrences").select("*").eq("user_id", user.id).order("occurrence_date", { ascending: false }),
       ]);
 
       setBaby(babyRes.data ?? null);
       setLogs(logsRes.data ?? []);
+      setFoodOccurrences((occRes.data as FoodOccurrence[] | null) ?? []);
       setProfileName(profileRes.data?.name ?? user.user_metadata?.full_name ?? "");
       setLoading(false);
     };
@@ -235,6 +239,14 @@ export function useDashboardData(): DashboardData {
       weeklyIntroductions: weeklyEvolution.map((w) => w.count),
       foodGroups,
       mealObservations,
+      foodOccurrences: foodOccurrences.map((o) => ({
+        date: format(new Date(o.occurrence_date), "dd/MM/yyyy"),
+        food: o.food_name,
+        reaction: o.reaction_type,
+        timeAfter: `${o.time_after_value}${o.time_after_unit === "min" ? "min" : "h"}`,
+        intensity: o.intensity || "",
+        notes: o.notes || "",
+      })),
       parentNotes: "",
     };
 
@@ -256,5 +268,5 @@ export function useDashboardData(): DashboardData {
       alerts,
       reportData,
     };
-  }, [logs, baby, loading, profileName]);
+  }, [logs, baby, loading, profileName, foodOccurrences]);
 }

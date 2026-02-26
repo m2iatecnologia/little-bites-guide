@@ -315,6 +315,7 @@ export function ReportSection({ dashboardData: d }: ReportSectionProps) {
                 "Ranking de alimentos aceitos e recusados",
                 "Histórico de possíveis reações",
                 "Observações registradas nas refeições",
+                "Ocorrências pós-consumo (reações)",
                 "Gráfico de evolução semanal",
                 "Suas observações para o médico",
               ].map((item) => (

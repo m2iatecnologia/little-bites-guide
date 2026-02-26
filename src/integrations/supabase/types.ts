@@ -100,6 +100,62 @@ export type Database = {
           },
         ]
       }
+      food_occurrences: {
+        Row: {
+          baby_id: string | null
+          created_at: string
+          food_name: string
+          id: string
+          intensity: string | null
+          meal_type: string | null
+          notes: string | null
+          occurrence_date: string
+          reaction_other_text: string | null
+          reaction_type: string
+          time_after_unit: string
+          time_after_value: number
+          user_id: string
+        }
+        Insert: {
+          baby_id?: string | null
+          created_at?: string
+          food_name: string
+          id?: string
+          intensity?: string | null
+          meal_type?: string | null
+          notes?: string | null
+          occurrence_date?: string
+          reaction_other_text?: string | null
+          reaction_type: string
+          time_after_unit?: string
+          time_after_value: number
+          user_id: string
+        }
+        Update: {
+          baby_id?: string | null
+          created_at?: string
+          food_name?: string
+          id?: string
+          intensity?: string | null
+          meal_type?: string | null
+          notes?: string | null
+          occurrence_date?: string
+          reaction_other_text?: string | null
+          reaction_type?: string
+          time_after_unit?: string
+          time_after_value?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_occurrences_baby_id_fkey"
+            columns: ["baby_id"]
+            isOneToOne: false
+            referencedRelation: "babies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       food_status_overrides: {
         Row: {
           baby_id: string | null
