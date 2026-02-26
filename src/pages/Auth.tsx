@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import nutrooLogo from "@/assets/nutroo-logo-full.png";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -60,8 +61,8 @@ export default function Auth() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <img src="/logo.png" alt="NutrooBaby" className="w-20 h-20 mx-auto mb-3 object-contain" />
-          <h1 className="text-2xl font-extrabold" style={{ color: "hsl(var(--app-petrol))" }}>NutrooBaby</h1>
+          <img src="/logo.png" alt="NutrooBaby" className="w-16 h-16 mx-auto mb-2 object-contain" />
+          <img src={nutrooLogo} alt="Nutroo - Introdução Alimentar" className="w-48 mx-auto mb-2 object-contain" />
           <p className="text-sm mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>
             {mode === "login" ? "Entre na sua conta" : "Crie sua conta gratuita"}
           </p>
