@@ -45,10 +45,31 @@ export default function Auth() {
   const handleGoogle = async () => {
     setLoading(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin
-      });
-      if (result.error) throw result.error;
+      const isCustomDomain =
+        !window.location.hostname.includes("lovable.app") &&
+        !window.location.hostname.includes("lovableproject.com") &&
+        !window.location.hostname.includes("localhost");
+
+      if (isCustomDomain) {
+        // On custom domains, bypass auth-bridge and handle redirect manually
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: `${window.location.origin}/`,
+            skipBrowserRedirect: true,
+          },
+        });
+        if (error) throw error;
+        if (data?.url) {
+          window.location.href = data.url;
+        }
+      } else {
+        // On Lovable domains, use managed auth
+        const result = await lovable.auth.signInWithOAuth("google", {
+          redirect_uri: window.location.origin,
+        });
+        if (result.error) throw result.error;
+      }
     } catch (err: any) {
       toast.error(err.message || "Erro com Google");
     } finally {
