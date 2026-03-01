@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import CadastroBebe from "./pages/CadastroBebe";
 import Alimentos from "./pages/Alimentos";
 import Receitas from "./pages/Receitas";
+import ReceitaDetalhe from "./pages/ReceitaDetalhe";
 import Guias from "./pages/Guias";
 import Cardapio from "./pages/Cardapio";
 import Checklist from "./pages/Checklist";
@@ -56,6 +57,7 @@ const AppRoutes = () => {
         <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
         <Route path="/alimentos" element={<ProtectedRoute><Alimentos /></ProtectedRoute>} />
         <Route path="/receitas" element={<ProtectedRoute><Receitas /></ProtectedRoute>} />
+        <Route path="/receitas/:id" element={<ProtectedRoute><ReceitaDetalhe /></ProtectedRoute>} />
         <Route path="/guias" element={<ProtectedRoute><Guias /></ProtectedRoute>} />
         <Route path="/cardapio" element={<ProtectedRoute><Cardapio /></ProtectedRoute>} />
         <Route path="/checklist" element={<ProtectedRoute><Checklist /></ProtectedRoute>} />
