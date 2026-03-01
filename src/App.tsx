@@ -16,6 +16,7 @@ import Checklist from "./pages/Checklist";
 import Perfil from "./pages/Perfil";
 import ListaCompras from "./pages/ListaCompras";
 import EmDesenvolvimento from "./pages/EmDesenvolvimento";
+import Dicas from "./pages/Dicas";
 import Planos from "./pages/Planos";
 import AssinaturaConfirmada from "./pages/AssinaturaConfirmada";
 import Cancelamento from "./pages/Cancelamento";
@@ -61,6 +62,8 @@ const AppRoutes = () => {
         <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
         <Route path="/lista-compras" element={<ProtectedRoute><ListaCompras /></ProtectedRoute>} />
         <Route path="/em-desenvolvimento" element={<ProtectedRoute><EmDesenvolvimento /></ProtectedRoute>} />
+        <Route path="/dicas" element={<ProtectedRoute><Dicas /></ProtectedRoute>} />
+        <Route path="/dicas/:id" element={<ProtectedRoute><Dicas /></ProtectedRoute>} />
         <Route path="/planos" element={<ProtectedRoute><Planos /></ProtectedRoute>} />
         <Route path="/assinatura-confirmada" element={<ProtectedRoute><AssinaturaConfirmada /></ProtectedRoute>} />
         <Route path="/cancelamento" element={<ProtectedRoute><Cancelamento /></ProtectedRoute>} />
