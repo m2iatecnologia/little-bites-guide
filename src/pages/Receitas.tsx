@@ -1,84 +1,87 @@
-import { useState } from "react";
-import { Star, Heart, Crown, X, Lock, Search } from "lucide-react";
+import { useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FoodImage } from "@/components/FoodImage";
+import { Search, Lock, Crown, Clock, Snowflake, AlertCircle, RefreshCw } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
-import { PremiumBadge } from "@/components/PremiumGate";
-import { PremiumCTA } from "@/components/PremiumCTA";
-import { premiumRecipes, freeRecipes, recipeCategories, recipeAgeFilters, type PremiumRecipe } from "@/data/premiumRecipes";
+import { useRecipes, type Recipe } from "@/hooks/useRecipes";
 import { useBaby } from "@/hooks/useBaby";
+import { PremiumCTA } from "@/components/PremiumCTA";
+import { Skeleton } from "@/components/ui/skeleton";
 
-function RecipeDetail({ recipe, onClose }: { recipe: PremiumRecipe; onClose: () => void }) {
+const categories = ["Todos", "Café da manhã", "Almoço", "Lanche", "Jantar"];
+const ageFilters = ["Todos", "+6m", "+7m", "+8m", "+9m", "+10m", "+12m"];
+const difficultyFilters = ["Todos", "Fácil", "Médio"];
+
+const FREE_LIMIT = 5;
+
+function RecipeCardSkeleton() {
   return (
-    <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto" style={{ background: "hsl(var(--background))", maxWidth: "28rem", margin: "0 auto" }}>
-      <div className="relative h-56 flex-shrink-0">
-        <FoodImage name={recipe.image} className="w-full h-full object-cover" alt={recipe.name} />
-        <button onClick={onClose}
-          className="absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center"
-          style={{ background: "rgba(0,0,0,0.5)" }}>
-          <X size={18} color="white" />
-        </button>
-        <div className="absolute bottom-3 left-3 flex gap-1">
-          <span className="age-tag">{recipe.age}</span>
-          <span className="age-tag">{recipe.difficulty}</span>
-        </div>
-      </div>
-      <div className="p-5 space-y-4 pb-28">
-        <div className="flex items-start justify-between">
-          <h2 className="text-xl flex-1" style={{ fontWeight: 900 }}>{recipe.name}</h2>
-          <Heart size={22} style={{ color: "hsl(var(--app-yellow-highlight))" }} />
-        </div>
-        <div className="flex gap-3 text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-          <span>⏱️ {recipe.time}</span>
-          <span>⭐ {recipe.rating}</span>
-          {recipe.canFreeze && <span>❄️ Pode congelar</span>}
-        </div>
-        <div className="p-4 rounded-2xl" style={{ background: "hsl(var(--card))" }}>
-          <h3 className="font-bold mb-2" style={{ fontWeight: 700 }}>Ingredientes</h3>
-          {recipe.ingredients.map((ing, i) => (
-            <div key={i} className="flex items-center gap-2 py-1">
-              <div className="w-1.5 h-1.5 rounded-full" style={{ background: "hsl(var(--app-yellow-highlight))" }} />
-              <span className="text-sm">{ing}</span>
-            </div>
-          ))}
-        </div>
-        <div className="p-4 rounded-2xl" style={{ background: "hsl(var(--card))" }}>
-          <h3 className="font-bold mb-2" style={{ fontWeight: 700 }}>Modo de preparo</h3>
-          <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>{recipe.instructions}</p>
-        </div>
+    <div className="card-food flex flex-col overflow-hidden">
+      <Skeleton className="aspect-[4/3] w-full" />
+      <div className="p-2.5 space-y-2">
+        <Skeleton className="h-3 w-3/4" />
+        <Skeleton className="h-3 w-1/2" />
       </div>
     </div>
   );
 }
 
-function PremiumModal({ onClose }: { onClose: () => void }) {
-  const navigate = useNavigate();
+function RecipeCard({ recipe, locked, onClick }: { recipe: Recipe; locked: boolean; onClick: () => void }) {
+  const hasImage = recipe.image_url && !recipe.image_url.startsWith("data:");
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div
-        className="mx-6 p-6 rounded-2xl text-center space-y-4 max-w-sm w-full"
-        style={{ background: "hsl(var(--background))" }}
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{ background: "hsl(var(--app-gold-light))" }}>
-          <Lock size={28} style={{ color: "hsl(var(--app-petrol))" }} />
-        </div>
-        <h3 className="text-lg" style={{ fontWeight: 900, color: "hsl(var(--app-petrol))" }}>Conteúdo Premium</h3>
-        <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-          Assine para acessar +1.000 receitas e recursos exclusivos.
-        </p>
-        <button
-          onClick={() => navigate("/planos")}
-          className="w-full py-3.5 rounded-xl font-bold text-sm transition-all active:scale-95"
-          style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))", fontWeight: 700 }}
-        >
-          Ver planos
-        </button>
-        <button onClick={onClose} className="w-full py-2 text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-          Fechar
-        </button>
+    <button
+      onClick={onClick}
+      className="card-food flex flex-col overflow-hidden text-left transition-all active:scale-95 relative"
+    >
+      <div className="relative aspect-[4/3]">
+        {hasImage ? (
+          <img
+            src={recipe.image_url!}
+            alt={recipe.name}
+            className={`w-full h-full object-cover ${locked ? "blur-[2px] opacity-60" : ""}`}
+            loading="lazy"
+          />
+        ) : (
+          <div
+            className={`w-full h-full flex items-center justify-center text-4xl ${locked ? "blur-[2px] opacity-60" : ""}`}
+            style={{ background: "hsl(var(--muted))" }}
+          >
+            🍽️
+          </div>
+        )}
+        {locked && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div
+              className="flex items-center gap-1 px-2 py-1 rounded-full text-[10px]"
+              style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))", fontWeight: 700 }}
+            >
+              <Lock size={10} /> Premium
+            </div>
+          </div>
+        )}
+        {!locked && (
+          <div className="absolute bottom-2 left-2 flex gap-1">
+            <span className="age-tag">{recipe.age}</span>
+            <span className="age-tag">{recipe.difficulty}</span>
+          </div>
+        )}
       </div>
-    </div>
+      <div className="p-2.5">
+        <p className="text-xs leading-tight mb-1" style={{ fontWeight: 700 }}>
+          {recipe.name}
+        </p>
+        <div className="flex items-center gap-2 text-[11px]" style={{ color: "hsl(var(--muted-foreground))" }}>
+          <span className="flex items-center gap-0.5">
+            <Clock size={10} /> {recipe.time_minutes}min
+          </span>
+          {recipe.can_freeze && (
+            <span className="flex items-center gap-0.5">
+              <Snowflake size={10} /> Congela
+            </span>
+          )}
+        </div>
+      </div>
+    </button>
   );
 }
 
@@ -86,65 +89,74 @@ export default function Receitas() {
   const navigate = useNavigate();
   const { isPremium } = useSubscription();
   const { baby } = useBaby();
-  const [selectedAge, setSelectedAge] = useState("Todos");
-  const [selectedCategory, setSelectedCategory] = useState("Todos");
-  const [search, setSearch] = useState("");
-  const [favorites, setFavorites] = useState<number[]>([]);
-  const [selected, setSelected] = useState<PremiumRecipe | null>(null);
-  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const {
+    recipes,
+    loading,
+    loadingMore,
+    error,
+    hasMore,
+    loadMore,
+    retry,
+    search,
+    setSearch,
+    ageFilter,
+    setAgeFilter,
+    categoryFilter,
+    setCategoryFilter,
+    difficultyFilter,
+    setDifficultyFilter,
+  } = useRecipes();
 
-  // Auto-suggest age filter based on baby age
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Intersection observer for infinite scroll (pagination)
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+          loadMore();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, loading, loadMore]);
+
   const babyAgeMonths = baby?.birth_date
     ? Math.floor((Date.now() - new Date(baby.birth_date).getTime()) / (1000 * 60 * 60 * 24 * 30.44))
     : null;
 
-  const visibleRecipes = isPremium ? premiumRecipes : freeRecipes;
-
-  const filtered = visibleRecipes.filter(r => {
-    const matchesAge = selectedAge === "Todos" || r.age === selectedAge;
-    const matchesCat = selectedCategory === "Todos" || r.category.toLowerCase() === selectedCategory.toLowerCase();
-    const matchesSearch = !search || r.name.toLowerCase().includes(search.toLowerCase()) || r.ingredients.some(i => i.toLowerCase().includes(search.toLowerCase()));
-    return matchesAge && matchesCat && matchesSearch;
-  });
-
-  // Locked previews for free users
-  const lockedPreview = !isPremium ? premiumRecipes.filter(r => r.premium).slice(0, 4) : [];
-
-  const handleSelectRecipe = (recipe: PremiumRecipe, isLocked: boolean) => {
-    if (isLocked || (recipe.premium && !isPremium)) {
-      setShowPremiumModal(true);
+  const handleCardClick = (recipe: Recipe, index: number) => {
+    const locked = !isPremium && recipe.premium && index >= FREE_LIMIT;
+    if (locked) {
+      navigate("/planos");
       return;
     }
-    setSelected(recipe);
+    navigate(`/receitas/${recipe.id}`);
   };
-
-  const toggleFav = (id: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setFavorites(prev => prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]);
-  };
-
-  if (selected) return <RecipeDetail recipe={selected} onClose={() => setSelected(null)} />;
 
   return (
     <div className="app-container bottom-nav-safe">
-      {showPremiumModal && <PremiumModal onClose={() => setShowPremiumModal(false)} />}
       <div className="px-4 pt-6 pb-4">
-        <h1 className="text-xl mb-1" style={{ fontWeight: 900 }}>
-          {isPremium ? "+1.000" : "+650"} <span style={{ color: "hsl(var(--app-yellow-highlight))" }}>Receitas</span>
+        <h1 className="text-xl mb-0.5" style={{ fontWeight: 900, color: "hsl(var(--app-petrol))" }}>
+          +100 <span style={{ color: "hsl(var(--app-gold-dark))" }}>Receitas</span>
         </h1>
-        {babyAgeMonths !== null && (
-          <p className="text-xs mb-3" style={{ color: "hsl(var(--muted-foreground))" }}>
-            Sugestões para {babyAgeMonths} meses
-          </p>
-        )}
+        <p className="text-xs mb-3" style={{ color: "hsl(var(--muted-foreground))" }}>
+          Receitas para introdução alimentar
+          {babyAgeMonths !== null && ` · ${babyAgeMonths} meses`}
+        </p>
 
         {/* Search */}
-        <div className="flex items-center gap-2 px-4 py-3 rounded-2xl mb-3"
-          style={{ background: "hsl(var(--card))", boxShadow: "0 2px 8px rgba(92,75,59,0.06)" }}>
-          <Search size={18} style={{ color: "hsl(var(--app-yellow-highlight))" }} />
+        <div
+          className="flex items-center gap-2 px-4 py-3 rounded-2xl mb-3"
+          style={{ background: "hsl(var(--card))", boxShadow: "0 2px 8px rgba(92,75,59,0.06)" }}
+        >
+          <Search size={18} style={{ color: "hsl(var(--app-gold-dark))" }} />
           <input
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar receita ou ingrediente..."
             className="flex-1 bg-transparent text-sm outline-none"
             style={{ fontFamily: "Nunito, sans-serif" }}
@@ -152,105 +164,148 @@ export default function Receitas() {
         </div>
 
         {/* Age filters */}
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-3">
-          {recipeAgeFilters.map(f => (
-            <button key={f} onClick={() => setSelectedAge(f)}
-              className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all active:scale-95"
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-2 scrollbar-none">
+          {ageFilters.map((f) => (
+            <button
+              key={f}
+              onClick={() => setAgeFilter(f)}
+              className="flex-shrink-0 px-4 py-2 rounded-full text-xs transition-all active:scale-95"
               style={{
                 fontWeight: 700,
-                background: selectedAge === f ? "hsl(var(--app-yellow-dark))" : "hsl(var(--card))",
-                color: selectedAge === f ? "hsl(var(--app-brown))" : "hsl(var(--foreground))",
+                background: ageFilter === f ? "hsl(var(--app-gold-dark))" : "hsl(var(--card))",
+                color: ageFilter === f ? "white" : "hsl(var(--foreground))",
                 boxShadow: "0 1px 4px rgba(92,75,59,0.06)",
-              }}>
+              }}
+            >
               {f}
             </button>
           ))}
         </div>
 
-        {/* Category filters */}
-        {isPremium && (
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {recipeCategories.map(c => (
-              <button key={c} onClick={() => setSelectedCategory(c)}
-                className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all active:scale-95"
-                style={{
-                  fontWeight: 700,
-                  background: selectedCategory === c ? "hsl(var(--app-yellow))" : "hsl(var(--card))",
-                  color: "hsl(var(--foreground))",
-                  boxShadow: "0 1px 4px rgba(92,75,59,0.06)",
-                }}>
-                {c}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="px-4">
-        <div className="grid grid-cols-2 gap-3">
-          {filtered.map(recipe => (
-            <button key={recipe.id} onClick={() => handleSelectRecipe(recipe, false)}
-              className="card-food flex flex-col overflow-hidden text-left transition-all active:scale-95 relative">
-              <div className="relative aspect-[4/3]">
-                <FoodImage name={recipe.image} className="w-full h-full object-cover" alt={recipe.name} />
-                {recipe.premium && isPremium && (
-                  <div className="absolute top-2 right-2">
-                    <Crown size={16} style={{ color: "hsl(var(--app-yellow-highlight))" }} />
-                  </div>
-                )}
-                <div className="absolute bottom-2 left-2 flex gap-1">
-                  <span className="age-tag">{recipe.age}</span>
-                  <span className="age-tag">{recipe.difficulty}</span>
-                </div>
-              </div>
-              <div className="p-2.5">
-                <p className="text-xs font-bold leading-tight mb-1" style={{ fontWeight: 700 }}>{recipe.name}</p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <Star size={11} style={{ fill: "hsl(var(--app-yellow-highlight))", color: "hsl(var(--app-yellow-highlight))" }} />
-                    <span className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>{recipe.rating}</span>
-                  </div>
-                  <button onClick={e => toggleFav(recipe.id, e)}>
-                    <Heart size={14} style={{
-                      fill: favorites.includes(recipe.id) ? "hsl(var(--destructive))" : "none",
-                      color: favorites.includes(recipe.id) ? "hsl(var(--destructive))" : "hsl(var(--muted-foreground))",
-                    }} />
-                  </button>
-                </div>
-              </div>
+        {/* Category + Difficulty filters */}
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-1 scrollbar-none">
+          {categories.map((c) => (
+            <button
+              key={c}
+              onClick={() => setCategoryFilter(c)}
+              className="flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] transition-all active:scale-95"
+              style={{
+                fontWeight: 700,
+                background: categoryFilter === c ? "hsl(var(--app-gold))" : "hsl(var(--card))",
+                color: "hsl(var(--foreground))",
+              }}
+            >
+              {c}
+            </button>
+          ))}
+          <div className="w-px flex-shrink-0" style={{ background: "hsl(var(--app-divider))" }} />
+          {difficultyFilters.map((d) => (
+            <button
+              key={d}
+              onClick={() => setDifficultyFilter(d)}
+              className="flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] transition-all active:scale-95"
+              style={{
+                fontWeight: 700,
+                background: difficultyFilter === d ? "hsl(var(--app-gold))" : "hsl(var(--card))",
+                color: "hsl(var(--foreground))",
+              }}
+            >
+              {d}
             </button>
           ))}
         </div>
-
-        {/* Locked previews for free users */}
-        {!isPremium && lockedPreview.length > 0 && (
-          <>
-            <h2 className="section-title mt-5">Receitas Premium 🔒</h2>
-            <div className="grid grid-cols-2 gap-3">
-              {lockedPreview.map(recipe => (
-                <button key={recipe.id} onClick={() => handleSelectRecipe(recipe, true)}
-                  className="card-food flex flex-col overflow-hidden text-left transition-all active:scale-95 relative">
-                  <div className="relative aspect-[4/3]">
-                    <FoodImage name={recipe.image} className="w-full h-full object-cover blur-[2px] opacity-70" alt={recipe.name} />
-                    <div className="absolute top-2 right-2">
-                      <PremiumBadge />
-                    </div>
-                    <div className="absolute bottom-2 left-2 flex gap-1">
-                      <span className="age-tag">{recipe.age}</span>
-                    </div>
-                  </div>
-                  <div className="p-2.5">
-                    <p className="text-xs font-bold leading-tight mb-1" style={{ fontWeight: 700 }}>{recipe.name}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* CTA */}
-        {!isPremium && <PremiumCTA />}
       </div>
+
+      {/* Error state */}
+      {error && (
+        <div className="px-4 py-10 flex flex-col items-center gap-3 text-center">
+          <AlertCircle size={32} style={{ color: "hsl(var(--destructive))" }} />
+          <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+            {error}
+          </p>
+          <button
+            onClick={retry}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm"
+            style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))", fontWeight: 700 }}
+          >
+            <RefreshCw size={14} /> Tentar novamente
+          </button>
+        </div>
+      )}
+
+      {/* Loading skeletons */}
+      {loading && !error && (
+        <div className="px-4 grid grid-cols-2 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <RecipeCardSkeleton key={i} />
+          ))}
+        </div>
+      )}
+
+      {/* Recipe grid */}
+      {!loading && !error && (
+        <div className="px-4">
+          {recipes.length === 0 ? (
+            <div className="py-10 text-center">
+              <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+                Nenhuma receita encontrada para esses filtros.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                {recipes.map((recipe, index) => {
+                  const locked = !isPremium && recipe.premium && index >= FREE_LIMIT;
+                  return (
+                    <RecipeCard
+                      key={recipe.id}
+                      recipe={recipe}
+                      locked={locked}
+                      onClick={() => handleCardClick(recipe, index)}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* Pagination sentinel */}
+              <div ref={sentinelRef} className="h-4" />
+
+              {loadingMore && (
+                <div className="flex justify-center py-4">
+                  <div
+                    className="w-7 h-7 rounded-full border-3 border-t-transparent animate-spin"
+                    style={{ borderColor: "hsl(var(--app-gold))", borderTopColor: "transparent" }}
+                  />
+                </div>
+              )}
+
+              {!hasMore && recipes.length > 0 && (
+                <p className="text-center text-xs py-4" style={{ color: "hsl(var(--muted-foreground))" }}>
+                  Todas as receitas carregadas ✨
+                </p>
+              )}
+            </>
+          )}
+
+          {/* Premium CTA for free users */}
+          {!isPremium && (
+            <div className="mt-5 mb-4">
+              <button
+                onClick={() => navigate("/planos")}
+                className="w-full py-4 rounded-2xl text-center transition-all active:scale-95"
+                style={{
+                  background: "linear-gradient(135deg, hsl(var(--app-gold)), hsl(var(--app-gold-dark)))",
+                  color: "hsl(var(--app-petrol))",
+                  fontWeight: 800,
+                  boxShadow: "0 4px 16px rgba(244,201,93,0.35)",
+                }}
+              >
+                🔒 Desbloqueie +100 receitas · Assinar Premium
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
