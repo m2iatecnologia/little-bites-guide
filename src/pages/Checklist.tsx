@@ -347,6 +347,9 @@ export default function Checklist() {
                       <>
                         <span className="text-[10px]" style={{ color: "hsl(140 45% 40%)" }}>✅ {food.ateCount}x</span>
                         <span className="text-[10px]" style={{ color: "hsl(0 60% 50%)" }}>❌ {food.didNotEatCount}x</span>
+                        {food.triedCount > 0 && (
+                          <span className="text-[10px]" style={{ color: "hsl(43 88% 45%)" }}>➖ {food.triedCount}x</span>
+                        )}
                       </>
                     )}
                     {food.lastOfferedDate && (

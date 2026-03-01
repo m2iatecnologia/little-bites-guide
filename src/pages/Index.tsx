@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import dicaImg from "@/assets/dica-do-dia.jpg";
+import { getDicaDoDia, getCategoriaColor, getCategoriaBg } from "@/data/dicasDoDia";
 import { ReportSection } from "@/components/ReportSection";
 import {
   ChevronRight,
@@ -20,6 +21,7 @@ const recommendedFoods = [
 export default function Index() {
   const navigate = useNavigate();
   const data = useDashboardData();
+  const dicaHoje = getDicaDoDia();
 
   const maxEvolution = Math.max(...data.weeklyEvolution.map((w) => w.count), 1);
 
@@ -175,7 +177,7 @@ export default function Index() {
 
         {/* Dica do Dia */}
         <button
-          onClick={() => navigate("/em-desenvolvimento")}
+          onClick={() => navigate("/dicas")}
           className="card-clinical overflow-hidden w-full text-left"
         >
           <div className="relative h-40">
@@ -191,16 +193,26 @@ export default function Index() {
                 background: "linear-gradient(to top, rgba(46,64,87,0.7), transparent)",
               }}
             >
-              <span className="tag-highlight mb-1 inline-block">Dica do dia</span>
+              <span className="tag-highlight mb-1 inline-block">⭐ Dica do dia</span>
             </div>
           </div>
           <div className="p-3 flex items-center justify-between">
-            <p
-              className="font-bold text-sm flex-1"
-              style={{ fontWeight: 700, color: "hsl(var(--app-petrol))" }}
-            >
-              Como lidar com a recusa e seletividade depois de 1 ano
-            </p>
+            <div className="flex-1">
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full mr-2"
+                style={{
+                  fontWeight: 700,
+                  background: getCategoriaBg(dicaHoje.categoria),
+                  color: getCategoriaColor(dicaHoje.categoria),
+                }}>
+                {dicaHoje.categoria}
+              </span>
+              <p
+                className="font-bold text-sm mt-1"
+                style={{ fontWeight: 700, color: "hsl(var(--app-petrol))" }}
+              >
+                {dicaHoje.emoji} {dicaHoje.titulo}
+              </p>
+            </div>
             <ChevronRight size={18} style={{ color: "hsl(var(--app-gold-dark))" }} />
           </div>
         </button>

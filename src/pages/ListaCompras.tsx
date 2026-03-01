@@ -148,14 +148,20 @@ function ListaCompras() {
       // Small delay for UX feedback
       await new Promise((r) => setTimeout(r, 400));
 
-      // Build selected categories
+      // Build selected categories - exclude purchased items
       const selectedCategories: Record<string, { name: string; qty: string }[]> = {};
       Object.entries(categories).forEach(([cat, items]) => {
-        const selected = items.filter((i) => i.selected).map((i) => ({ name: i.name, qty: i.qty }));
-        if (selected.length > 0) {
-          selectedCategories[cat] = selected;
+        const toBuy = items.filter((i) => i.selected && !i.purchased).map((i) => ({ name: i.name, qty: i.qty }));
+        if (toBuy.length > 0) {
+          selectedCategories[cat] = toBuy;
         }
       });
+
+      if (Object.keys(selectedCategories).length === 0) {
+        toast.error("Nenhum item pendente de compra para exportar.");
+        setIsGenerating(false);
+        return;
+      }
 
       generateShoppingListPDF({
         categories: selectedCategories,
@@ -179,19 +185,26 @@ function ListaCompras() {
       return;
     }
 
-    // Build text
+    // Build text - exclude purchased items
     let text = "🛒 Lista de Compras\n";
     text += `📅 ${new Date().toLocaleDateString("pt-BR")}\n\n`;
 
+    let hasItems = false;
     Object.entries(categories).forEach(([cat, items]) => {
-      const selected = items.filter((i) => i.selected);
-      if (selected.length === 0) return;
+      const toBuy = items.filter((i) => i.selected && !i.purchased);
+      if (toBuy.length === 0) return;
+      hasItems = true;
       text += `${cat}\n`;
-      selected.forEach((item) => {
+      toBuy.forEach((item) => {
         text += `  □ ${item.name} — ${item.qty}\n`;
       });
       text += "\n";
     });
+
+    if (!hasItems) {
+      toast.error("Nenhum item pendente de compra para compartilhar.");
+      return;
+    }
 
     text += "Gerado pelo NutrooBaby 🥭";
 
