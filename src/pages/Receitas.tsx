@@ -1,15 +1,11 @@
-import { useRef, useCallback, useEffect } from "react";
+import { useRef, useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Lock, Crown, Clock, Snowflake, AlertCircle, RefreshCw } from "lucide-react";
+import { Search, Lock, Crown, Clock, Snowflake, AlertCircle, RefreshCw, SlidersHorizontal } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useRecipes, type Recipe } from "@/hooks/useRecipes";
 import { useBaby } from "@/hooks/useBaby";
-import { PremiumCTA } from "@/components/PremiumCTA";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const categories = ["Todos", "Café da manhã", "Almoço", "Lanche", "Jantar"];
-const ageFilters = ["Todos", "+6m", "+7m", "+8m", "+9m", "+10m", "+12m"];
-const difficultyFilters = ["Todos", "Fácil", "Médio"];
+import RecipeFilterModal, { type FilterState } from "@/components/RecipeFilterModal";
 
 const FREE_LIMIT = 5;
 
@@ -26,7 +22,8 @@ function RecipeCardSkeleton() {
 }
 
 function RecipeCard({ recipe, locked, onClick }: { recipe: Recipe; locked: boolean; onClick: () => void }) {
-  const hasImage = recipe.image_url && !recipe.image_url.startsWith("data:");
+  const [imgError, setImgError] = useState(false);
+  const hasImage = recipe.image_url && !recipe.image_url.startsWith("data:") && !imgError;
 
   return (
     <button
@@ -40,6 +37,7 @@ function RecipeCard({ recipe, locked, onClick }: { recipe: Recipe; locked: boole
             alt={recipe.name}
             className={`w-full h-full object-cover ${locked ? "blur-[2px] opacity-60" : ""}`}
             loading="lazy"
+            onError={() => setImgError(true)}
           />
         ) : (
           <div
@@ -89,34 +87,27 @@ export default function Receitas() {
   const navigate = useNavigate();
   const { isPremium } = useSubscription();
   const { baby } = useBaby();
+  const [filterOpen, setFilterOpen] = useState(false);
   const {
-    recipes,
-    loading,
-    loadingMore,
-    error,
-    hasMore,
-    loadMore,
-    retry,
-    search,
-    setSearch,
-    ageFilter,
-    setAgeFilter,
-    categoryFilter,
-    setCategoryFilter,
-    difficultyFilter,
-    setDifficultyFilter,
+    recipes, loading, loadingMore, error, hasMore, loadMore, retry,
+    search, setSearch,
+    ageFilter, setAgeFilter,
+    categoryFilter, setCategoryFilter,
+    difficultyFilter, setDifficultyFilter,
+    timeRange, setTimeRange,
+    ingredientTags, setIngredientTags,
+    sortBy, setSortBy,
+    activeFilterCount, clearFilters,
+    allIngredientOptions,
   } = useRecipes();
 
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  // Intersection observer for infinite scroll (pagination)
   useEffect(() => {
     if (!sentinelRef.current) return;
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
-          loadMore();
-        }
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) loadMore();
       },
       { rootMargin: "200px" }
     );
@@ -130,11 +121,17 @@ export default function Receitas() {
 
   const handleCardClick = (recipe: Recipe, index: number) => {
     const locked = !isPremium && recipe.premium && index >= FREE_LIMIT;
-    if (locked) {
-      navigate("/planos");
-      return;
-    }
+    if (locked) { navigate("/planos"); return; }
     navigate(`/receitas/${recipe.id}`);
+  };
+
+  const handleApplyFilters = (state: FilterState) => {
+    setAgeFilter(state.ageFilter);
+    setCategoryFilter(state.categoryFilter);
+    setDifficultyFilter(state.difficultyFilter);
+    setTimeRange(state.timeRange);
+    setIngredientTags(state.ingredientTags);
+    setSortBy(state.sortBy);
   };
 
   return (
@@ -148,71 +145,44 @@ export default function Receitas() {
           {babyAgeMonths !== null && ` · ${babyAgeMonths} meses`}
         </p>
 
-        {/* Search */}
-        <div
-          className="flex items-center gap-2 px-4 py-3 rounded-2xl mb-3"
-          style={{ background: "hsl(var(--card))", boxShadow: "0 2px 8px rgba(92,75,59,0.06)" }}
-        >
-          <Search size={18} style={{ color: "hsl(var(--app-gold-dark))" }} />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar receita ou ingrediente..."
-            className="flex-1 bg-transparent text-sm outline-none"
-            style={{ fontFamily: "Nunito, sans-serif" }}
-          />
-        </div>
-
-        {/* Age filters */}
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-2 scrollbar-none">
-          {ageFilters.map((f) => (
-            <button
-              key={f}
-              onClick={() => setAgeFilter(f)}
-              className="flex-shrink-0 px-4 py-2 rounded-full text-xs transition-all active:scale-95"
-              style={{
-                fontWeight: 700,
-                background: ageFilter === f ? "hsl(var(--app-gold-dark))" : "hsl(var(--card))",
-                color: ageFilter === f ? "white" : "hsl(var(--foreground))",
-                boxShadow: "0 1px 4px rgba(92,75,59,0.06)",
-              }}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-
-        {/* Category + Difficulty filters */}
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-1 scrollbar-none">
-          {categories.map((c) => (
-            <button
-              key={c}
-              onClick={() => setCategoryFilter(c)}
-              className="flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] transition-all active:scale-95"
-              style={{
-                fontWeight: 700,
-                background: categoryFilter === c ? "hsl(var(--app-gold))" : "hsl(var(--card))",
-                color: "hsl(var(--foreground))",
-              }}
-            >
-              {c}
-            </button>
-          ))}
-          <div className="w-px flex-shrink-0" style={{ background: "hsl(var(--app-divider))" }} />
-          {difficultyFilters.map((d) => (
-            <button
-              key={d}
-              onClick={() => setDifficultyFilter(d)}
-              className="flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] transition-all active:scale-95"
-              style={{
-                fontWeight: 700,
-                background: difficultyFilter === d ? "hsl(var(--app-gold))" : "hsl(var(--card))",
-                color: "hsl(var(--foreground))",
-              }}
-            >
-              {d}
-            </button>
-          ))}
+        {/* Search + Filter button */}
+        <div className="flex gap-2 mb-3">
+          <div
+            className="flex-1 flex items-center gap-2 px-4 py-3 rounded-2xl"
+            style={{ background: "hsl(var(--card))", boxShadow: "0 2px 8px rgba(92,75,59,0.06)" }}
+          >
+            <Search size={18} style={{ color: "hsl(var(--app-gold-dark))" }} />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar receita ou ingrediente..."
+              className="flex-1 bg-transparent text-sm outline-none"
+              style={{ fontFamily: "Nunito, sans-serif" }}
+            />
+          </div>
+          <button
+            onClick={() => setFilterOpen(true)}
+            className="relative flex items-center gap-1.5 px-3.5 py-3 rounded-2xl text-xs transition-all active:scale-95"
+            style={{
+              background: activeFilterCount > 0
+                ? "linear-gradient(135deg, hsl(var(--app-gold)), hsl(var(--app-gold-dark)))"
+                : "hsl(var(--card))",
+              color: activeFilterCount > 0 ? "hsl(var(--app-petrol))" : "hsl(var(--foreground))",
+              fontWeight: 700,
+              boxShadow: "0 2px 8px rgba(92,75,59,0.06)",
+            }}
+          >
+            <SlidersHorizontal size={16} />
+            Filtrar
+            {activeFilterCount > 0 && (
+              <span
+                className="ml-0.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px]"
+                style={{ background: "hsl(var(--app-petrol))", color: "white", fontWeight: 800 }}
+              >
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
         </div>
       </div>
 
@@ -220,9 +190,7 @@ export default function Receitas() {
       {error && (
         <div className="px-4 py-10 flex flex-col items-center gap-3 text-center">
           <AlertCircle size={32} style={{ color: "hsl(var(--destructive))" }} />
-          <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-            {error}
-          </p>
+          <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>{error}</p>
           <button
             onClick={retry}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm"
@@ -250,6 +218,15 @@ export default function Receitas() {
               <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
                 Nenhuma receita encontrada para esses filtros.
               </p>
+              {activeFilterCount > 0 && (
+                <button
+                  onClick={clearFilters}
+                  className="mt-3 px-5 py-2 rounded-xl text-sm"
+                  style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))", fontWeight: 700 }}
+                >
+                  Limpar filtros
+                </button>
+              )}
             </div>
           ) : (
             <>
@@ -267,7 +244,6 @@ export default function Receitas() {
                 })}
               </div>
 
-              {/* Pagination sentinel */}
               <div ref={sentinelRef} className="h-4" />
 
               {loadingMore && (
@@ -287,7 +263,6 @@ export default function Receitas() {
             </>
           )}
 
-          {/* Premium CTA for free users */}
           {!isPremium && (
             <div className="mt-5 mb-4">
               <button
@@ -306,6 +281,20 @@ export default function Receitas() {
           )}
         </div>
       )}
+
+      {/* Filter Modal */}
+      <RecipeFilterModal
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        ageFilter={ageFilter}
+        categoryFilter={categoryFilter}
+        difficultyFilter={difficultyFilter}
+        timeRange={timeRange}
+        ingredientTags={ingredientTags}
+        sortBy={sortBy}
+        allIngredientOptions={allIngredientOptions}
+        onApply={handleApplyFilters}
+      />
     </div>
   );
 }
