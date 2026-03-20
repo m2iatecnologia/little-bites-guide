@@ -53,6 +53,7 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found customer", { customerId });
 
+    // Check active subscriptions
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
       status: "active",
@@ -60,11 +61,15 @@ serve(async (req) => {
     });
 
     let subscribed = subscriptions.data.length > 0;
-    let productId = null;
-    let subscriptionEnd = null;
+    let productId: string | null = null;
+    let subscriptionEnd: string | null = null;
+    let subscriptionId: string | null = null;
+    let sub: any = null;
 
-    if (!subscribed) {
-      // Also check trialing
+    if (subscribed) {
+      sub = subscriptions.data[0];
+    } else {
+      // Check trialing
       const trialSubs = await stripe.subscriptions.list({
         customer: customerId,
         status: "trialing",
@@ -72,17 +77,65 @@ serve(async (req) => {
       });
       if (trialSubs.data.length > 0) {
         subscribed = true;
-        const sub = trialSubs.data[0];
-        subscriptionEnd = new Date(sub.current_period_end * 1000).toISOString();
-        productId = sub.items.data[0].price.product;
+        sub = trialSubs.data[0];
       }
-    } else {
-      const sub = subscriptions.data[0];
-      subscriptionEnd = new Date(sub.current_period_end * 1000).toISOString();
-      productId = sub.items.data[0].price.product;
     }
 
-    logStep("Result", { subscribed, productId, subscriptionEnd });
+    if (sub) {
+      subscriptionId = sub.id;
+      // Safely extract period end - handle both unix timestamp and string formats
+      const periodEnd = sub.current_period_end;
+      logStep("Raw period end", { periodEnd, type: typeof periodEnd });
+      
+      if (typeof periodEnd === "number" && periodEnd > 0) {
+        subscriptionEnd = new Date(periodEnd * 1000).toISOString();
+      } else if (typeof periodEnd === "string") {
+        const parsed = new Date(periodEnd);
+        if (!isNaN(parsed.getTime())) {
+          subscriptionEnd = parsed.toISOString();
+        }
+      }
+      
+      // Safely extract product ID
+      try {
+        productId = sub.items?.data?.[0]?.price?.product ?? null;
+        if (typeof productId === "object" && productId !== null) {
+          productId = (productId as any).id ?? null;
+        }
+      } catch {
+        productId = null;
+      }
+
+      // Sync to local subscriptions table
+      const PRODUCT_TO_PLAN: Record<string, string> = {
+        "prod_UA51MKpyHjm7pV": "mensal",
+        "prod_UA53qLN4dqKmMS": "semestral",
+        "prod_UA53rF7VfL99Jt": "anual",
+      };
+      const plan = productId ? (PRODUCT_TO_PLAN[productId] || "mensal") : "mensal";
+
+      await supabaseClient.from("subscriptions").upsert(
+        {
+          user_id: user.id,
+          plan,
+          status: "active",
+          started_at: new Date().toISOString(),
+          ends_at: subscriptionEnd,
+          stripe_customer_id: customerId,
+          stripe_subscription_id: subscriptionId,
+        },
+        { onConflict: "user_id" }
+      );
+    } else {
+      // No active subscription - mark expired
+      await supabaseClient
+        .from("subscriptions")
+        .update({ status: "expired" })
+        .eq("user_id", user.id)
+        .in("status", ["active", "trial"]);
+    }
+
+    logStep("Result", { subscribed, productId, subscriptionEnd, subscriptionId });
 
     return new Response(JSON.stringify({
       subscribed,
