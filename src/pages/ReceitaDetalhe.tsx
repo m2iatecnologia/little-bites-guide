@@ -2,21 +2,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useRecipeById } from "@/hooks/useRecipes";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PremiumBlockScreen } from "@/components/PremiumGate";
-import { ArrowLeft, Clock, Snowflake, Backpack, ChefHat, Lightbulb, Scissors } from "lucide-react";
-
-// Illustration placeholders for prep steps
-const prepIllustrations = [
-  { icon: "🔪", label: "Corte em pedaços adequados" },
-  { icon: "🍳", label: "Cozinhe até ficar macio" },
-  { icon: "🥣", label: "Consistência ideal" },
-  { icon: "✋", label: "Tamanho seguro para o bebê" },
-];
+import { ArrowLeft, Clock, Snowflake, Backpack, ChefHat, Lightbulb, Scissors, Baby, Hand } from "lucide-react";
 
 function parseSteps(instructions: string): string[] {
-  // Try numbered steps first
   const numbered = instructions.split(/\d+\.\s+/).filter(Boolean);
   if (numbered.length > 1) return numbered.map((s) => s.trim());
-  // Split by period sentences
   const sentences = instructions.split(/\.\s+/).filter((s) => s.trim().length > 10);
   if (sentences.length > 1) return sentences.map((s) => s.trim().replace(/\.$/, "") + ".");
   return [instructions];
@@ -124,6 +114,19 @@ export default function ReceitaDetalhe() {
           </div>
         )}
 
+        {/* Ideal Texture */}
+        {recipe.ideal_texture && (
+          <div className="p-4 rounded-2xl" style={{ background: "hsl(var(--card))" }}>
+            <h3 className="font-bold mb-2 flex items-center gap-2 text-sm" style={{ fontWeight: 700 }}>
+              <Hand size={16} style={{ color: "hsl(var(--app-gold-dark))" }} />
+              Textura ideal para a idade
+            </h3>
+            <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+              {recipe.ideal_texture}
+            </p>
+          </div>
+        )}
+
         {/* Ingredients */}
         <div className="p-4 rounded-2xl" style={{ background: "hsl(var(--card))" }}>
           <h3 className="font-bold mb-3 flex items-center gap-2" style={{ fontWeight: 700 }}>
@@ -167,27 +170,34 @@ export default function ReceitaDetalhe() {
           </div>
         </div>
 
-        {/* Prep illustrations */}
-        <div className="p-4 rounded-2xl" style={{ background: "hsl(var(--card))" }}>
-          <h3 className="font-bold mb-3 flex items-center gap-2" style={{ fontWeight: 700 }}>
-            <Scissors size={16} style={{ color: "hsl(var(--app-gold-dark))" }} />
-            Como cortar e preparar
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
-            {prepIllustrations.map((item, i) => (
-              <div
-                key={i}
-                className="flex flex-col items-center gap-2 p-3 rounded-xl text-center"
-                style={{ background: "hsl(var(--muted))" }}
-              >
-                <span className="text-3xl">{item.icon}</span>
-                <span className="text-[11px]" style={{ color: "hsl(var(--muted-foreground))" }}>
-                  {item.label}
-                </span>
-              </div>
-            ))}
+        {/* BLW Mode */}
+        {recipe.blw_mode && (
+          <div
+            className="p-4 rounded-2xl border-2"
+            style={{ background: "hsl(var(--app-gold-light))", borderColor: "hsl(var(--app-gold))" }}
+          >
+            <h3 className="font-bold mb-2 flex items-center gap-2 text-sm" style={{ fontWeight: 800, color: "hsl(var(--app-petrol))" }}>
+              <Baby size={18} style={{ color: "hsl(var(--app-petrol))" }} />
+              Modo BLW (Baby Led Weaning)
+            </h3>
+            <p className="text-sm" style={{ color: "hsl(var(--app-petrol))" }}>
+              {recipe.blw_mode}
+            </p>
           </div>
-        </div>
+        )}
+
+        {/* How to cut */}
+        {recipe.cutting_instructions && (
+          <div className="p-4 rounded-2xl" style={{ background: "hsl(var(--card))" }}>
+            <h3 className="font-bold mb-2 flex items-center gap-2 text-sm" style={{ fontWeight: 700 }}>
+              <Scissors size={16} style={{ color: "hsl(var(--app-gold-dark))" }} />
+              Como cortar
+            </h3>
+            <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+              {recipe.cutting_instructions}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
