@@ -1,32 +1,15 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { PremiumGate } from "@/components/PremiumGate";
+import { PantrySelection } from "@/components/PantrySelection";
 import { useMealLogs } from "@/hooks/useMealLogs";
-import { ShoppingCart, Check, X, MessageSquare, ChevronDown, ChevronUp, ChefHat } from "lucide-react";
+import { usePantry } from "@/hooks/usePantry";
+import { useMealPlan, type WeekPlan, type DayPlan } from "@/hooks/useMealPlan";
+import { generateWeekPlan } from "@/lib/generateMealPlan";
+import { ShoppingCart, Check, X, MessageSquare, ChevronDown, ChevronUp, ChefHat, RefreshCw, Pencil, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getPreparations, type FoodPreparation } from "@/data/foodPreparations";
-
-type DietMode = "Tradicional" | "Vegetariano" | "Vegano";
-
-const dietModes: { key: DietMode; emoji: string }[] = [
-  { key: "Tradicional", emoji: "🍗" },
-  { key: "Vegetariano", emoji: "🥚" },
-  { key: "Vegano", emoji: "🌱" },
-];
-
-interface Meal {
-  name: string;
-  emoji: string;
-  group: string;
-}
-
-interface DayPlan {
-  cafe: Meal[];
-  almoco: Meal[];
-  jantar: Meal[];
-  lanche: Meal[];
-}
 
 const weekdayLabels = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 const weekdayShort = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -52,88 +35,20 @@ function isToday(d: Date): boolean {
   return d.getDate() === t.getDate() && d.getMonth() === t.getMonth() && d.getFullYear() === t.getFullYear();
 }
 
-const generateDayPlan = (diet: DietMode, dayIndex: number): DayPlan => {
-  const plans: Record<number, DayPlan> = {
-    0: {
-      cafe: [{ name: "Banana amassada", emoji: "🍌", group: "Fruta" }, { name: "Aveia", emoji: "🥣", group: "Grão" }],
-      almoco: [
-        { name: diet === "Vegano" ? "Grão-de-bico" : diet === "Vegetariano" ? "Ovo mexido" : "Frango desfiado", emoji: diet === "Vegano" ? "🫘" : diet === "Vegetariano" ? "🍳" : "🍗", group: "Proteína" },
-        { name: "Cenoura cozida", emoji: "🥕", group: "Legume" },
-        { name: "Arroz", emoji: "🍚", group: "Grão" },
-      ],
-      jantar: [{ name: "Purê de abacate", emoji: "🥑", group: "Fruta" }, { name: "Batata doce", emoji: "🍠", group: "Legume" }],
-      lanche: [{ name: "Maçã cozida", emoji: "🍎", group: "Fruta" }],
-    },
-    1: {
-      cafe: [{ name: "Mamão", emoji: "🥭", group: "Fruta" }, { name: "Pão integral", emoji: "🍞", group: "Grão" }],
-      almoco: [
-        { name: diet === "Vegano" ? "Lentilha" : diet === "Vegetariano" ? "Queijo cottage" : "Peixe cozido", emoji: diet === "Vegano" ? "🫘" : diet === "Vegetariano" ? "🧀" : "🐟", group: "Proteína" },
-        { name: "Abobrinha", emoji: "🥒", group: "Legume" },
-        { name: "Macarrão integral", emoji: "🍝", group: "Grão" },
-      ],
-      jantar: [{ name: "Pera", emoji: "🍐", group: "Fruta" }, { name: "Brócolis", emoji: "🥦", group: "Legume" }],
-      lanche: [{ name: "Banana", emoji: "🍌", group: "Fruta" }],
-    },
-    2: {
-      cafe: [{ name: "Pera", emoji: "🍐", group: "Fruta" }, { name: "Mingau de aveia", emoji: "🥣", group: "Grão" }],
-      almoco: [
-        { name: diet === "Vegano" ? "Tofu" : diet === "Vegetariano" ? "Ovo cozido" : "Carne moída", emoji: diet === "Vegano" ? "🧊" : diet === "Vegetariano" ? "🥚" : "🥩", group: "Proteína" },
-        { name: "Beterraba", emoji: "🟣", group: "Legume" },
-        { name: "Arroz", emoji: "🍚", group: "Grão" },
-      ],
-      jantar: [{ name: "Manga", emoji: "🥭", group: "Fruta" }, { name: "Abóbora", emoji: "🎃", group: "Legume" }],
-      lanche: [{ name: "Melancia", emoji: "🍉", group: "Fruta" }],
-    },
-    3: {
-      cafe: [{ name: "Melancia", emoji: "🍉", group: "Fruta" }, { name: "Tapioca", emoji: "🫓", group: "Grão" }],
-      almoco: [
-        { name: diet === "Vegano" ? "Feijão" : diet === "Vegetariano" ? "Ricota" : "Frango", emoji: diet === "Vegano" ? "🫘" : diet === "Vegetariano" ? "🧀" : "🍗", group: "Proteína" },
-        { name: "Chuchu", emoji: "🥒", group: "Legume" },
-        { name: "Quinoa", emoji: "🌾", group: "Grão" },
-      ],
-      jantar: [{ name: "Morango", emoji: "🍓", group: "Fruta" }, { name: "Cenoura", emoji: "🥕", group: "Legume" }],
-      lanche: [{ name: "Abacate", emoji: "🥑", group: "Fruta" }],
-    },
-    4: {
-      cafe: [{ name: "Uva cortada", emoji: "🍇", group: "Fruta" }, { name: "Panqueca de banana", emoji: "🥞", group: "Grão" }],
-      almoco: [
-        { name: diet === "Vegano" ? "Ervilha" : diet === "Vegetariano" ? "Omelete" : "Peixe", emoji: diet === "Vegano" ? "🟢" : diet === "Vegetariano" ? "🍳" : "🐟", group: "Proteína" },
-        { name: "Espinafre", emoji: "🥬", group: "Legume" },
-        { name: "Arroz integral", emoji: "🍚", group: "Grão" },
-      ],
-      jantar: [{ name: "Abacate", emoji: "🥑", group: "Fruta" }, { name: "Batata", emoji: "🥔", group: "Legume" }],
-      lanche: [{ name: "Mamão", emoji: "🥭", group: "Fruta" }],
-    },
-    5: {
-      cafe: [{ name: "Banana", emoji: "🍌", group: "Fruta" }, { name: "Pão de queijo", emoji: "🧀", group: "Grão" }],
-      almoco: [
-        { name: diet === "Vegano" ? "Grão-de-bico" : diet === "Vegetariano" ? "Lentilha" : "Carne", emoji: diet === "Vegano" ? "🫘" : diet === "Vegetariano" ? "🫘" : "🥩", group: "Proteína" },
-        { name: "Cenoura", emoji: "🥕", group: "Legume" },
-        { name: "Arroz", emoji: "🍚", group: "Grão" },
-      ],
-      jantar: [{ name: "Maçã", emoji: "🍎", group: "Fruta" }, { name: "Abobrinha", emoji: "🥒", group: "Legume" }],
-      lanche: [{ name: "Pera", emoji: "🍐", group: "Fruta" }],
-    },
-    6: {
-      cafe: [{ name: "Mamão", emoji: "🥭", group: "Fruta" }, { name: "Aveia com fruta", emoji: "🥣", group: "Grão" }],
-      almoco: [
-        { name: diet === "Vegano" ? "Feijão preto" : diet === "Vegetariano" ? "Ovo" : "Frango", emoji: diet === "Vegano" ? "🫘" : diet === "Vegetariano" ? "🥚" : "🍗", group: "Proteína" },
-        { name: "Brócolis", emoji: "🥦", group: "Legume" },
-        { name: "Macarrão", emoji: "🍝", group: "Grão" },
-      ],
-      jantar: [{ name: "Pera", emoji: "🍐", group: "Fruta" }, { name: "Abóbora", emoji: "🎃", group: "Legume" }],
-      lanche: [{ name: "Morango", emoji: "🍓", group: "Fruta" }],
-    },
-  };
-  return plans[dayIndex] || plans[0];
-};
-
 const groupColors: Record<string, string> = {
   Fruta: "hsl(35 90% 60%)",
   Legume: "hsl(140 45% 50%)",
   Proteína: "hsl(0 60% 60%)",
   Grão: "hsl(30 50% 55%)",
 };
+
+type DietMode = "Tradicional" | "Vegetariano" | "Vegano";
+
+const dietModes: { key: DietMode; emoji: string }[] = [
+  { key: "Tradicional", emoji: "🍗" },
+  { key: "Vegetariano", emoji: "🥚" },
+  { key: "Vegano", emoji: "🌱" },
+];
 
 export default function CardapioPage() {
   return (
@@ -145,10 +60,18 @@ export default function CardapioPage() {
 
 function CardapioContent() {
   const navigate = useNavigate();
+  const { selectedFoods, savePantry, saving: pantrySaving, lastUpdated: pantryUpdated } = usePantry();
+  const { plan, dietMode: savedDietMode, savePlan, clearPlan, loading: planLoading } = useMealPlan();
+
+  const [showSelection, setShowSelection] = useState(false);
+  const [localSelection, setLocalSelection] = useState<string[]>([]);
+  const [diet, setDiet] = useState<DietMode>((savedDietMode as DietMode) || "Tradicional");
+  const [usedSuggestions, setUsedSuggestions] = useState(false);
+
+  // Week view state
   const weekDates = useMemo(() => getWeekDates(), []);
   const todayIndex = weekDates.findIndex(isToday);
   const [selectedDayIndex, setSelectedDayIndex] = useState(todayIndex >= 0 ? todayIndex : 0);
-  const [diet, setDiet] = useState<DietMode>("Tradicional");
   const [noteFood, setNoteFood] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");
   const [expandedMeals, setExpandedMeals] = useState<Record<string, boolean>>({
@@ -159,28 +82,27 @@ function CardapioContent() {
 
   const selectedDate = weekDates[selectedDayIndex];
   const dateStr = formatDate(selectedDate);
-  const planIndex = (selectedDate.getDay() + 6) % 7;
-  const dayPlan = useMemo(() => generateDayPlan(diet, planIndex), [diet, planIndex]);
-
   const { logs, upsertLog } = useMealLogs(dateStr);
 
-  const mealSections = [
+  // Get day plan from saved plan
+  const planIndex = (selectedDate.getDay() + 6) % 7;
+  const dayPlan: DayPlan | null = plan ? plan[planIndex] || null : null;
+
+  const mealSections = dayPlan ? [
     { key: "cafe", label: "☀️ Café da manhã", items: dayPlan.cafe },
     { key: "almoco", label: "🌤️ Almoço", items: dayPlan.almoco },
     { key: "jantar", label: "🌙 Jantar", items: dayPlan.jantar },
     { key: "lanche", label: "🍎 Lanche", items: dayPlan.lanche },
-  ];
+  ] : [];
 
   const allItems = mealSections.flatMap((s) => s.items.map((i) => ({ ...i, mealKey: s.key })));
   const totalItems = allItems.length;
 
-  const getLogStatus = (foodName: string, mealType: string) => {
-    return logs.find((l) => l.food_name === foodName && l.meal_type === mealType)?.acceptance || null;
-  };
+  const getLogStatus = (foodName: string, mealType: string) =>
+    logs.find((l) => l.food_name === foodName && l.meal_type === mealType)?.acceptance || null;
 
-  const getLogNotes = (foodName: string, mealType: string) => {
-    return logs.find((l) => l.food_name === foodName && l.meal_type === mealType)?.notes || null;
-  };
+  const getLogNotes = (foodName: string, mealType: string) =>
+    logs.find((l) => l.food_name === foodName && l.meal_type === mealType)?.notes || null;
 
   const markedCount = allItems.filter((i) => getLogStatus(i.name, i.mealKey) !== null).length;
   const ateCount = allItems.filter((i) => getLogStatus(i.name, i.mealKey) === "ate").length;
@@ -211,11 +133,129 @@ function CardapioContent() {
     setExpandedMeals((p) => ({ ...p, [key]: !p[key] }));
   };
 
+  // Start selection flow
+  const handleStartSelection = () => {
+    setLocalSelection(selectedFoods.length > 0 ? [...selectedFoods] : []);
+    setShowSelection(true);
+  };
+
+  // Generate plan from selection
+  const handleGenerate = async () => {
+    const saved = await savePantry(localSelection);
+    if (!saved) {
+      toast.error("Erro ao salvar alimentos.");
+      return;
+    }
+
+    const { plan: newPlan, usedSuggestions: suggested } = generateWeekPlan(localSelection, diet);
+    const ok = await savePlan(newPlan, diet);
+    if (ok) {
+      setUsedSuggestions(suggested);
+      setShowSelection(false);
+      toast.success("Cardápio gerado com sucesso! 🎉");
+    } else {
+      toast.error("Erro ao salvar cardápio.");
+    }
+  };
+
+  // Regenerate with same foods
+  const handleRegenerate = async () => {
+    if (selectedFoods.length === 0) {
+      handleStartSelection();
+      return;
+    }
+    const { plan: newPlan, usedSuggestions: suggested } = generateWeekPlan(selectedFoods, diet);
+    const ok = await savePlan(newPlan, diet);
+    if (ok) {
+      setUsedSuggestions(suggested);
+      toast.success("Novo cardápio gerado! 🔄");
+    }
+  };
+
+  if (planLoading) {
+    return (
+      <div className="app-container bottom-nav-safe flex items-center justify-center min-h-[60vh]">
+        <div className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin" style={{ borderColor: "hsl(var(--app-gold))", borderTopColor: "transparent" }} />
+      </div>
+    );
+  }
+
+  // Selection flow
+  if (showSelection) {
+    return (
+      <div className="app-container bottom-nav-safe">
+        <div className="px-5 pt-6 pb-20">
+          {/* Diet mode selector */}
+          <div className="flex gap-2 mb-4">
+            {dietModes.map(({ key, emoji }) => (
+              <button
+                key={key}
+                onClick={() => setDiet(key)}
+                className="flex-1 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
+                style={{
+                  fontWeight: 700,
+                  background: diet === key ? "hsl(var(--app-gold))" : "hsl(var(--card))",
+                  color: "hsl(var(--app-petrol))",
+                  boxShadow: diet === key ? "none" : "0 1px 4px rgba(46,64,87,0.06)",
+                }}
+              >
+                {emoji} {key}
+              </button>
+            ))}
+          </div>
+
+          <PantrySelection
+            selected={localSelection}
+            onChange={setLocalSelection}
+            onConfirm={handleGenerate}
+            onCancel={() => setShowSelection(false)}
+            saving={pantrySaving}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Empty state — no plan yet
+  if (!plan) {
+    return (
+      <div className="app-container bottom-nav-safe">
+        <div className="flex flex-col items-center justify-center px-8 py-16 text-center gap-5 min-h-[60vh]">
+          <div className="w-24 h-24 rounded-full flex items-center justify-center" style={{ background: "hsl(var(--app-gold-light))" }}>
+            <CalendarDays size={44} style={{ color: "hsl(var(--app-gold-dark))" }} />
+          </div>
+          <h1 className="text-xl" style={{ fontWeight: 900, color: "hsl(var(--app-petrol))" }}>
+            Cardápio da Semana
+          </h1>
+          <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))", lineHeight: 1.6 }}>
+            Monte um cardápio semanal com base nos alimentos que você já tem em casa.
+          </p>
+          <button
+            onClick={handleStartSelection}
+            className="w-full max-w-xs py-4 rounded-2xl font-bold text-base transition-all active:scale-95"
+            style={{
+              background: "hsl(var(--app-gold))",
+              color: "hsl(var(--app-petrol))",
+              fontWeight: 700,
+              boxShadow: "0 6px 24px rgba(244,201,93,0.4)",
+            }}
+          >
+            🛒 Monte seu cardápio
+          </button>
+          <p className="text-[10px]" style={{ color: "hsl(var(--muted-foreground))" }}>
+            Selecione os alimentos disponíveis e o app cria o cardápio ideal
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Has plan — show weekly view
   return (
     <div className="app-container bottom-nav-safe">
       {/* Header */}
       <div className="px-5 pt-6 pb-4" style={{ background: "hsl(var(--card))" }}>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-1">
           <div>
             <h1 className="text-xl" style={{ fontWeight: 900, color: "hsl(var(--app-petrol))" }}>
               {isToday(selectedDate) ? "Hoje" : weekdayLabels[selectedDate.getDay()]}
@@ -231,6 +271,26 @@ function CardapioContent() {
           >
             <ShoppingCart size={14} /> Compras
           </button>
+        </div>
+
+        {/* Pantry info badge */}
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-[10px] px-2 py-1 rounded-full" style={{
+            background: "hsl(var(--app-gold-light))",
+            color: "hsl(var(--app-gold-dark))",
+            fontWeight: 700,
+          }}>
+            🏠 Baseado nos seus alimentos
+          </span>
+          {usedSuggestions && (
+            <span className="text-[10px] px-2 py-1 rounded-full" style={{
+              background: "hsl(35 100% 95%)",
+              color: "hsl(30 80% 45%)",
+              fontWeight: 600,
+            }}>
+              + sugestões extras
+            </span>
+          )}
         </div>
 
         {/* Day selector */}
@@ -249,7 +309,7 @@ function CardapioContent() {
                 }}
               >
                 <p className="text-[10px] font-bold" style={{ fontWeight: 700, color: "hsl(var(--app-petrol))" }}>
-                  {weekdayShort[(d.getDay())]}
+                  {weekdayShort[d.getDay()]}
                 </p>
                 <p className="text-xs font-bold" style={{ fontWeight: 800, color: "hsl(var(--app-petrol))" }}>
                   {d.getDate()}
@@ -272,7 +332,7 @@ function CardapioContent() {
           </div>
         </div>
         <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{
-          background: markedCount === totalItems ? "hsl(var(--app-gold))" : "hsl(var(--app-cream-dark))",
+          background: markedCount === totalItems && totalItems > 0 ? "hsl(var(--app-gold))" : "hsl(var(--app-cream-dark))",
         }}>
           <span className="text-sm font-bold" style={{ fontWeight: 800, color: "hsl(var(--app-petrol))" }}>
             {totalItems > 0 ? Math.round((markedCount / totalItems) * 100) : 0}%
@@ -280,23 +340,32 @@ function CardapioContent() {
         </div>
       </div>
 
-      {/* Diet mode */}
+      {/* Quick actions */}
       <div className="px-4 mt-3 flex gap-2">
-        {dietModes.map(({ key, emoji }) => (
-          <button
-            key={key}
-            onClick={() => setDiet(key)}
-            className="flex-1 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
-            style={{
-              fontWeight: 700,
-              background: diet === key ? "hsl(var(--app-gold))" : "hsl(var(--card))",
-              color: "hsl(var(--app-petrol))",
-              boxShadow: diet === key ? "none" : "0 1px 4px rgba(46,64,87,0.06)",
-            }}
-          >
-            {emoji} {key}
-          </button>
-        ))}
+        <button
+          onClick={handleStartSelection}
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
+          style={{
+            fontWeight: 700,
+            background: "hsl(var(--card))",
+            color: "hsl(var(--app-petrol))",
+            boxShadow: "0 1px 4px rgba(46,64,87,0.06)",
+          }}
+        >
+          <Pencil size={12} /> Editar alimentos
+        </button>
+        <button
+          onClick={handleRegenerate}
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
+          style={{
+            fontWeight: 700,
+            background: "hsl(var(--card))",
+            color: "hsl(var(--app-petrol))",
+            boxShadow: "0 1px 4px rgba(46,64,87,0.06)",
+          }}
+        >
+          <RefreshCw size={12} /> Refazer cardápio
+        </button>
       </div>
 
       {/* Meal sections */}
@@ -331,13 +400,12 @@ function CardapioContent() {
                     const status = getLogStatus(meal.name, key);
                     const savedNote = getLogNotes(meal.name, key);
                     return (
-                      <div key={meal.name}>
+                      <div key={`${meal.name}-${key}`}>
                         <div
                           className="flex items-center gap-2 p-3 rounded-xl transition-all"
                           style={{
                             background: status === "ate" ? "hsl(140 45% 95%)"
                               : status === "did_not_eat" ? "hsl(0 60% 96%)"
-                              : status === "tried" ? "hsl(43 88% 95%)"
                               : "hsl(var(--app-cream))",
                           }}
                         >
@@ -482,33 +550,18 @@ function CardapioContent() {
                   <h4 className="text-sm font-bold mb-3" style={{ fontWeight: 700, color: "hsl(var(--app-petrol))" }}>
                     {prep.method}
                   </h4>
-
                   <div className="space-y-2.5">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: "hsl(var(--app-gold-dark))", fontWeight: 700 }}>
-                        Preparo
-                      </p>
-                      <p className="text-xs" style={{ color: "hsl(var(--app-petrol))", lineHeight: 1.5 }}>
-                        {prep.steps}
-                      </p>
+                      <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: "hsl(var(--app-gold-dark))", fontWeight: 700 }}>Preparo</p>
+                      <p className="text-xs" style={{ color: "hsl(var(--app-petrol))", lineHeight: 1.5 }}>{prep.steps}</p>
                     </div>
-
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: "hsl(var(--app-gold-dark))", fontWeight: 700 }}>
-                        Textura ideal
-                      </p>
-                      <p className="text-xs" style={{ color: "hsl(var(--app-petrol))", lineHeight: 1.5 }}>
-                        {prep.texture}
-                      </p>
+                      <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: "hsl(var(--app-gold-dark))", fontWeight: 700 }}>Textura ideal</p>
+                      <p className="text-xs" style={{ color: "hsl(var(--app-petrol))", lineHeight: 1.5 }}>{prep.texture}</p>
                     </div>
-
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: "hsl(var(--app-gold-dark))", fontWeight: 700 }}>
-                        Dicas e cuidados
-                      </p>
-                      <p className="text-xs" style={{ color: "hsl(var(--app-petrol))", lineHeight: 1.5 }}>
-                        {prep.tips}
-                      </p>
+                      <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: "hsl(var(--app-gold-dark))", fontWeight: 700 }}>Dicas e cuidados</p>
+                      <p className="text-xs" style={{ color: "hsl(var(--app-petrol))", lineHeight: 1.5 }}>{prep.tips}</p>
                     </div>
                   </div>
                 </div>
