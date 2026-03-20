@@ -54,8 +54,10 @@ const AppRoutes = () => {
   return (
     <div className="app-container">
       <Routes>
+        <Route path="/landing" element={user ? (hasBaby ? <Navigate to="/" replace /> : <Navigate to="/cadastro-bebe" replace />) : <Landing />} />
+        <Route path="/quiz" element={user ? (hasBaby ? <Navigate to="/" replace /> : <Navigate to="/cadastro-bebe" replace />) : <Quiz />} />
         <Route path="/auth" element={user ? (hasBaby ? <Navigate to="/" replace /> : <Navigate to="/cadastro-bebe" replace />) : <Auth />} />
-        <Route path="/cadastro-bebe" element={user ? (hasBaby ? <Navigate to="/" replace /> : <CadastroBebe />) : <Navigate to="/auth" replace />} />
+        <Route path="/cadastro-bebe" element={user ? (hasBaby ? <Navigate to="/" replace /> : <CadastroBebe />) : <Navigate to="/landing" replace />} />
         <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
         <Route path="/alimentos" element={<ProtectedRoute><Alimentos /></ProtectedRoute>} />
         <Route path="/receitas" element={<ProtectedRoute><Receitas /></ProtectedRoute>} />
