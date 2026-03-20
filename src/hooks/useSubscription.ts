@@ -37,7 +37,7 @@ export function useSubscription() {
 
   const checkAndUpdateStatus = useCallback(async () => {
     if (!user) {
-      setState({ status: "none", plan: null, endsAt: null, loading: false });
+      setState({ status: "none", plan: null, endsAt: null, cancelAtPeriodEnd: false, loading: false });
       return;
     }
 
