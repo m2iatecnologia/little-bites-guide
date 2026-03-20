@@ -16,6 +16,9 @@ export interface Recipe {
   instructions: string;
   nutritional_tip: string | null;
   tags_ingredientes: string[];
+  blw_mode: string | null;
+  cutting_instructions: string | null;
+  ideal_texture: string | null;
 }
 
 export type SortOption =
