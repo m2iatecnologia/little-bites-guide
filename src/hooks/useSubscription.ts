@@ -86,7 +86,7 @@ export function useSubscription() {
       }
     } catch (err) {
       console.error("Subscription check failed:", err);
-      setState({ status: "none", plan: null, endsAt: null, loading: false });
+      setState({ status: "none", plan: null, endsAt: null, cancelAtPeriodEnd: false, loading: false });
     }
   }, [user]);
 
