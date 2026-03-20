@@ -25,6 +25,7 @@ export default function CadastroBebe() {
   const [heightCm, setHeightCm] = useState("");
   const [selectedRestrictions, setSelectedRestrictions] = useState<string[]>([]);
   const [otherRestriction, setOtherRestriction] = useState("");
+  const [dietType, setDietType] = useState("no_restrictions");
 
   const ageInMonths = useMemo(() => {
     if (!birthDate) return null;
