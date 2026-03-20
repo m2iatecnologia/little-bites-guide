@@ -15,6 +15,7 @@ interface SubscriptionState {
   status: SubscriptionStatus;
   plan: SubscriptionPlan;
   endsAt: Date | null;
+  cancelAtPeriodEnd: boolean;
   loading: boolean;
 }
 
