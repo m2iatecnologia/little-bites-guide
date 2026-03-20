@@ -78,6 +78,7 @@ const AppRoutes = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
       {user && hasBaby && <BottomNav />}
+      {user && hasBaby && <FloatingChat />}
     </div>
   );
 };
