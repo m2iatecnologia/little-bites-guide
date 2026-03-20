@@ -40,7 +40,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { hasBaby, loading: babyLoading } = useBaby();
 
   if (loading || babyLoading) return <LoadingSpinner />;
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) return <Navigate to="/landing" replace />;
   if (!hasBaby) return <Navigate to="/cadastro-bebe" replace />;
   return <>{children}</>;
 }
