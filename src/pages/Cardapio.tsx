@@ -464,7 +464,7 @@ function CardapioContent() {
           <RefreshCw size={12} /> Refazer cardápio
         </button>
         <button
-          onClick={() => { setPendingMode(null); /* Reset to choice screen */ savePlan({} as WeekPlan, diet, planType).catch(() => {}); window.location.reload(); }}
+          onClick={() => { clearPlan(); }}
           className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
           style={{
             fontWeight: 700,
