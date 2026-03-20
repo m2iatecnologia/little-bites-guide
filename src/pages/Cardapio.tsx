@@ -357,70 +357,58 @@ function CardapioContent() {
                             </div>
                           </div>
 
-                          {/* Action buttons */}
-                          <div className="flex items-center gap-1">
+                          {/* Action buttons with labels */}
+                          <div className="flex items-center gap-1.5">
                             <button
                               onClick={() => handleOpenPrep(meal.name)}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-90"
+                              className="flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-lg transition-all active:scale-90"
                               style={{
                                 background: "hsl(var(--card))",
                                 color: "hsl(var(--app-gold-dark))",
                                 boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
                               }}
-                              title="Modo de preparo"
                             >
                               <ChefHat size={13} />
+                              <span className="text-[8px] font-bold" style={{ fontWeight: 700 }}>Preparo</span>
                             </button>
                             <button
                               onClick={() => handleMark(meal.name, key, "ate")}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-90"
+                              className="flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-lg transition-all active:scale-90"
                               style={{
                                 background: status === "ate" ? "hsl(140 50% 45%)" : "hsl(var(--card))",
                                 color: status === "ate" ? "white" : "hsl(140 45% 45%)",
                                 boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
                               }}
-                              title="Comeu"
                             >
                               <Check size={14} strokeWidth={2.5} />
-                            </button>
-                            <button
-                              onClick={() => handleMark(meal.name, key, "tried")}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-90"
-                              style={{
-                                background: status === "tried" ? "hsl(43 88% 55%)" : "hsl(var(--card))",
-                                color: status === "tried" ? "white" : "hsl(43 88% 55%)",
-                                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                              }}
-                              title="Provou"
-                            >
-                              <Minus size={14} strokeWidth={2.5} />
+                              <span className="text-[8px] font-bold" style={{ fontWeight: 700 }}>Comeu</span>
                             </button>
                             <button
                               onClick={() => handleMark(meal.name, key, "did_not_eat")}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-90"
+                              className="flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-lg transition-all active:scale-90"
                               style={{
                                 background: status === "did_not_eat" ? "hsl(0 60% 55%)" : "hsl(var(--card))",
                                 color: status === "did_not_eat" ? "white" : "hsl(0 60% 55%)",
                                 boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
                               }}
-                              title="Não comeu"
                             >
                               <X size={14} strokeWidth={2.5} />
+                              <span className="text-[8px] font-bold" style={{ fontWeight: 700 }}>Recusou</span>
                             </button>
                             <button
                               onClick={() => {
                                 setNoteFood(`${meal.name}::${key}`);
                                 setNoteText(savedNote || "");
                               }}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-90"
+                              className="flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-lg transition-all active:scale-90"
                               style={{
                                 background: savedNote ? "hsl(var(--app-gold-light))" : "hsl(var(--card))",
                                 color: savedNote ? "hsl(var(--app-petrol))" : "hsl(var(--muted-foreground))",
                                 boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
                               }}
-                              title="Observação"
                             >
                               <MessageSquare size={12} />
+                              <span className="text-[8px] font-bold" style={{ fontWeight: 700 }}>Nota</span>
                             </button>
                           </div>
                         </div>

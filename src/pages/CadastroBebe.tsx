@@ -208,6 +208,33 @@ export default function CadastroBebe() {
           />
         </div>
 
+        {/* Regime alimentar */}
+        <div>
+          <label className="text-sm font-bold mb-2 block" style={{ color: "hsl(var(--app-petrol))" }}>
+            Regime alimentar *
+          </label>
+          <div className="flex gap-2">
+            {[
+              { value: "no_restrictions", label: "Sem restrições", emoji: "🍗" },
+              { value: "vegetarian", label: "Vegetariano", emoji: "🥚" },
+              { value: "vegan", label: "Vegano", emoji: "🌱" },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setDietType(opt.value)}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95"
+                style={{
+                  background: dietType === opt.value ? "hsl(var(--app-gold))" : "hsl(var(--app-card))",
+                  color: "hsl(var(--app-petrol))",
+                  border: `1.5px solid ${dietType === opt.value ? "hsl(var(--app-gold-dark))" : "hsl(var(--app-divider))"}`,
+                }}
+              >
+                {opt.emoji} {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Restrições */}
         <div>
           <label className="text-sm font-bold mb-2 block" style={{ color: "hsl(var(--app-petrol))" }}>Restrições alimentares</label>

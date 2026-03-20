@@ -47,6 +47,14 @@ const REACTION_OPTIONS = [
 ];
 
 export default function Checklist() {
+  return (
+    <PremiumGate>
+      <ChecklistContent />
+    </PremiumGate>
+  );
+}
+
+function ChecklistContent() {
   const { logs, loading: logsLoading } = useAllMealLogs();
   const { overrides, upsertOverride, deleteOverride, loading: overridesLoading } = useFoodOverrides();
   const { occurrences, loading: occLoading, addOccurrence, getOccurrencesByFood } = useFoodOccurrences();
