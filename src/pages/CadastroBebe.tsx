@@ -63,7 +63,8 @@ export default function CadastroBebe() {
       weight_kg: weightKg ? parseFloat(weightKg) : null,
       height_cm: heightCm ? parseFloat(heightCm) : null,
       restrictions: restrictions || null,
-    });
+      diet_type: dietType,
+    } as any);
 
     setSaving(false);
 
