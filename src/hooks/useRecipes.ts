@@ -16,6 +16,9 @@ export interface Recipe {
   instructions: string;
   nutritional_tip: string | null;
   tags_ingredientes: string[];
+  blw_mode: string | null;
+  cutting_instructions: string | null;
+  ideal_texture: string | null;
 }
 
 export type SortOption =
@@ -80,7 +83,7 @@ export function useRecipes() {
     try {
       let query = supabase
         .from("recipes")
-        .select("id, name, age, difficulty, time_minutes, premium, can_freeze, can_lunchbox, category, image_url, ingredients, instructions, nutritional_tip, tags_ingredientes")
+        .select("id, name, age, difficulty, time_minutes, premium, can_freeze, can_lunchbox, category, image_url, ingredients, instructions, nutritional_tip, tags_ingredientes, blw_mode, cutting_instructions, ideal_texture")
         .order("premium", { ascending: true })
         .order("name")
         .range(pageNum * PAGE_SIZE, (pageNum + 1) * PAGE_SIZE - 1);

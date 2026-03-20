@@ -7,7 +7,8 @@ import { useBaby } from "@/hooks/useBaby";
 import { Skeleton } from "@/components/ui/skeleton";
 import RecipeFilterModal, { type FilterState } from "@/components/RecipeFilterModal";
 
-const FREE_LIMIT = 5;
+const FREE_VISIBLE = 3;
+const LOCKED_PREVIEW = 2;
 
 function RecipeCardSkeleton() {
   return (
@@ -104,7 +105,7 @@ export default function Receitas() {
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!sentinelRef.current) return;
+    if (!sentinelRef.current || !isPremium) return;
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) loadMore();
@@ -113,15 +114,22 @@ export default function Receitas() {
     );
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
-  }, [hasMore, loadingMore, loading, loadMore]);
+  }, [hasMore, loadingMore, loading, loadMore, isPremium]);
 
   const babyAgeMonths = baby?.birth_date
     ? Math.floor((Date.now() - new Date(baby.birth_date).getTime()) / (1000 * 60 * 60 * 24 * 30.44))
     : null;
 
+  // For free users: show 3 free + 2 locked, total 5
+  const displayRecipes = isPremium
+    ? recipes
+    : recipes.slice(0, FREE_VISIBLE + LOCKED_PREVIEW);
+
   const handleCardClick = (recipe: Recipe, index: number) => {
-    const locked = !isPremium && recipe.premium && index >= FREE_LIMIT;
-    if (locked) { navigate("/planos"); return; }
+    if (!isPremium && index >= FREE_VISIBLE) {
+      navigate("/planos");
+      return;
+    }
     navigate(`/receitas/${recipe.id}`);
   };
 
@@ -213,7 +221,7 @@ export default function Receitas() {
       {/* Recipe grid */}
       {!loading && !error && (
         <div className="px-4">
-          {recipes.length === 0 ? (
+          {displayRecipes.length === 0 ? (
             <div className="py-10 text-center">
               <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
                 Nenhuma receita encontrada para esses filtros.
@@ -231,8 +239,8 @@ export default function Receitas() {
           ) : (
             <>
               <div className="grid grid-cols-2 gap-3">
-                {recipes.map((recipe, index) => {
-                  const locked = !isPremium && recipe.premium && index >= FREE_LIMIT;
+                {displayRecipes.map((recipe, index) => {
+                  const locked = !isPremium && index >= FREE_VISIBLE;
                   return (
                     <RecipeCard
                       key={recipe.id}
@@ -244,39 +252,55 @@ export default function Receitas() {
                 })}
               </div>
 
-              <div ref={sentinelRef} className="h-4" />
-
-              {loadingMore && (
-                <div className="flex justify-center py-4">
-                  <div
-                    className="w-7 h-7 rounded-full border-3 border-t-transparent animate-spin"
-                    style={{ borderColor: "hsl(var(--app-gold))", borderTopColor: "transparent" }}
-                  />
-                </div>
-              )}
-
-              {!hasMore && recipes.length > 0 && (
-                <p className="text-center text-xs py-4" style={{ color: "hsl(var(--muted-foreground))" }}>
-                  Todas as receitas carregadas ✨
-                </p>
+              {isPremium && (
+                <>
+                  <div ref={sentinelRef} className="h-4" />
+                  {loadingMore && (
+                    <div className="flex justify-center py-4">
+                      <div
+                        className="w-7 h-7 rounded-full border-3 border-t-transparent animate-spin"
+                        style={{ borderColor: "hsl(var(--app-gold))", borderTopColor: "transparent" }}
+                      />
+                    </div>
+                  )}
+                  {!hasMore && recipes.length > 0 && (
+                    <p className="text-center text-xs py-4" style={{ color: "hsl(var(--muted-foreground))" }}>
+                      Todas as receitas carregadas ✨
+                    </p>
+                  )}
+                </>
               )}
             </>
           )}
 
           {!isPremium && (
             <div className="mt-5 mb-4">
-              <button
-                onClick={() => navigate("/planos")}
-                className="w-full py-4 rounded-2xl text-center transition-all active:scale-95"
-                style={{
-                  background: "linear-gradient(135deg, hsl(var(--app-gold)), hsl(var(--app-gold-dark)))",
-                  color: "hsl(var(--app-petrol))",
-                  fontWeight: 800,
-                  boxShadow: "0 4px 16px rgba(244,201,93,0.35)",
-                }}
+              <div
+                className="p-5 rounded-2xl text-center space-y-3"
+                style={{ background: "hsl(var(--app-gold-light))", border: "1.5px solid hsl(var(--app-gold))" }}
               >
-                🔒 Desbloqueie +100 receitas · Assinar Premium
-              </button>
+                <p className="font-extrabold text-base" style={{ fontWeight: 900, color: "hsl(var(--app-petrol))" }}>
+                  🔒 Desbloqueie todas as receitas com o plano premium
+                </p>
+                <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+                  Acesse +100 receitas completas com modo BLW, dicas de corte e orientação nutricional.
+                </p>
+                <button
+                  onClick={() => navigate("/planos")}
+                  className="w-full py-4 rounded-2xl text-center transition-all active:scale-95"
+                  style={{
+                    background: "linear-gradient(135deg, hsl(var(--app-gold)), hsl(var(--app-gold-dark)))",
+                    color: "hsl(var(--app-petrol))",
+                    fontWeight: 800,
+                    boxShadow: "0 4px 16px rgba(244,201,93,0.35)",
+                  }}
+                >
+                  🎁 Comece grátis por 7 dias
+                </button>
+                <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+                  Sem compromisso • Cancele quando quiser
+                </p>
+              </div>
             </div>
           )}
         </div>
