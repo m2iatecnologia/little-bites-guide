@@ -271,12 +271,15 @@ export type Database = {
       recipes: {
         Row: {
           age: string
+          blw_mode: string | null
           can_freeze: boolean
           can_lunchbox: boolean
           category: string
           created_at: string
+          cutting_instructions: string | null
           difficulty: string
           id: string
+          ideal_texture: string | null
           image_url: string | null
           ingredients: Json
           instructions: string
@@ -289,12 +292,15 @@ export type Database = {
         }
         Insert: {
           age?: string
+          blw_mode?: string | null
           can_freeze?: boolean
           can_lunchbox?: boolean
           category?: string
           created_at?: string
+          cutting_instructions?: string | null
           difficulty?: string
           id?: string
+          ideal_texture?: string | null
           image_url?: string | null
           ingredients?: Json
           instructions?: string
@@ -307,12 +313,15 @@ export type Database = {
         }
         Update: {
           age?: string
+          blw_mode?: string | null
           can_freeze?: boolean
           can_lunchbox?: boolean
           category?: string
           created_at?: string
+          cutting_instructions?: string | null
           difficulty?: string
           id?: string
+          ideal_texture?: string | null
           image_url?: string | null
           ingredients?: Json
           instructions?: string
