@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Search, SlidersHorizontal, X, Lock, ChevronLeft } from "lucide-react";
-import cuttingGuideImg from "@/assets/cutting-guide.png";
+import { CuttingGuideCard } from "@/components/CuttingGuideCard";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PremiumBadge } from "@/components/PremiumGate";
@@ -131,18 +131,8 @@ function FoodDetail({ food, onClose }: { food: PremiumFood; onClose: () => void 
           )}
         </div>
 
-        {/* Cutting guide illustration */}
-        <div>
-          <h3 className="text-base mb-3" style={{ fontWeight: 800 }}>✂️ Guia de cortes</h3>
-          <div className="rounded-2xl overflow-hidden" style={{ background: "hsl(var(--card))" }}>
-            <img src={cuttingGuideImg} alt="Guia de cortes: palitos, cubos, amassado e desfiado" className="w-full" loading="lazy" />
-            <div className="p-4">
-              <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-                O formato do corte deve ser adequado à idade e habilidade do bebê. Consulte sempre o pediatra.
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* Contextual cutting guide */}
+        <CuttingGuideCard foodName={food.name} emoji={food.emoji} />
       </div>
     </div>
   );
