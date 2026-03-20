@@ -17,6 +17,7 @@ export interface DayPlan {
 }
 
 export type WeekPlan = Record<number, DayPlan>; // 0-6
+export type PlanType = "automatic" | "personalized";
 
 function getWeekStart(): string {
   const today = new Date();
@@ -31,6 +32,7 @@ export function useMealPlan() {
   const { baby } = useBaby();
   const [plan, setPlan] = useState<WeekPlan | null>(null);
   const [dietMode, setDietMode] = useState<string>("Tradicional");
+  const [planType, setPlanType] = useState<PlanType>("automatic");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const weekStart = getWeekStart();
@@ -48,8 +50,18 @@ export function useMealPlan() {
       .maybeSingle();
 
     if (data) {
-      setPlan((data as any).plan as WeekPlan);
-      setDietMode((data as any).diet_mode || "Tradicional");
+      const d = data as any;
+      setPlan(d.plan as WeekPlan);
+      setDietMode(d.diet_mode || "Tradicional");
+      // Extract plan type from diet_mode field (format: "diet|type")
+      if (d.diet_mode && d.diet_mode.includes("|")) {
+        const [dm, pt] = d.diet_mode.split("|");
+        setDietMode(dm);
+        setPlanType(pt as PlanType);
+      } else {
+        setDietMode(d.diet_mode || "Tradicional");
+        setPlanType("automatic");
+      }
     } else {
       setPlan(null);
     }
@@ -60,9 +72,12 @@ export function useMealPlan() {
     fetchPlan();
   }, [fetchPlan]);
 
-  const savePlan = useCallback(async (weekPlan: WeekPlan, diet: string) => {
+  const savePlan = useCallback(async (weekPlan: WeekPlan, diet: string, type: PlanType = "automatic") => {
     if (!user) return false;
     setSaving(true);
+
+    // Encode plan type in diet_mode to avoid schema change
+    const storedDietMode = `${diet}|${type}`;
 
     const { error } = await supabase
       .from("meal_plans" as any)
@@ -71,13 +86,14 @@ export function useMealPlan() {
         baby_id: baby?.id || null,
         week_start: weekStart,
         plan: weekPlan as any,
-        diet_mode: diet,
+        diet_mode: storedDietMode,
       } as any);
 
     setSaving(false);
     if (!error) {
       setPlan(weekPlan);
       setDietMode(diet);
+      setPlanType(type);
       return true;
     }
     return false;
@@ -87,5 +103,5 @@ export function useMealPlan() {
     setPlan(null);
   }, []);
 
-  return { plan, dietMode, loading, saving, weekStart, savePlan, clearPlan, refetch: fetchPlan };
+  return { plan, dietMode, planType, loading, saving, weekStart, savePlan, clearPlan, refetch: fetchPlan };
 }
