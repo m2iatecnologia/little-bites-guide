@@ -31,6 +31,7 @@ export function useSubscription() {
     status: "none",
     plan: null,
     endsAt: null,
+    cancelAtPeriodEnd: false,
     loading: true,
   });
 
