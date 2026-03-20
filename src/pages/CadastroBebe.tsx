@@ -25,6 +25,7 @@ export default function CadastroBebe() {
   const [heightCm, setHeightCm] = useState("");
   const [selectedRestrictions, setSelectedRestrictions] = useState<string[]>([]);
   const [otherRestriction, setOtherRestriction] = useState("");
+  const [dietType, setDietType] = useState("no_restrictions");
 
   const ageInMonths = useMemo(() => {
     if (!birthDate) return null;
@@ -62,7 +63,8 @@ export default function CadastroBebe() {
       weight_kg: weightKg ? parseFloat(weightKg) : null,
       height_cm: heightCm ? parseFloat(heightCm) : null,
       restrictions: restrictions || null,
-    });
+      diet_type: dietType,
+    } as any);
 
     setSaving(false);
 
@@ -204,6 +206,33 @@ export default function CadastroBebe() {
             placeholder="Ex: 68"
             className={inputStyle}
           />
+        </div>
+
+        {/* Regime alimentar */}
+        <div>
+          <label className="text-sm font-bold mb-2 block" style={{ color: "hsl(var(--app-petrol))" }}>
+            Regime alimentar *
+          </label>
+          <div className="flex gap-2">
+            {[
+              { value: "no_restrictions", label: "Sem restrições", emoji: "🍗" },
+              { value: "vegetarian", label: "Vegetariano", emoji: "🥚" },
+              { value: "vegan", label: "Vegano", emoji: "🌱" },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setDietType(opt.value)}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95"
+                style={{
+                  background: dietType === opt.value ? "hsl(var(--app-gold))" : "hsl(var(--app-card))",
+                  color: "hsl(var(--app-petrol))",
+                  border: `1.5px solid ${dietType === opt.value ? "hsl(var(--app-gold-dark))" : "hsl(var(--app-divider))"}`,
+                }}
+              >
+                {opt.emoji} {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Restrições */}

@@ -4,6 +4,7 @@ import { useFoodOverrides } from "@/hooks/useFoodOverrides";
 import { useFoodOccurrences, FoodOccurrence } from "@/hooks/useFoodOccurrences";
 import { checklistFoods } from "@/data/appData";
 import { Search, Plus, ArrowRightLeft, Trash2, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
+import { PremiumGate } from "@/components/PremiumGate";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -46,6 +47,14 @@ const REACTION_OPTIONS = [
 ];
 
 export default function Checklist() {
+  return (
+    <PremiumGate>
+      <ChecklistContent />
+    </PremiumGate>
+  );
+}
+
+function ChecklistContent() {
   const { logs, loading: logsLoading } = useAllMealLogs();
   const { overrides, upsertOverride, deleteOverride, loading: overridesLoading } = useFoodOverrides();
   const { occurrences, loading: occLoading, addOccurrence, getOccurrencesByFood } = useFoodOccurrences();
