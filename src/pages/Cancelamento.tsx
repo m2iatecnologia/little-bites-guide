@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, AlertTriangle, Gift, Bell, BookOpen, Check } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Gift, Bell, BookOpen, Check, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useSubscription } from "@/hooks/useSubscription";
+import { toast } from "sonner";
 
 const reasons = [
   { id: "expensive", icon: "💰", label: "Está caro para mim" },
@@ -15,13 +18,20 @@ type Step = "confirm" | "reason" | "offer" | "final" | "done";
 
 export default function Cancelamento() {
   const navigate = useNavigate();
+  const { plan, endsAt, refresh } = useSubscription();
   const [step, setStep] = useState<Step>("confirm");
   const [selectedReason, setSelectedReason] = useState("");
   const [otherText, setOtherText] = useState("");
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelledEndDate, setCancelledEndDate] = useState<string | null>(null);
 
-  const endDate = new Date();
-  endDate.setDate(endDate.getDate() + 30);
-  const formattedEnd = endDate.toLocaleDateString("pt-BR");
+  const planLabel = plan === "anual" ? "Anual" : plan === "semestral" ? "Semestral" : "Mensal";
+
+  const displayEndDate = cancelledEndDate
+    ? new Date(cancelledEndDate).toLocaleDateString("pt-BR")
+    : endsAt
+      ? new Date(endsAt).toLocaleDateString("pt-BR")
+      : "—";
 
   const getOffer = () => {
     if (selectedReason === "expensive")
@@ -49,6 +59,31 @@ export default function Cancelamento() {
   };
 
   const offer = getOffer();
+
+  const handleCancel = async () => {
+    setCancelling(true);
+    try {
+      const reason = selectedReason === "other" ? otherText : reasons.find(r => r.id === selectedReason)?.label || "";
+      const { data, error } = await supabase.functions.invoke("cancel-subscription", {
+        body: { reason },
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        setCancelledEndDate(data.ends_at);
+        await refresh();
+        setStep("done");
+      } else {
+        throw new Error(data?.error || "Erro ao cancelar assinatura");
+      }
+    } catch (err: any) {
+      console.error("Cancel error:", err);
+      toast.error("Não foi possível cancelar a assinatura. Tente novamente.");
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   return (
     <div className="min-h-screen px-5 pt-6 pb-10" style={{ background: "hsl(var(--app-cream))" }}>
@@ -86,11 +121,11 @@ export default function Cancelamento() {
             <p className="text-xs font-semibold mb-2" style={{ color: "hsl(var(--muted-foreground))" }}>Seu plano atual</p>
             <div className="flex justify-between text-sm mb-1">
               <span style={{ color: "hsl(var(--muted-foreground))" }}>Plano</span>
-              <span className="font-bold" style={{ color: "hsl(var(--app-petrol))" }}>Anual ⭐</span>
+              <span className="font-bold" style={{ color: "hsl(var(--app-petrol))" }}>{planLabel} ⭐</span>
             </div>
             <div className="flex justify-between text-sm">
               <span style={{ color: "hsl(var(--muted-foreground))" }}>Acesso até</span>
-              <span className="font-bold" style={{ color: "hsl(var(--app-petrol))" }}>{formattedEnd}</span>
+              <span className="font-bold" style={{ color: "hsl(var(--app-petrol))" }}>{displayEndDate}</span>
             </div>
           </div>
 
@@ -207,18 +242,27 @@ export default function Cancelamento() {
             Confirmação final
           </h1>
           <p className="text-sm mb-6" style={{ color: "hsl(var(--muted-foreground))" }}>
-            Seu plano será encerrado em <strong>{formattedEnd}</strong>. Você continuará com acesso até essa data.
+            Seu plano será encerrado em <strong>{displayEndDate}</strong>. Você continuará com acesso até essa data.
           </p>
 
           <button
-            onClick={() => setStep("done")}
-            className="w-full py-4 rounded-2xl font-bold text-base mb-3 active:scale-95 transition-transform"
+            onClick={handleCancel}
+            disabled={cancelling}
+            className="w-full py-4 rounded-2xl font-bold text-base mb-3 active:scale-95 transition-transform disabled:opacity-60 flex items-center justify-center gap-2"
             style={{ background: "hsl(var(--destructive))", color: "white" }}
           >
-            Confirmar cancelamento
+            {cancelling ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                Cancelando...
+              </>
+            ) : (
+              "Confirmar cancelamento"
+            )}
           </button>
           <button
             onClick={() => navigate(-1)}
+            disabled={cancelling}
             className="w-full py-3 rounded-2xl text-sm font-semibold active:scale-95 transition-transform"
             style={{ color: "hsl(var(--app-petrol))", border: "1.5px solid hsl(var(--app-divider))" }}
           >
@@ -239,8 +283,11 @@ export default function Cancelamento() {
           <h1 className="text-xl font-extrabold text-center mb-2" style={{ color: "hsl(var(--app-petrol))" }}>
             Assinatura cancelada
           </h1>
-          <p className="text-sm text-center mb-6" style={{ color: "hsl(var(--muted-foreground))" }}>
-            Você pode reativar a qualquer momento.
+          <p className="text-sm text-center mb-2" style={{ color: "hsl(var(--muted-foreground))" }}>
+            Sua assinatura foi cancelada com sucesso.
+          </p>
+          <p className="text-sm text-center font-semibold mb-6" style={{ color: "hsl(var(--app-petrol))" }}>
+            Seu acesso premium continua ativo até {cancelledEndDate ? new Date(cancelledEndDate).toLocaleDateString("pt-BR") : displayEndDate}.
           </p>
           <button
             onClick={() => navigate("/")}
