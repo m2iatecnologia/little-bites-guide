@@ -81,9 +81,13 @@ serve(async (req) => {
       }
     }
 
+    let cancelAtPeriodEnd = false;
+
     if (sub) {
       subscriptionId = sub.id;
-      // Safely extract period end - handle both unix timestamp and string formats
+      cancelAtPeriodEnd = sub.cancel_at_period_end === true;
+
+      // Safely extract period end
       const periodEnd = sub.current_period_end;
       logStep("Raw period end", { periodEnd, type: typeof periodEnd });
       
@@ -113,16 +117,18 @@ serve(async (req) => {
         "prod_UA53rF7VfL99Jt": "anual",
       };
       const plan = productId ? (PRODUCT_TO_PLAN[productId] || "mensal") : "mensal";
+      const dbStatus = cancelAtPeriodEnd ? "canceled" : "active";
 
       await supabaseClient.from("subscriptions").upsert(
         {
           user_id: user.id,
           plan,
-          status: "active",
+          status: dbStatus,
           started_at: new Date().toISOString(),
           ends_at: subscriptionEnd,
           stripe_customer_id: customerId,
           stripe_subscription_id: subscriptionId,
+          cancelled_at: cancelAtPeriodEnd ? new Date().toISOString() : null,
         },
         { onConflict: "user_id" }
       );
@@ -135,7 +141,7 @@ serve(async (req) => {
         .in("status", ["active", "trial"]);
     }
 
-    logStep("Result", { subscribed, productId, subscriptionEnd, subscriptionId });
+    logStep("Result", { subscribed, productId, subscriptionEnd, subscriptionId, cancelAtPeriodEnd });
 
     return new Response(JSON.stringify({
       subscribed,
