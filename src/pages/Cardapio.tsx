@@ -4,9 +4,9 @@ import { PremiumGate } from "@/components/PremiumGate";
 import { PantrySelection } from "@/components/PantrySelection";
 import { useMealLogs } from "@/hooks/useMealLogs";
 import { usePantry } from "@/hooks/usePantry";
-import { useMealPlan, type WeekPlan, type DayPlan } from "@/hooks/useMealPlan";
-import { generateWeekPlan } from "@/lib/generateMealPlan";
-import { ShoppingCart, Check, X, MessageSquare, ChevronDown, ChevronUp, ChefHat, RefreshCw, Pencil, CalendarDays } from "lucide-react";
+import { useMealPlan, type WeekPlan, type DayPlan, type PlanType } from "@/hooks/useMealPlan";
+import { generateWeekPlan, generateAutoWeekPlan } from "@/lib/generateMealPlan";
+import { ShoppingCart, Check, X, MessageSquare, ChevronDown, ChevronUp, ChefHat, RefreshCw, Pencil, CalendarDays, Sparkles, Home } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getPreparations, type FoodPreparation } from "@/data/foodPreparations";
@@ -60,10 +60,12 @@ export default function CardapioPage() {
 
 function CardapioContent() {
   const navigate = useNavigate();
-  const { selectedFoods, savePantry, saving: pantrySaving, lastUpdated: pantryUpdated } = usePantry();
-  const { plan, dietMode: savedDietMode, savePlan, clearPlan, loading: planLoading } = useMealPlan();
+  const { selectedFoods, savePantry, saving: pantrySaving } = usePantry();
+  const { plan, dietMode: savedDietMode, planType, savePlan, loading: planLoading } = useMealPlan();
 
   const [showSelection, setShowSelection] = useState(false);
+  const [showDietPicker, setShowDietPicker] = useState(false);
+  const [pendingMode, setPendingMode] = useState<"auto" | "personal" | null>(null);
   const [localSelection, setLocalSelection] = useState<string[]>([]);
   const [diet, setDiet] = useState<DietMode>((savedDietMode as DietMode) || "Tradicional");
   const [usedSuggestions, setUsedSuggestions] = useState(false);
@@ -84,7 +86,6 @@ function CardapioContent() {
   const dateStr = formatDate(selectedDate);
   const { logs, upsertLog } = useMealLogs(dateStr);
 
-  // Get day plan from saved plan
   const planIndex = (selectedDate.getDay() + 6) % 7;
   const dayPlan: DayPlan | null = plan ? plan[planIndex] || null : null;
 
@@ -100,7 +101,6 @@ function CardapioContent() {
 
   const getLogStatus = (foodName: string, mealType: string) =>
     logs.find((l) => l.food_name === foodName && l.meal_type === mealType)?.acceptance || null;
-
   const getLogNotes = (foodName: string, mealType: string) =>
     logs.find((l) => l.food_name === foodName && l.meal_type === mealType)?.notes || null;
 
@@ -133,45 +133,72 @@ function CardapioContent() {
     setExpandedMeals((p) => ({ ...p, [key]: !p[key] }));
   };
 
-  // Start selection flow
-  const handleStartSelection = () => {
-    setLocalSelection(selectedFoods.length > 0 ? [...selectedFoods] : []);
-    setShowSelection(true);
+  // ---- Mode handlers ----
+
+  const handleChooseAuto = () => {
+    setPendingMode("auto");
+    setShowDietPicker(true);
   };
 
-  // Generate plan from selection
-  const handleGenerate = async () => {
-    const saved = await savePantry(localSelection);
-    if (!saved) {
-      toast.error("Erro ao salvar alimentos.");
-      return;
-    }
+  const handleChoosePersonal = () => {
+    setPendingMode("personal");
+    setShowDietPicker(true);
+  };
 
-    const { plan: newPlan, usedSuggestions: suggested } = generateWeekPlan(localSelection, diet);
-    const ok = await savePlan(newPlan, diet);
+  const handleDietConfirmed = () => {
+    setShowDietPicker(false);
+    if (pendingMode === "auto") {
+      handleGenerateAuto();
+    } else {
+      setLocalSelection(selectedFoods.length > 0 ? [...selectedFoods] : []);
+      setShowSelection(true);
+    }
+    setPendingMode(null);
+  };
+
+  const handleGenerateAuto = async () => {
+    const newPlan = generateAutoWeekPlan(diet);
+    const ok = await savePlan(newPlan, diet, "automatic");
     if (ok) {
-      setUsedSuggestions(suggested);
-      setShowSelection(false);
-      toast.success("Cardápio gerado com sucesso! 🎉");
+      setUsedSuggestions(false);
+      toast.success("Cardápio automático gerado! ✨");
     } else {
       toast.error("Erro ao salvar cardápio.");
     }
   };
 
-  // Regenerate with same foods
-  const handleRegenerate = async () => {
-    if (selectedFoods.length === 0) {
-      handleStartSelection();
-      return;
-    }
-    const { plan: newPlan, usedSuggestions: suggested } = generateWeekPlan(selectedFoods, diet);
-    const ok = await savePlan(newPlan, diet);
+  const handleGeneratePersonal = async () => {
+    const saved = await savePantry(localSelection);
+    if (!saved) { toast.error("Erro ao salvar alimentos."); return; }
+    const { plan: newPlan, usedSuggestions: suggested } = generateWeekPlan(localSelection, diet);
+    const ok = await savePlan(newPlan, diet, "personalized");
     if (ok) {
       setUsedSuggestions(suggested);
-      toast.success("Novo cardápio gerado! 🔄");
+      setShowSelection(false);
+      toast.success("Cardápio personalizado gerado! 🎉");
+    } else {
+      toast.error("Erro ao salvar cardápio.");
     }
   };
 
+  const handleRegenerate = async () => {
+    if (planType === "personalized" && selectedFoods.length > 0) {
+      const { plan: newPlan, usedSuggestions: suggested } = generateWeekPlan(selectedFoods, diet);
+      const ok = await savePlan(newPlan, diet, "personalized");
+      if (ok) { setUsedSuggestions(suggested); toast.success("Cardápio atualizado! 🔄"); }
+    } else {
+      const newPlan = generateAutoWeekPlan(diet);
+      const ok = await savePlan(newPlan, diet, "automatic");
+      if (ok) toast.success("Cardápio atualizado! 🔄");
+    }
+  };
+
+  const handleEditPantry = () => {
+    setLocalSelection(selectedFoods.length > 0 ? [...selectedFoods] : []);
+    setShowSelection(true);
+  };
+
+  // ---- Loading ----
   if (planLoading) {
     return (
       <div className="app-container bottom-nav-safe flex items-center justify-center min-h-[60vh]">
@@ -180,34 +207,67 @@ function CardapioContent() {
     );
   }
 
-  // Selection flow
-  if (showSelection) {
+  // ---- Diet picker modal ----
+  if (showDietPicker) {
     return (
       <div className="app-container bottom-nav-safe">
-        <div className="px-5 pt-6 pb-20">
-          {/* Diet mode selector */}
-          <div className="flex gap-2 mb-4">
+        <div className="flex flex-col items-center justify-center px-6 py-16 text-center gap-6 min-h-[60vh]">
+          <h2 className="text-lg" style={{ fontWeight: 900, color: "hsl(var(--app-petrol))" }}>
+            Qual o regime alimentar?
+          </h2>
+          <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+            O cardápio será ajustado de acordo com essa escolha
+          </p>
+          <div className="flex gap-2 w-full max-w-xs">
             {dietModes.map(({ key, emoji }) => (
               <button
                 key={key}
                 onClick={() => setDiet(key)}
-                className="flex-1 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
+                className="flex-1 py-3 rounded-xl text-xs font-bold transition-all active:scale-95"
                 style={{
                   fontWeight: 700,
                   background: diet === key ? "hsl(var(--app-gold))" : "hsl(var(--card))",
                   color: "hsl(var(--app-petrol))",
-                  boxShadow: diet === key ? "none" : "0 1px 4px rgba(46,64,87,0.06)",
+                  border: diet === key ? "2px solid hsl(var(--app-gold-dark))" : "2px solid hsl(var(--app-divider))",
                 }}
               >
                 {emoji} {key}
               </button>
             ))}
           </div>
+          <button
+            onClick={handleDietConfirmed}
+            className="w-full max-w-xs py-3.5 rounded-xl font-bold text-sm transition-all active:scale-95"
+            style={{
+              background: "hsl(var(--app-gold))",
+              color: "hsl(var(--app-petrol))",
+              fontWeight: 700,
+              boxShadow: "0 4px 16px rgba(244,201,93,0.35)",
+            }}
+          >
+            Continuar →
+          </button>
+          <button
+            onClick={() => { setShowDietPicker(false); setPendingMode(null); }}
+            className="text-xs font-semibold transition-all active:scale-95"
+            style={{ color: "hsl(var(--muted-foreground))" }}
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
+  // ---- Pantry selection flow ----
+  if (showSelection) {
+    return (
+      <div className="app-container bottom-nav-safe">
+        <div className="px-5 pt-6 pb-20">
           <PantrySelection
             selected={localSelection}
             onChange={setLocalSelection}
-            onConfirm={handleGenerate}
+            onConfirm={handleGeneratePersonal}
             onCancel={() => setShowSelection(false)}
             saving={pantrySaving}
           />
@@ -216,41 +276,72 @@ function CardapioContent() {
     );
   }
 
-  // Empty state — no plan yet
+  // ---- Empty state — no plan yet ----
   if (!plan) {
     return (
       <div className="app-container bottom-nav-safe">
-        <div className="flex flex-col items-center justify-center px-8 py-16 text-center gap-5 min-h-[60vh]">
+        <div className="flex flex-col items-center justify-center px-6 py-12 text-center gap-5 min-h-[60vh]">
           <div className="w-24 h-24 rounded-full flex items-center justify-center" style={{ background: "hsl(var(--app-gold-light))" }}>
             <CalendarDays size={44} style={{ color: "hsl(var(--app-gold-dark))" }} />
           </div>
           <h1 className="text-xl" style={{ fontWeight: 900, color: "hsl(var(--app-petrol))" }}>
             Cardápio da Semana
           </h1>
-          <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))", lineHeight: 1.6 }}>
-            Monte um cardápio semanal com base nos alimentos que você já tem em casa.
+          <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))", lineHeight: 1.6, maxWidth: 280 }}>
+            Escolha como montar o cardápio semanal do seu bebê
           </p>
-          <button
-            onClick={handleStartSelection}
-            className="w-full max-w-xs py-4 rounded-2xl font-bold text-base transition-all active:scale-95"
-            style={{
-              background: "hsl(var(--app-gold))",
-              color: "hsl(var(--app-petrol))",
-              fontWeight: 700,
-              boxShadow: "0 6px 24px rgba(244,201,93,0.4)",
-            }}
-          >
-            🛒 Monte seu cardápio
-          </button>
-          <p className="text-[10px]" style={{ color: "hsl(var(--muted-foreground))" }}>
-            Selecione os alimentos disponíveis e o app cria o cardápio ideal
-          </p>
+
+          <div className="w-full max-w-xs flex flex-col gap-3 mt-2">
+            {/* Auto button */}
+            <button
+              onClick={handleChooseAuto}
+              className="w-full py-4 rounded-2xl font-bold text-sm transition-all active:scale-95 flex items-center justify-center gap-2"
+              style={{
+                background: "hsl(var(--app-gold))",
+                color: "hsl(var(--app-petrol))",
+                fontWeight: 700,
+                boxShadow: "0 6px 24px rgba(244,201,93,0.4)",
+              }}
+            >
+              <Sparkles size={18} />
+              Gerar cardápio automático
+            </button>
+            <p className="text-[10px] -mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>
+              Usa todos os alimentos recomendados para a idade
+            </p>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3 my-1">
+              <div className="flex-1 h-px" style={{ background: "hsl(var(--app-divider))" }} />
+              <span className="text-[10px] font-bold" style={{ color: "hsl(var(--muted-foreground))", fontWeight: 700 }}>ou</span>
+              <div className="flex-1 h-px" style={{ background: "hsl(var(--app-divider))" }} />
+            </div>
+
+            {/* Personal button */}
+            <button
+              onClick={handleChoosePersonal}
+              className="w-full py-4 rounded-2xl font-bold text-sm transition-all active:scale-95 flex items-center justify-center gap-2"
+              style={{
+                background: "hsl(var(--card))",
+                color: "hsl(var(--app-petrol))",
+                fontWeight: 700,
+                border: "2px solid hsl(var(--app-gold))",
+                boxShadow: "0 2px 8px rgba(46,64,87,0.06)",
+              }}
+            >
+              <Home size={18} />
+              Monte seu cardápio
+            </button>
+            <p className="text-[10px] -mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>
+              Selecione os alimentos que você tem em casa
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Has plan — show weekly view
+  // ---- Has plan — weekly view ----
   return (
     <div className="app-container bottom-nav-safe">
       {/* Header */}
@@ -273,16 +364,20 @@ function CardapioContent() {
           </button>
         </div>
 
-        {/* Pantry info badge */}
+        {/* Plan type badge */}
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-[10px] px-2 py-1 rounded-full" style={{
+          <span className="text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1" style={{
             background: "hsl(var(--app-gold-light))",
             color: "hsl(var(--app-gold-dark))",
             fontWeight: 700,
           }}>
-            🏠 Baseado nos seus alimentos
+            {planType === "automatic" ? (
+              <><Sparkles size={10} /> Automático</>
+            ) : (
+              <><Home size={10} /> Baseado nos seus alimentos</>
+            )}
           </span>
-          {usedSuggestions && (
+          {usedSuggestions && planType === "personalized" && (
             <span className="text-[10px] px-2 py-1 rounded-full" style={{
               background: "hsl(35 100% 95%)",
               color: "hsl(30 80% 45%)",
@@ -342,18 +437,20 @@ function CardapioContent() {
 
       {/* Quick actions */}
       <div className="px-4 mt-3 flex gap-2">
-        <button
-          onClick={handleStartSelection}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
-          style={{
-            fontWeight: 700,
-            background: "hsl(var(--card))",
-            color: "hsl(var(--app-petrol))",
-            boxShadow: "0 1px 4px rgba(46,64,87,0.06)",
-          }}
-        >
-          <Pencil size={12} /> Editar alimentos
-        </button>
+        {planType === "personalized" && (
+          <button
+            onClick={handleEditPantry}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
+            style={{
+              fontWeight: 700,
+              background: "hsl(var(--card))",
+              color: "hsl(var(--app-petrol))",
+              boxShadow: "0 1px 4px rgba(46,64,87,0.06)",
+            }}
+          >
+            <Pencil size={12} /> Editar alimentos
+          </button>
+        )}
         <button
           onClick={handleRegenerate}
           className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
@@ -365,6 +462,19 @@ function CardapioContent() {
           }}
         >
           <RefreshCw size={12} /> Refazer cardápio
+        </button>
+        <button
+          onClick={() => { setPendingMode(null); /* Reset to choice screen */ savePlan({} as WeekPlan, diet, planType).catch(() => {}); window.location.reload(); }}
+          className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
+          style={{
+            fontWeight: 700,
+            background: "hsl(var(--card))",
+            color: "hsl(var(--muted-foreground))",
+            boxShadow: "0 1px 4px rgba(46,64,87,0.06)",
+          }}
+          title="Trocar modo"
+        >
+          <CalendarDays size={12} /> Novo
         </button>
       </div>
 
@@ -380,9 +490,7 @@ function CardapioContent() {
                 className="w-full px-4 py-3 flex items-center justify-between active:scale-[0.99] transition-all"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold" style={{ fontWeight: 700, color: "hsl(var(--app-petrol))" }}>
-                    {label}
-                  </span>
+                  <span className="text-sm font-bold" style={{ fontWeight: 700, color: "hsl(var(--app-petrol))" }}>{label}</span>
                   <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{
                     fontWeight: 700,
                     background: sectionAte === items.length && items.length > 0 ? "hsl(140 45% 90%)" : "hsl(var(--app-cream))",
@@ -425,16 +533,11 @@ function CardapioContent() {
                             </div>
                           </div>
 
-                          {/* Action buttons with labels */}
                           <div className="flex items-center gap-1.5">
                             <button
                               onClick={() => handleOpenPrep(meal.name)}
                               className="flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-lg transition-all active:scale-90"
-                              style={{
-                                background: "hsl(var(--card))",
-                                color: "hsl(var(--app-gold-dark))",
-                                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                              }}
+                              style={{ background: "hsl(var(--card))", color: "hsl(var(--app-gold-dark))", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}
                             >
                               <ChefHat size={13} />
                               <span className="text-[8px] font-bold" style={{ fontWeight: 700 }}>Preparo</span>
@@ -464,10 +567,7 @@ function CardapioContent() {
                               <span className="text-[8px] font-bold" style={{ fontWeight: 700 }}>Recusou</span>
                             </button>
                             <button
-                              onClick={() => {
-                                setNoteFood(`${meal.name}::${key}`);
-                                setNoteText(savedNote || "");
-                              }}
+                              onClick={() => { setNoteFood(`${meal.name}::${key}`); setNoteText(savedNote || ""); }}
                               className="flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-lg transition-all active:scale-90"
                               style={{
                                 background: savedNote ? "hsl(var(--app-gold-light))" : "hsl(var(--card))",
@@ -481,19 +581,14 @@ function CardapioContent() {
                           </div>
                         </div>
 
-                        {/* Saved note display */}
                         {savedNote && noteFood !== `${meal.name}::${key}` && (
                           <div className="mt-1 px-2">
-                            <p className="text-[10px] px-2 py-1 rounded-lg" style={{
-                              background: "hsl(var(--app-gold-light))",
-                              color: "hsl(var(--app-petrol))",
-                            }}>
+                            <p className="text-[10px] px-2 py-1 rounded-lg" style={{ background: "hsl(var(--app-gold-light))", color: "hsl(var(--app-petrol))" }}>
                               📝 {savedNote}
                             </p>
                           </div>
                         )}
 
-                        {/* Notes input */}
                         {noteFood === `${meal.name}::${key}` && (
                           <div className="mt-1 flex gap-2 px-1">
                             <input
@@ -522,7 +617,6 @@ function CardapioContent() {
           );
         })}
 
-        {/* Conclude day */}
         {markedCount === totalItems && totalItems > 0 && (
           <button
             onClick={() => toast.success("Dia concluído! 🎉")}
@@ -542,14 +636,11 @@ function CardapioContent() {
               🍳 Como preparar: {prepFood?.name}
             </DialogTitle>
           </DialogHeader>
-
           {prepFood && prepFood.preparations.length > 0 ? (
             <div className="space-y-4 mt-2">
               {prepFood.preparations.map((prep, i) => (
                 <div key={i} className="rounded-xl p-4" style={{ background: "hsl(var(--app-cream))" }}>
-                  <h4 className="text-sm font-bold mb-3" style={{ fontWeight: 700, color: "hsl(var(--app-petrol))" }}>
-                    {prep.method}
-                  </h4>
+                  <h4 className="text-sm font-bold mb-3" style={{ fontWeight: 700, color: "hsl(var(--app-petrol))" }}>{prep.method}</h4>
                   <div className="space-y-2.5">
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: "hsl(var(--app-gold-dark))", fontWeight: 700 }}>Preparo</p>
@@ -569,9 +660,7 @@ function CardapioContent() {
             </div>
           ) : (
             <div className="py-6 text-center">
-              <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-                Sem modo de preparo cadastrado para este alimento.
-              </p>
+              <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>Sem modo de preparo cadastrado para este alimento.</p>
             </div>
           )}
         </DialogContent>
