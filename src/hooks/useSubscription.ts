@@ -15,6 +15,7 @@ interface SubscriptionState {
   status: SubscriptionStatus;
   plan: SubscriptionPlan;
   endsAt: Date | null;
+  cancelAtPeriodEnd: boolean;
   loading: boolean;
 }
 
@@ -30,12 +31,13 @@ export function useSubscription() {
     status: "none",
     plan: null,
     endsAt: null,
+    cancelAtPeriodEnd: false,
     loading: true,
   });
 
   const checkAndUpdateStatus = useCallback(async () => {
     if (!user) {
-      setState({ status: "none", plan: null, endsAt: null, loading: false });
+      setState({ status: "none", plan: null, endsAt: null, cancelAtPeriodEnd: false, loading: false });
       return;
     }
 
@@ -44,20 +46,21 @@ export function useSubscription() {
 
       if (error) {
         console.error("Check subscription error:", error);
-        setState({ status: "none", plan: null, endsAt: null, loading: false });
+        setState({ status: "none", plan: null, endsAt: null, cancelAtPeriodEnd: false, loading: false });
         return;
       }
 
       if (data?.subscribed) {
         const plan = data.product_id ? (PRODUCT_TO_PLAN[data.product_id] || null) : null;
         const endsAt = data.subscription_end ? new Date(data.subscription_end) : null;
+        const cancelAtPeriodEnd = data.cancel_at_period_end === true;
 
         // Also sync to local subscriptions table
         await supabase.from("subscriptions").upsert(
           {
             user_id: user.id,
             plan: plan || "mensal",
-            status: "active",
+            status: cancelAtPeriodEnd ? "canceled" : "active",
             started_at: new Date().toISOString(),
             ends_at: endsAt?.toISOString() || null,
           },
@@ -65,9 +68,10 @@ export function useSubscription() {
         );
 
         setState({
-          status: "active",
+          status: cancelAtPeriodEnd ? "canceled" : "active",
           plan,
           endsAt,
+          cancelAtPeriodEnd,
           loading: false,
         });
       } else {
@@ -78,11 +82,11 @@ export function useSubscription() {
           .eq("user_id", user.id)
           .in("status", ["active", "trial"]);
 
-        setState({ status: "none", plan: null, endsAt: null, loading: false });
+        setState({ status: "none", plan: null, endsAt: null, cancelAtPeriodEnd: false, loading: false });
       }
     } catch (err) {
       console.error("Subscription check failed:", err);
-      setState({ status: "none", plan: null, endsAt: null, loading: false });
+      setState({ status: "none", plan: null, endsAt: null, cancelAtPeriodEnd: false, loading: false });
     }
   }, [user]);
 
