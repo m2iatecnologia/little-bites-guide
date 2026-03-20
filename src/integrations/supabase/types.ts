@@ -200,6 +200,44 @@ export type Database = {
           },
         ]
       }
+      meal_plans: {
+        Row: {
+          baby_id: string | null
+          created_at: string
+          diet_mode: string
+          id: string
+          plan: Json
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          baby_id?: string | null
+          created_at?: string
+          diet_mode?: string
+          id?: string
+          plan?: Json
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          baby_id?: string | null
+          created_at?: string
+          diet_mode?: string
+          id?: string
+          plan?: Json
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_plans_baby_id_fkey"
+            columns: ["baby_id"]
+            isOneToOne: false
+            referencedRelation: "babies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -325,6 +363,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_pantry: {
+        Row: {
+          baby_id: string | null
+          created_at: string
+          foods: Json
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          baby_id?: string | null
+          created_at?: string
+          foods?: Json
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          baby_id?: string | null
+          created_at?: string
+          foods?: Json
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_pantry_baby_id_fkey"
+            columns: ["baby_id"]
+            isOneToOne: false
+            referencedRelation: "babies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
