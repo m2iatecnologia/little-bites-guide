@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, Star, Shield, CreditCard, Clock } from "lucide-react";
+import { ArrowLeft, Check, Shield, CreditCard, Clock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -14,9 +14,24 @@ const benefits = [
   "Atualizações mensais de conteúdo",
 ];
 
+const PLAN_PRICES = {
+  mensal: {
+    price_id: "price_1TBkrjRYz6uQ5h1iKqsCl0sl",
+    product_id: "prod_UA51MKpyHjm7pV",
+  },
+  semestral: {
+    price_id: "price_1TBktERYz6uQ5h1iCKkOdfjd",
+    product_id: "prod_UA53qLN4dqKmMS",
+  },
+  anual: {
+    price_id: "price_1TBktXRYz6uQ5h1ixPm5b2rU",
+    product_id: "prod_UA53rF7VfL99Jt",
+  },
+} as const;
+
 const plans = [
   {
-    id: "mensal",
+    id: "mensal" as const,
     name: "Mensal",
     price: "R$ 9,90",
     period: "/ mês",
@@ -24,7 +39,7 @@ const plans = [
     highlighted: false,
   },
   {
-    id: "semestral",
+    id: "semestral" as const,
     name: "Semestral",
     price: "R$ 49,90",
     period: "/ 6 meses",
@@ -32,7 +47,7 @@ const plans = [
     highlighted: false,
   },
   {
-    id: "anual",
+    id: "anual" as const,
     name: "Anual",
     price: "R$ 99,90",
     period: "/ ano",
@@ -44,51 +59,32 @@ const plans = [
 export default function Planos() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [selected, setSelected] = useState("anual");
+  const [selected, setSelected] = useState<keyof typeof PLAN_PRICES>("anual");
   const [loading, setLoading] = useState(false);
 
-  const handleSubscribe = async (trial: boolean) => {
+  const handleSubscribe = async () => {
     if (!user || loading) return;
     setLoading(true);
 
-    const plan = plans.find((p) => p.id === selected);
-    const now = new Date();
-    let endsAt: Date;
+    try {
+      const priceId = PLAN_PRICES[selected].price_id;
 
-    if (trial) {
-      endsAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
-    } else {
-      if (selected === "mensal") endsAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-      else if (selected === "semestral") endsAt = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
-      else endsAt = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { priceId },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("No checkout URL returned");
+      }
+    } catch (err: any) {
+      console.error("Checkout error:", err);
+      toast.error("Erro ao iniciar pagamento. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
-
-    const { error } = await supabase.from("subscriptions").upsert(
-      {
-        user_id: user.id,
-        plan: selected,
-        status: trial ? "trial" : "active",
-        started_at: now.toISOString(),
-        ends_at: endsAt.toISOString(),
-      },
-      { onConflict: "user_id" }
-    );
-
-    setLoading(false);
-
-    if (error) {
-      toast.error("Erro ao ativar assinatura. Tente novamente.");
-      console.error("Subscription error:", error);
-      return;
-    }
-
-    navigate("/assinatura-confirmada", {
-      state: {
-        plan: plan?.name,
-        price: plan?.price,
-        trial,
-      },
-    });
   };
 
   return (
@@ -210,10 +206,10 @@ export default function Planos() {
         })}
       </div>
 
-      {/* Trial CTA */}
+      {/* CTA */}
       <div className="px-5 mt-6 space-y-3">
         <button
-          onClick={() => handleSubscribe(true)}
+          onClick={handleSubscribe}
           disabled={loading}
           className="w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-60"
           style={{
@@ -222,25 +218,12 @@ export default function Planos() {
             boxShadow: "0 4px 16px rgba(244,201,93,0.35)",
           }}
         >
-          {loading ? "Ativando..." : "🎁 Iniciar 7 dias grátis"}
+          {loading ? "Redirecionando..." : "💳 Assinar agora"}
         </button>
 
         <p className="text-center text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-          Experimente grátis por 7 dias. Cancele quando quiser.
+          Pagamento seguro via Stripe. Cancele quando quiser.
         </p>
-
-        <button
-          onClick={() => handleSubscribe(false)}
-          disabled={loading}
-          className="w-full py-3 rounded-2xl font-semibold text-sm active:scale-95 transition-transform disabled:opacity-60"
-          style={{
-            background: "transparent",
-            color: "hsl(var(--app-petrol))",
-            border: "1.5px solid hsl(var(--app-divider))",
-          }}
-        >
-          {loading ? "Ativando..." : "Assinar agora sem teste grátis"}
-        </button>
       </div>
 
       {/* Trust badges */}
@@ -260,7 +243,7 @@ export default function Planos() {
         <div className="flex items-center gap-3">
           <Clock size={16} style={{ color: "hsl(var(--muted-foreground))" }} />
           <span className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-            Cobrança automática após período de teste
+            Cobrança recorrente conforme o plano escolhido
           </span>
         </div>
       </div>
