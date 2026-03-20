@@ -8,6 +8,8 @@ import { useBaby } from "./hooks/useBaby";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import CadastroBebe from "./pages/CadastroBebe";
+import Landing from "./pages/Landing";
+import Quiz from "./pages/Quiz";
 import Alimentos from "./pages/Alimentos";
 import Receitas from "./pages/Receitas";
 import ReceitaDetalhe from "./pages/ReceitaDetalhe";
