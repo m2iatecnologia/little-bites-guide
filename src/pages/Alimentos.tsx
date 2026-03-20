@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Search, SlidersHorizontal, X, Lock, ChevronLeft } from "lucide-react";
-import cuttingGuideImg from "@/assets/cutting-guide.png";
+import { CuttingGuideCard } from "@/components/CuttingGuideCard";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PremiumBadge } from "@/components/PremiumGate";
