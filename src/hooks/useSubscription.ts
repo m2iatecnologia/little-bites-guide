@@ -53,13 +53,14 @@ export function useSubscription() {
       if (data?.subscribed) {
         const plan = data.product_id ? (PRODUCT_TO_PLAN[data.product_id] || null) : null;
         const endsAt = data.subscription_end ? new Date(data.subscription_end) : null;
+        const cancelAtPeriodEnd = data.cancel_at_period_end === true;
 
         // Also sync to local subscriptions table
         await supabase.from("subscriptions").upsert(
           {
             user_id: user.id,
             plan: plan || "mensal",
-            status: "active",
+            status: cancelAtPeriodEnd ? "canceled" : "active",
             started_at: new Date().toISOString(),
             ends_at: endsAt?.toISOString() || null,
           },
@@ -67,9 +68,10 @@ export function useSubscription() {
         );
 
         setState({
-          status: "active",
+          status: cancelAtPeriodEnd ? "canceled" : "active",
           plan,
           endsAt,
+          cancelAtPeriodEnd,
           loading: false,
         });
       } else {
