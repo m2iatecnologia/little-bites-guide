@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { PremiumGate } from "@/components/PremiumGate";
 import { useMealLogs } from "@/hooks/useMealLogs";
-import { ShoppingCart, Check, X, Minus, MessageSquare, ChevronDown, ChevronUp, ChefHat } from "lucide-react";
+import { ShoppingCart, Check, X, MessageSquare, ChevronDown, ChevronUp, ChefHat } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getPreparations, type FoodPreparation } from "@/data/foodPreparations";
