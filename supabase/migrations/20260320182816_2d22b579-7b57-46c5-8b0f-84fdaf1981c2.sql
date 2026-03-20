@@ -1,0 +1,1 @@
+ALTER TABLE public.babies ADD COLUMN IF NOT EXISTS diet_type text NOT NULL DEFAULT 'no_restrictions';
