@@ -82,7 +82,7 @@ export function useSubscription() {
           .eq("user_id", user.id)
           .in("status", ["active", "trial"]);
 
-        setState({ status: "none", plan: null, endsAt: null, loading: false });
+        setState({ status: "none", plan: null, endsAt: null, cancelAtPeriodEnd: false, loading: false });
       }
     } catch (err) {
       console.error("Subscription check failed:", err);
