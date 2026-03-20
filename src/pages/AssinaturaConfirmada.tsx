@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Check, Calendar, BarChart3 } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const premiumBenefits = [
   "Acessar todas as receitas",
@@ -12,21 +13,36 @@ const premiumBenefits = [
 
 export default function AssinaturaConfirmada() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const state = (location.state as { plan?: string; price?: string; trial?: boolean }) || {};
-  const { plan = "Anual", price = "R$ 99,90", trial = true } = state;
+  const [searchParams] = useSearchParams();
+  const { refresh, plan, endsAt } = useSubscription();
 
   const [showCheck, setShowCheck] = useState(false);
   const [showContent, setShowContent] = useState(false);
 
   useEffect(() => {
+    // Refresh subscription status after checkout
+    if (searchParams.get("session_id")) {
+      refresh();
+    }
     const t1 = setTimeout(() => setShowCheck(true), 300);
     const t2 = setTimeout(() => setShowContent(true), 700);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
-  const nextBilling = new Date();
-  nextBilling.setDate(nextBilling.getDate() + (trial ? 7 : 30));
+  const planNames: Record<string, string> = {
+    mensal: "Mensal",
+    semestral: "Semestral",
+    anual: "Anual",
+  };
+
+  const planPrices: Record<string, string> = {
+    mensal: "R$ 9,90",
+    semestral: "R$ 49,90",
+    anual: "R$ 99,90",
+  };
+
+  const displayPlan = plan ? planNames[plan] || plan : "Premium";
+  const displayPrice = plan ? planPrices[plan] || "" : "";
 
   return (
     <div
@@ -75,9 +91,7 @@ export default function AssinaturaConfirmada() {
           Parabéns! Seu acesso premium está ativo.
         </h1>
         <p className="text-sm text-center mb-6" style={{ color: "hsl(var(--muted-foreground))" }}>
-          {trial
-            ? "Você tem 7 dias gratuitos para explorar todos os recursos."
-            : "Seu plano foi ativado com sucesso."}
+          Seu plano foi ativado com sucesso.
         </p>
 
         {/* Plan details card */}
@@ -93,25 +107,29 @@ export default function AssinaturaConfirmada() {
               Plano escolhido
             </span>
             <span className="text-sm font-bold" style={{ color: "hsl(var(--app-petrol))" }}>
-              {plan}
+              {displayPlan}
             </span>
           </div>
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-sm font-semibold" style={{ color: "hsl(var(--muted-foreground))" }}>
-              Próxima cobrança
-            </span>
-            <span className="text-sm font-bold" style={{ color: "hsl(var(--app-petrol))" }}>
-              {nextBilling.toLocaleDateString("pt-BR")}
-            </span>
-          </div>
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-sm font-semibold" style={{ color: "hsl(var(--muted-foreground))" }}>
-              Valor
-            </span>
-            <span className="text-sm font-bold" style={{ color: "hsl(var(--app-petrol))" }}>
-              {price}
-            </span>
-          </div>
+          {endsAt && (
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-sm font-semibold" style={{ color: "hsl(var(--muted-foreground))" }}>
+                Próxima cobrança
+              </span>
+              <span className="text-sm font-bold" style={{ color: "hsl(var(--app-petrol))" }}>
+                {endsAt.toLocaleDateString("pt-BR")}
+              </span>
+            </div>
+          )}
+          {displayPrice && (
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-sm font-semibold" style={{ color: "hsl(var(--muted-foreground))" }}>
+                Valor
+              </span>
+              <span className="text-sm font-bold" style={{ color: "hsl(var(--app-petrol))" }}>
+                {displayPrice}
+              </span>
+            </div>
+          )}
           <button
             onClick={() => navigate("/perfil")}
             className="text-xs font-semibold underline active:scale-95 transition-transform"
