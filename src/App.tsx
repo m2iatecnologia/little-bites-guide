@@ -26,6 +26,7 @@ import Cancelamento from "./pages/Cancelamento";
 import TesteExpirando from "./pages/TesteExpirando";
 import NotFound from "./pages/NotFound";
 import { BottomNav } from "./components/BottomNav";
+import { FloatingChat } from "./components/FloatingChat";
 
 const queryClient = new QueryClient();
 
