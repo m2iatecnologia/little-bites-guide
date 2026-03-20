@@ -61,7 +61,7 @@ export default function CardapioPage() {
 function CardapioContent() {
   const navigate = useNavigate();
   const { selectedFoods, savePantry, saving: pantrySaving } = usePantry();
-  const { plan, dietMode: savedDietMode, planType, savePlan, loading: planLoading } = useMealPlan();
+  const { plan, dietMode: savedDietMode, planType, savePlan, clearPlan, loading: planLoading } = useMealPlan();
 
   const [showSelection, setShowSelection] = useState(false);
   const [showDietPicker, setShowDietPicker] = useState(false);
