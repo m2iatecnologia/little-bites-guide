@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { differenceInMonths, differenceInDays, startOfMonth, subWeeks, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import type { ReportData } from "@/lib/generateReport";
 import type { FoodOccurrence } from "@/hooks/useFoodOccurrences";
 
