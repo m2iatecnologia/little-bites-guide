@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
-import { Mail, Lock, User, Eye, EyeOff, Phone, Check, X, Shield } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, Phone, Check, X, Shield, MailCheck } from "lucide-react";
 import nutrooLogo from "@/assets/nutroo-logo-full.png";
 import { toast } from "sonner";
 
@@ -171,6 +171,8 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [signupEmail, setSignupEmail] = useState("");
 
   const pwChecks = useMemo(() => pwRules.map((r) => ({ ...r, pass: r.test(password) })), [password]);
   const allPwValid = pwChecks.every((c) => c.pass);
@@ -211,11 +213,8 @@ export default function Auth() {
           toast.success("Conta criada com sucesso!");
           navigate("/");
         } else {
-          toast.success("Conta criada! Faça login para continuar.");
-          setMode("login");
-          setEmail(email);
-          setPassword("");
-          setConfirmPw("");
+          setSignupEmail(email);
+          setShowEmailModal(true);
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -376,6 +375,36 @@ export default function Auth() {
 
       {/* Terms modal */}
       {showTerms && <TermsModal onClose={() => setShowTerms(false)} />}
+
+      {/* Email verification modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)" }}>
+          <div className="w-full max-w-sm rounded-3xl p-6 text-center space-y-4" style={{ background: "hsl(var(--app-card))" }}>
+            <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center" style={{ background: "hsl(var(--app-cream))" }}>
+              <MailCheck size={28} style={{ color: "hsl(var(--app-gold-dark))" }} />
+            </div>
+            <h2 className="text-lg font-bold" style={{ color: "hsl(var(--app-petrol))" }}>Verifique seu email</h2>
+            <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
+              Enviamos um link de confirmação para <strong style={{ color: "hsl(var(--app-petrol))" }}>{signupEmail}</strong>. Clique no link para ativar sua conta.
+            </p>
+            <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+              Não recebeu? Verifique sua caixa de spam.
+            </p>
+            <button
+              onClick={() => {
+                setShowEmailModal(false);
+                setMode("login");
+                setPassword("");
+                setConfirmPw("");
+              }}
+              className="w-full py-3.5 rounded-2xl font-bold text-sm active:scale-95 transition-transform"
+              style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))" }}
+            >
+              Ir para o login
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
