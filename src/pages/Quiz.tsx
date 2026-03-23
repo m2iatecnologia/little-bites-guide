@@ -65,11 +65,13 @@ export default function Quiz() {
         "Vegana": "vegan",
       };
       const quizData = {
-        babyAge: answers[0],
-        startedIA: answers[1],
-        challenge: answers[2],
-        hasRestriction: answers[3],
-        dietType: dietMap[answers[4] || ""] || "no_restrictions",
+        role: answers[0],
+        region: answers[1],
+        babyAge: answers[2],
+        startedIA: answers[3],
+        challenge: answers[4],
+        hasRestriction: answers[5],
+        dietType: dietMap[answers[6] || ""] || "no_restrictions",
       };
       sessionStorage.setItem("quiz_answers", JSON.stringify(quizData));
       navigate("/auth?mode=signup");
