@@ -346,11 +346,13 @@ export function generateClinicalReport(data: ReportData): void {
     data.bestAccepted.slice(0, 5).forEach((item, i) => {
       setFill(doc, i % 2 === 0 ? WHITE : LIGHT_BG);
       doc.roundedRect(margin, y, contentW, 10, 2, 2, "F");
-      const medals = ["🥇", "🥈", "🥉"];
+      const medals = ["1.", "2.", "3."];
       doc.setFontSize(9);
       setText(doc, DARK);
+      doc.setFont("helvetica", "bold");
+      doc.text(medals[i] ?? `${i + 1}.`, margin + 4, y + 7);
       doc.setFont("helvetica", "normal");
-      doc.text(`${medals[i] ?? `${i + 1}.`}  ${item.food}`, margin + 4, y + 7);
+      doc.text(item.food, margin + 14, y + 7);
 
       if (item.count) {
         doc.setFontSize(7);
