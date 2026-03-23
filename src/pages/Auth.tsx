@@ -543,6 +543,73 @@ export default function Auth() {
           </div>
         </div>
       )}
+
+      {/* Forgot password modal */}
+      {showForgotPw && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)" }}>
+          <div className="w-full max-w-sm rounded-3xl p-6 text-center space-y-4" style={{ background: "hsl(var(--app-card))" }}>
+            <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center" style={{ background: "hsl(var(--app-cream))" }}>
+              <KeyRound size={28} style={{ color: "hsl(var(--app-gold-dark))" }} />
+            </div>
+            <h2 className="text-lg font-bold" style={{ color: "hsl(var(--app-petrol))" }}>Recuperar senha</h2>
+
+            {!forgotSent ? (
+              <form onSubmit={handleForgotPassword} className="space-y-3 text-left">
+                <p className="text-sm text-center" style={{ color: "hsl(var(--muted-foreground))" }}>
+                  Informe o email da sua conta e enviaremos um link para redefinir sua senha.
+                </p>
+                <div className="relative">
+                  <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "hsl(var(--muted-foreground))" }} />
+                  <input
+                    type="email"
+                    value={forgotEmail}
+                    onChange={(e) => { setForgotEmail(e.target.value); setForgotError(null); }}
+                    placeholder="Email"
+                    required
+                    className="w-full py-3.5 pl-11 pr-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
+                    style={forgotError ? inputErrorStyle : inputStyle}
+                  />
+                </div>
+                {forgotError && (
+                  <p className="text-xs pl-2" style={{ color: "hsl(0 84% 60%)" }}>{forgotError}</p>
+                )}
+                <button
+                  type="submit"
+                  disabled={forgotLoading}
+                  className="w-full py-3.5 rounded-2xl font-bold text-sm active:scale-95 transition-transform disabled:opacity-50"
+                  style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))" }}
+                >
+                  {forgotLoading ? "Enviando..." : "Enviar link de redefinição"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPw(false)}
+                  className="w-full py-3 rounded-2xl font-semibold text-sm"
+                  style={{ color: "hsl(var(--muted-foreground))" }}
+                >
+                  Cancelar
+                </button>
+              </form>
+            ) : (
+              <>
+                <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
+                  Enviamos um email com instruções para redefinir sua senha para <strong style={{ color: "hsl(var(--app-petrol))" }}>{forgotEmail}</strong>.
+                </p>
+                <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+                  Verifique também a caixa de spam.
+                </p>
+                <button
+                  onClick={() => setShowForgotPw(false)}
+                  className="w-full py-3.5 rounded-2xl font-bold text-sm active:scale-95 transition-transform"
+                  style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))" }}
+                >
+                  Voltar para o login
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -79,6 +79,7 @@ const AppRoutes = () => {
         <Route path="/cancelamento" element={<ProtectedRoute><Cancelamento /></ProtectedRoute>} />
         <Route path="/teste-expirando" element={<ProtectedRoute><TesteExpirando /></ProtectedRoute>} />
         <Route path="/confirmacao" element={<Confirmacao />} />
+        <Route path="/redefinir-senha" element={<RedefinirSenha />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       {user && hasBaby && <BottomNav />}
