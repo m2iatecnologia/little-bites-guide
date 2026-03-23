@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
-import { Mail, Lock, User, Eye, EyeOff, Phone, Check, X, Shield, ChevronDown } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, Phone, Check, X, Shield } from "lucide-react";
 import nutrooLogo from "@/assets/nutroo-logo-full.png";
 import { toast } from "sonner";
 
@@ -80,7 +80,6 @@ function TermsModal({ onClose }: { onClose: () => void }) {
         className="w-full max-w-lg max-h-[85vh] flex flex-col rounded-3xl overflow-hidden"
         style={{ background: "hsl(var(--app-card))" }}
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "hsl(var(--app-divider))" }}>
           <div className="flex items-center gap-2">
             <Shield size={20} style={{ color: "hsl(var(--app-gold-dark))" }} />
@@ -91,7 +90,6 @@ function TermsModal({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
-        {/* Content */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
           <p className="text-xs leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
             Última atualização: Março de 2026. Ao criar sua conta e utilizar o aplicativo Nutroo, você declara ter lido, compreendido e aceitado integralmente os termos abaixo.
@@ -109,7 +107,6 @@ function TermsModal({ onClose }: { onClose: () => void }) {
           ))}
         </div>
 
-        {/* Footer */}
         <div className="px-5 py-4 border-t" style={{ borderColor: "hsl(var(--app-divider))" }}>
           <button
             onClick={onClose}
@@ -135,9 +132,6 @@ export default function Auth() {
   const [showPw, setShowPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [resendingEmail, setResendingEmail] = useState(false);
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [signupEmail, setSignupEmail] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
 
@@ -149,18 +143,6 @@ export default function Auth() {
     background: "hsl(var(--app-card))",
     border: "1.5px solid hsl(var(--app-divider))",
     color: "hsl(var(--app-petrol))",
-  };
-
-  const sendConfirmationEmail = async (targetEmail: string) => {
-    const { error } = await supabase.auth.resend({
-      type: "signup",
-      email: targetEmail,
-      options: {
-        emailRedirectTo: window.location.origin,
-      },
-    });
-
-    if (error) throw error;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -186,36 +168,23 @@ export default function Auth() {
         });
         if (error) throw error;
 
-        const isRepeatedUnconfirmedSignup = !data.session && (data.user?.identities?.length ?? 0) === 0;
-
-        if (isRepeatedUnconfirmedSignup) {
-          try {
-            await sendConfirmationEmail(email);
-          } catch (resendError) {
-            console.error("[AUTH] Failed to resend confirmation email:", resendError);
-          }
+        if (data.session) {
+          toast.success("Conta criada com sucesso!");
+          navigate("/");
+        } else {
+          toast.success("Conta criada! Faça login para continuar.");
+          setMode("login");
+          setEmail(email);
+          setPassword("");
+          setConfirmPw("");
         }
-
-        setSignupEmail(email);
-        setShowEmailModal(true);
-        toast.success(
-          isRepeatedUnconfirmedSignup
-            ? "Este email já estava cadastrado. Reenviamos a confirmação para você."
-            : "Enviamos o email de confirmação para seu cadastro."
-        );
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         navigate("/");
       }
     } catch (err: any) {
-      const isLoginHint = mode === "login" && err?.message?.toLowerCase().includes("invalid login credentials");
-
-      toast.error(
-        isLoginHint
-          ? "Não foi possível entrar. Se você acabou de criar a conta, confirme seu email ou solicite um novo envio."
-          : err.message || "Erro ao autenticar"
-      );
+      toast.error(err.message || "Erro ao autenticar");
     } finally {
       setLoading(false);
     }
@@ -234,75 +203,6 @@ export default function Auth() {
       setLoading(false);
     }
   };
-
-  const handleConfirmedEmail = async () => {
-    setShowEmailModal(false);
-    toast.success("Depois de confirmar o email, faça login para continuar.");
-    setMode("login");
-    setEmail(signupEmail);
-    setPassword("");
-    setConfirmPw("");
-  };
-
-  const handleResendConfirmationEmail = async () => {
-    if (!signupEmail) return;
-
-    setResendingEmail(true);
-    try {
-      await sendConfirmationEmail(signupEmail);
-      toast.success("Email de confirmação reenviado. Verifique sua caixa de entrada e spam.");
-    } catch (err: any) {
-      toast.error(err.message || "Não foi possível reenviar o email agora.");
-    } finally {
-      setResendingEmail(false);
-    }
-  };
-
-  /* ── Email confirmation modal ── */
-  if (showEmailModal) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "hsl(var(--app-cream))" }}>
-        <div
-          className="w-full max-w-sm rounded-3xl p-8 text-center space-y-5"
-          style={{ background: "hsl(var(--app-card))", boxShadow: "0 8px 32px rgba(0,0,0,0.08)" }}
-        >
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{ background: "hsl(var(--app-gold) / 0.2)" }}>
-            <Mail size={28} style={{ color: "hsl(var(--app-gold-dark))" }} />
-          </div>
-          <h2 className="text-xl font-bold" style={{ color: "hsl(var(--app-petrol))" }}>Confirme seu email</h2>
-          <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
-            Enviamos um email para <strong style={{ color: "hsl(var(--app-petrol))" }}>{signupEmail}</strong>.
-            <br />Confirme seu cadastro clicando no link enviado para continuar.
-          </p>
-          <p className="text-xs leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
-            Se você já tentou se cadastrar antes ou ainda não encontrou a mensagem, toque em <strong>Reenviar email</strong>.
-          </p>
-
-          <div className="space-y-2">
-            <button
-              onClick={handleResendConfirmationEmail}
-              disabled={resendingEmail}
-              className="w-full py-3.5 rounded-2xl font-semibold text-sm active:scale-95 transition-transform disabled:opacity-50"
-              style={inputStyle}
-            >
-              {resendingEmail ? "Reenviando..." : "Reenviar email de confirmação"}
-            </button>
-            <button
-              onClick={handleConfirmedEmail}
-              className="w-full py-4 rounded-2xl font-bold text-base active:scale-95 transition-transform"
-              style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))", boxShadow: "0 4px 16px rgba(244,201,93,0.35)" }}
-            >
-              Já confirmei meu email
-            </button>
-          </div>
-
-          <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-            Não recebeu? Verifique também spam, promoções e atualizações.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-10" style={{ background: "hsl(var(--app-cream))" }}>
@@ -421,21 +321,6 @@ export default function Auth() {
           >
             {loading ? "Carregando..." : mode === "login" ? "Entrar" : "Criar conta"}
           </button>
-
-          {mode === "login" && (
-            <button
-              type="button"
-              onClick={() => {
-                setSignupEmail(email);
-                setShowEmailModal(true);
-              }}
-              disabled={!email || loading}
-              className="w-full text-xs font-semibold underline pt-1 disabled:opacity-50"
-              style={{ color: "hsl(var(--app-petrol))" }}
-            >
-              Não recebeu o email de confirmação?
-            </button>
-          )}
         </form>
 
         <p className="text-center text-sm mt-5" style={{ color: "hsl(var(--muted-foreground))" }}>
