@@ -69,6 +69,40 @@ export default function Perfil() {
     navigate("/auth");
   };
 
+  const pwRules = {
+    minLength: pwForm.newPw.length >= 8,
+    uppercase: /[A-Z]/.test(pwForm.newPw),
+    number: /[0-9]/.test(pwForm.newPw),
+    special: /[^A-Za-z0-9]/.test(pwForm.newPw),
+    match: pwForm.newPw.length > 0 && pwForm.newPw === pwForm.confirm,
+  };
+  const allPwValid = pwRules.minLength && pwRules.uppercase && pwRules.number && pwRules.special && pwRules.match;
+
+  const handleChangePassword = async () => {
+    if (!user || !allPwValid) return;
+    setPwLoading(true);
+    // Validate current password by trying to sign in
+    const { error: signInErr } = await supabase.auth.signInWithPassword({
+      email: user.email!,
+      password: pwForm.current,
+    });
+    if (signInErr) {
+      toast.error("A senha atual está incorreta");
+      setPwLoading(false);
+      return;
+    }
+    // Update password
+    const { error: updateErr } = await supabase.auth.updateUser({ password: pwForm.newPw });
+    if (updateErr) {
+      toast.error("Erro ao alterar senha: " + updateErr.message);
+    } else {
+      toast.success("Sua senha foi alterada com sucesso.");
+      setShowPasswordModal(false);
+      setPwForm({ current: "", newPw: "", confirm: "" });
+    }
+    setPwLoading(false);
+  };
+
   const babyAge = baby?.birth_date
     ? (() => {
         const diff = Date.now() - new Date(baby.birth_date).getTime();
