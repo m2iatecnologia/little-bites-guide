@@ -6,7 +6,7 @@ import {
   ListChecks, Star, Users
 } from "lucide-react";
 
-import logoImg from "@/assets/logo-nutroo.png";
+import logoImg from "@/assets/nutroo-logo-full.png";
 import heroMomBaby from "@/assets/hero-mom-baby.jpg";
 import babyEating from "@/assets/baby-eating.jpg";
 import appMockup from "@/assets/app-mockup.png";
