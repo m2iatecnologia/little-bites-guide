@@ -689,6 +689,18 @@ function CardapioContent() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Edit Meal Modal */}
+      {editMealKey && dayPlan && (
+        <EditMealModal
+          open={!!editMealKey}
+          onOpenChange={(open) => { if (!open) setEditMealKey(null); }}
+          mealKey={editMealKey}
+          currentItems={dayPlan[editMealKey]}
+          dietMode={diet}
+          onSave={(items) => handleEditMealSave(editMealKey, items)}
+        />
+      )}
     </div>
   );
 }
