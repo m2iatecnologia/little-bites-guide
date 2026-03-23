@@ -105,14 +105,13 @@ export default function Confirmacao() {
               className="text-xl font-bold"
               style={{ color: "hsl(var(--app-petrol))" }}
             >
-              Email confirmado com sucesso!
+              Validação realizada com sucesso!
             </h1>
             <p
               className="text-sm leading-relaxed"
               style={{ color: "hsl(var(--muted-foreground))" }}
             >
-              Seu cadastro está completo. Agora você já pode fazer login e
-              começar a usar a Nutroo.
+              Agora você já pode fazer login e começar a usar a Nutroo.
             </p>
             <button
               onClick={() => navigate("/auth")}

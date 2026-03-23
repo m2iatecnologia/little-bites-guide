@@ -271,7 +271,7 @@ export default function Auth() {
         
         if (error) {
           // Check if email not confirmed
-          if (error.message?.includes("Email not confirmed")) {
+          if (error.message?.includes("Email not confirmed") || error.message?.includes("email_not_confirmed")) {
             setSignupEmail(normalizedEmail);
             setShowEmailModal(true);
             toast.error("Seu email ainda não foi confirmado. Verifique sua caixa de entrada.");
