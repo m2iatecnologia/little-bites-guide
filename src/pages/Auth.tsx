@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
-import { Mail, Lock, User, Eye, EyeOff, Phone, Check, X } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, Phone, Check, X, Shield, ChevronDown } from "lucide-react";
 import nutrooLogo from "@/assets/nutroo-logo-full.png";
 import { toast } from "sonner";
 
@@ -26,6 +26,104 @@ const pwRules = [
   { label: "1 caractere especial", test: (p: string) => /[^A-Za-z0-9]/.test(p) },
 ];
 
+/* ── Terms of Use content ── */
+const SUPPORT_EMAIL = "suporte@nutroo.app";
+
+const termsContent = [
+  {
+    icon: "🔒",
+    title: "Isenção de Responsabilidade Médica",
+    text: "O aplicativo Nutroo tem caráter exclusivamente educativo e informativo. Ele NÃO substitui consultas médicas, pediátricas ou nutricionais. Todas as informações, sugestões de alimentos, cardápios e orientações disponibilizadas são de natureza genérica e não configuram prescrição ou diagnóstico. O usuário é integralmente responsável pelas decisões alimentares tomadas para seu bebê e deve sempre consultar um profissional de saúde qualificado."
+  },
+  {
+    icon: "⚠️",
+    title: "Alergias e Riscos Alimentares",
+    text: "O Nutroo não se responsabiliza por reações alérgicas, intolerâncias alimentares ou quaisquer efeitos adversos decorrentes da introdução de alimentos. Cada bebê pode reagir de forma diferente a determinados alimentos. É responsabilidade exclusiva dos pais ou responsáveis verificar a adequação de cada alimento antes de oferecê-lo, observar possíveis reações e buscar orientação médica quando necessário."
+  },
+  {
+    icon: "🤖",
+    title: "Uso de Inteligência Artificial",
+    text: "Algumas recomendações, cardápios e conteúdos do aplicativo podem ser gerados ou auxiliados por tecnologias de Inteligência Artificial. Embora nos esforcemos para garantir a qualidade e precisão das informações, podem existir limitações, imprecisões ou desatualizações. O usuário deve utilizar as sugestões com bom senso e discernimento, complementando sempre com orientação profissional."
+  },
+  {
+    icon: "👶",
+    title: "Responsabilidade do Responsável Legal",
+    text: "O uso do aplicativo é de inteira responsabilidade dos pais ou responsáveis legais do bebê. O Nutroo não garante resultados específicos na introdução alimentar. Os resultados dependem de diversos fatores individuais de cada criança. Ao utilizar o aplicativo, o usuário reconhece e aceita que as decisões finais sobre alimentação são exclusivamente suas."
+  },
+  {
+    icon: "📊",
+    title: "Dados e Privacidade",
+    text: "Os dados fornecidos pelo usuário podem ser armazenados e utilizados para melhorar a experiência dentro do aplicativo, personalizar conteúdos e aprimorar funcionalidades. Respeitamos a privacidade do usuário e nos comprometemos a não compartilhar informações pessoais com terceiros sem consentimento, exceto quando exigido por lei."
+  },
+  {
+    icon: "🚫",
+    title: "Limitação de Responsabilidade",
+    text: "Em nenhuma hipótese o Nutroo, seus desenvolvedores, colaboradores ou parceiros serão responsáveis por danos diretos, indiretos, incidentais, consequenciais ou especiais decorrentes do uso ou impossibilidade de uso do aplicativo. Isso inclui, sem limitação, problemas de saúde, decisões alimentares tomadas com base nas recomendações do app, perda de dados ou interrupção de serviço."
+  },
+  {
+    icon: "🔄",
+    title: "Atualizações e Modificações",
+    text: "O Nutroo reserva-se o direito de atualizar, modificar ou descontinuar conteúdos, funcionalidades e termos a qualquer momento, sem aviso prévio. O uso contínuo do aplicativo após eventuais alterações implica aceitação automática dos novos termos."
+  },
+  {
+    icon: "📧",
+    title: "Contato e Suporte",
+    text: `Em caso de dúvidas, sugestões ou reclamações, entre em contato com nossa equipe pelo email: ${SUPPORT_EMAIL}. Faremos o possível para atendê-lo da melhor forma.`
+  },
+];
+
+/* ── Terms Modal ── */
+function TermsModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)" }}>
+      <div
+        className="w-full max-w-lg max-h-[85vh] flex flex-col rounded-3xl overflow-hidden"
+        style={{ background: "hsl(var(--app-card))" }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "hsl(var(--app-divider))" }}>
+          <div className="flex items-center gap-2">
+            <Shield size={20} style={{ color: "hsl(var(--app-gold-dark))" }} />
+            <h2 className="text-lg font-bold" style={{ color: "hsl(var(--app-petrol))" }}>Termos de Uso</h2>
+          </div>
+          <button onClick={onClose} className="text-sm font-semibold px-3 py-1 rounded-xl" style={{ color: "hsl(var(--app-petrol))", background: "hsl(var(--app-cream))" }}>
+            Fechar
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+          <p className="text-xs leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
+            Última atualização: Março de 2026. Ao criar sua conta e utilizar o aplicativo Nutroo, você declara ter lido, compreendido e aceitado integralmente os termos abaixo.
+          </p>
+
+          {termsContent.map((section, i) => (
+            <div key={i} className="space-y-1.5">
+              <h3 className="text-sm font-bold flex items-center gap-2" style={{ color: "hsl(var(--app-petrol))" }}>
+                <span>{section.icon}</span> {section.title}
+              </h3>
+              <p className="text-xs leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
+                {section.text}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 py-4 border-t" style={{ borderColor: "hsl(var(--app-divider))" }}>
+          <button
+            onClick={onClose}
+            className="w-full py-3.5 rounded-2xl font-bold text-sm active:scale-95 transition-transform"
+            style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))" }}
+          >
+            Entendi e aceito
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Auth() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -39,6 +137,8 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [signupEmail, setSignupEmail] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   const pwChecks = useMemo(() => pwRules.map((r) => ({ ...r, pass: r.test(password) })), [password]);
   const allPwValid = pwChecks.every((c) => c.pass);
@@ -54,6 +154,7 @@ export default function Auth() {
     e.preventDefault();
 
     if (mode === "signup") {
+      if (!acceptedTerms) return toast.error("É necessário aceitar os termos para continuar.");
       if (!allPwValid) return toast.error("A senha não atende todos os requisitos.");
       if (!pwMatch) return toast.error("As senhas não coincidem.");
       if (!isPhoneValid(phone)) return toast.error("Número de celular inválido.");
@@ -71,9 +172,6 @@ export default function Auth() {
           },
         });
         if (error) throw error;
-
-        // Save phone to profile (trigger creates profile, we update phone)
-        // We'll do this after confirmation via webhook/trigger, but attempt update
         setSignupEmail(email);
         setShowEmailModal(true);
       } else {
@@ -171,99 +269,49 @@ export default function Auth() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-3">
-          {/* Name */}
           {mode === "signup" && (
             <div className="relative">
               <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "hsl(var(--muted-foreground))" }} />
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Nome completo"
-                required
-                className="w-full py-3.5 pl-11 pr-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
-                style={inputStyle}
-              />
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome completo" required className="w-full py-3.5 pl-11 pr-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]" style={inputStyle} />
             </div>
           )}
 
-          {/* Email */}
           <div className="relative">
             <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "hsl(var(--muted-foreground))" }} />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              required
-              className="w-full py-3.5 pl-11 pr-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
-              style={inputStyle}
-            />
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required className="w-full py-3.5 pl-11 pr-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]" style={inputStyle} />
           </div>
 
-          {/* Phone */}
           {mode === "signup" && (
             <div className="relative">
               <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "hsl(var(--muted-foreground))" }} />
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(maskPhone(e.target.value))}
-                placeholder="(00) 00000-0000"
-                required
-                className="w-full py-3.5 pl-11 pr-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
-                style={inputStyle}
-              />
+              <input type="tel" value={phone} onChange={(e) => setPhone(maskPhone(e.target.value))} placeholder="(00) 00000-0000" required className="w-full py-3.5 pl-11 pr-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]" style={inputStyle} />
             </div>
           )}
 
-          {/* Password */}
           <div className="relative">
             <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "hsl(var(--muted-foreground))" }} />
-            <input
-              type={showPw ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Senha"
-              required
-              className="w-full py-3.5 pl-11 pr-11 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
-              style={inputStyle}
-            />
+            <input type={showPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Senha" required className="w-full py-3.5 pl-11 pr-11 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]" style={inputStyle} />
             <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-4 top-1/2 -translate-y-1/2">
               {showPw ? <EyeOff size={16} style={{ color: "hsl(var(--muted-foreground))" }} /> : <Eye size={16} style={{ color: "hsl(var(--muted-foreground))" }} />}
             </button>
           </div>
 
-          {/* Password checklist */}
           {mode === "signup" && password.length > 0 && (
             <div className="rounded-2xl p-3 space-y-1" style={{ background: "hsl(var(--app-cream))" }}>
               {pwChecks.map((c) => (
                 <div key={c.label} className="flex items-center gap-2 text-xs">
-                  {c.pass ? (
-                    <Check size={14} className="text-green-500 shrink-0" />
-                  ) : (
-                    <X size={14} className="text-red-400 shrink-0" />
-                  )}
+                  {c.pass ? <Check size={14} className="text-green-500 shrink-0" /> : <X size={14} className="text-red-400 shrink-0" />}
                   <span style={{ color: c.pass ? "hsl(142 71% 40%)" : "hsl(0 60% 55%)" }}>{c.label}</span>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Confirm password */}
           {mode === "signup" && (
             <>
               <div className="relative">
                 <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "hsl(var(--muted-foreground))" }} />
-                <input
-                  type={showConfirmPw ? "text" : "password"}
-                  value={confirmPw}
-                  onChange={(e) => setConfirmPw(e.target.value)}
-                  placeholder="Confirmar senha"
-                  required
-                  className="w-full py-3.5 pl-11 pr-11 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
-                  style={inputStyle}
-                />
+                <input type={showConfirmPw ? "text" : "password"} value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} placeholder="Confirmar senha" required className="w-full py-3.5 pl-11 pr-11 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]" style={inputStyle} />
                 <button type="button" onClick={() => setShowConfirmPw(!showConfirmPw)} className="absolute right-4 top-1/2 -translate-y-1/2">
                   {showConfirmPw ? <EyeOff size={16} style={{ color: "hsl(var(--muted-foreground))" }} /> : <Eye size={16} style={{ color: "hsl(var(--muted-foreground))" }} />}
                 </button>
@@ -271,6 +319,32 @@ export default function Auth() {
               {confirmPw.length > 0 && !pwMatch && (
                 <p className="text-xs pl-2" style={{ color: "hsl(0 60% 55%)" }}>As senhas não coincidem.</p>
               )}
+
+              {/* Terms checkbox */}
+              <div className="flex items-start gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setAcceptedTerms(!acceptedTerms)}
+                  className="mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors"
+                  style={{
+                    borderColor: acceptedTerms ? "hsl(var(--app-gold-dark))" : "hsl(var(--app-divider))",
+                    background: acceptedTerms ? "hsl(var(--app-gold))" : "transparent",
+                  }}
+                >
+                  {acceptedTerms && <Check size={13} style={{ color: "hsl(var(--app-petrol))" }} />}
+                </button>
+                <p className="text-xs leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
+                  Li e aceito os{" "}
+                  <button
+                    type="button"
+                    onClick={() => setShowTerms(true)}
+                    className="font-bold underline"
+                    style={{ color: "hsl(var(--app-petrol))" }}
+                  >
+                    Termos de Uso
+                  </button>
+                </p>
+              </div>
             </>
           )}
 
@@ -287,7 +361,7 @@ export default function Auth() {
         <p className="text-center text-sm mt-5" style={{ color: "hsl(var(--muted-foreground))" }}>
           {mode === "login" ? "Não tem conta?" : "Já tem conta?"}{" "}
           <button
-            onClick={() => { setMode(mode === "login" ? "signup" : "login"); setPassword(""); setConfirmPw(""); }}
+            onClick={() => { setMode(mode === "login" ? "signup" : "login"); setPassword(""); setConfirmPw(""); setAcceptedTerms(false); }}
             className="font-bold underline"
             style={{ color: "hsl(var(--app-petrol))" }}
           >
@@ -295,6 +369,9 @@ export default function Auth() {
           </button>
         </p>
       </div>
+
+      {/* Terms modal */}
+      {showTerms && <TermsModal onClose={() => setShowTerms(false)} />}
     </div>
   );
 }
