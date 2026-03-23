@@ -271,7 +271,7 @@ export default function Auth() {
         
         if (error) {
           // Check if email not confirmed
-          if (error.message?.includes("Email not confirmed")) {
+          if (error.message?.includes("Email not confirmed") || error.message?.includes("email_not_confirmed")) {
             setSignupEmail(normalizedEmail);
             setShowEmailModal(true);
             toast.error("Seu email ainda não foi confirmado. Verifique sua caixa de entrada.");
@@ -468,10 +468,10 @@ export default function Auth() {
             <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center" style={{ background: "hsl(var(--app-cream))" }}>
               <MailCheck size={28} style={{ color: "hsl(var(--app-gold-dark))" }} />
             </div>
-            <h2 className="text-lg font-bold" style={{ color: "hsl(var(--app-petrol))" }}>Verifique seu email</h2>
+            <h2 className="text-lg font-bold" style={{ color: "hsl(var(--app-petrol))" }}>Confirme seu email</h2>
             <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
-              Enviamos um link de confirmação para <strong style={{ color: "hsl(var(--app-petrol))" }}>{signupEmail}</strong>. 
-              Clique no link para ativar sua conta.
+              Enviamos um email de confirmação para <strong style={{ color: "hsl(var(--app-petrol))" }}>{signupEmail}</strong>. 
+              Acesse sua caixa de entrada e confirme seu cadastro para continuar.
             </p>
             <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
               Não recebeu? Verifique a caixa de spam ou clique abaixo para reenviar.
