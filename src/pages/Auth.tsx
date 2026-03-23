@@ -344,7 +344,7 @@ export default function Auth() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-6">
-          <img src={nutrooLogo} alt="Nutroo - Introdução Alimentar" className="w-44 mx-auto mb-1 object-contain" />
+          <img src={nutrooLogo} alt="Nutroo - Introdução Alimentar" className="w-44 mx-auto mb-1 object-contain cursor-pointer" onClick={() => navigate("/landing")} />
           <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
             {mode === "login" ? "Entre na sua conta" : "Crie sua conta gratuita"}
           </p>
