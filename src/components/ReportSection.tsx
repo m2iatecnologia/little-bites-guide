@@ -6,7 +6,6 @@ import {
   Download,
   ChevronDown,
   ChevronUp,
-  Share2,
   Lock,
 } from "lucide-react";
 import { generateClinicalReport } from "@/lib/generateReport";
