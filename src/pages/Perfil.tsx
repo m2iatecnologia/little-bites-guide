@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Edit, CreditCard, Baby, History, Download, LogOut } from "lucide-react";
+import { ArrowLeft, Edit, CreditCard, Baby, History, Download, LogOut, Lock, Eye, EyeOff, Check, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
