@@ -126,7 +126,7 @@ export function generateShoppingListPDF(data: ShoppingPDFData): void {
       doc.setTextColor(...DARK);
       doc.setFontSize(8.5);
       doc.setFont("helvetica", "normal");
-      doc.text(item.name, margin + 12, y + 5.5);
+      doc.text(sanitize(item.name), margin + 12, y + 5.5);
 
       // Quantity (right-aligned)
       doc.setTextColor(...GRAY);
