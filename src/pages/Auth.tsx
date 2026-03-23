@@ -18,6 +18,43 @@ function isPhoneValid(v: string) {
   return v.replace(/\D/g, "").length === 11;
 }
 
+/* ── Email validation ── */
+const ALLOWED_DOMAINS = [
+  "gmail.com", "googlemail.com",
+  "hotmail.com", "hotmail.com.br", "outlook.com", "outlook.com.br", "live.com", "msn.com",
+  "yahoo.com", "yahoo.com.br",
+  "icloud.com", "me.com", "mac.com",
+  "protonmail.com", "proton.me",
+  "uol.com.br", "bol.com.br", "terra.com.br", "ig.com.br", "globo.com",
+  "aol.com", "zoho.com", "yandex.com",
+];
+
+const BLOCKED_DOMAINS = [
+  "teste.com", "test.com", "example.com", "example.org", "example.net",
+  "email.com", "fake.com", "noemail.com", "none.com",
+  "mailinator.com", "guerrillamail.com", "guerrillamail.net", "tempmail.com",
+  "throwaway.email", "sharklasers.com", "guerrillamailblock.com",
+  "grr.la", "dispostable.com", "yopmail.com", "yopmail.fr",
+  "trashmail.com", "trashmail.net", "temp-mail.org", "fakeinbox.com",
+  "mailnesia.com", "maildrop.cc", "discard.email", "getnada.com",
+  "tmail.com", "tmpmail.net", "10minutemail.com",
+];
+
+function validateEmail(email: string): string | null {
+  const trimmed = email.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+    return "Formato de email inválido.";
+  }
+  const domain = trimmed.split("@")[1];
+  if (BLOCKED_DOMAINS.includes(domain)) {
+    return "Este domínio de email não é permitido. Use um email real.";
+  }
+  if (!ALLOWED_DOMAINS.includes(domain)) {
+    return "Use um provedor de email válido (Gmail, Hotmail, Outlook, Yahoo, iCloud, etc.)";
+  }
+  return null;
+}
+
 /* ── Password rules ── */
 const pwRules = [
   { label: "Mínimo 8 caracteres", test: (p: string) => p.length >= 8 },
