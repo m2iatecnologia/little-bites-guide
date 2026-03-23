@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { differenceInMonths, differenceInDays, startOfMonth, subWeeks, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import type { ReportData } from "@/lib/generateReport";
 import type { FoodOccurrence } from "@/hooks/useFoodOccurrences";
 
@@ -223,7 +224,7 @@ export function useDashboardData(): DashboardData {
       birthDate: baby?.birth_date ? format(new Date(baby.birth_date), "dd/MM/yyyy") : "",
       currentAge: babyAge,
       weight: baby?.weight_kg?.toString().replace(".", ",") ?? "",
-      period: format(new Date(), "MMMM yyyy"),
+      period: format(new Date(), "MMMM 'de' yyyy", { locale: ptBR }),
       responsibleName: profileName,
       totalFoods,
       acceptanceRate,
