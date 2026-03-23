@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
-import { Mail, Lock, User, Eye, EyeOff, Phone, Check, X, Shield, MailCheck, RefreshCw } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, Phone, Check, X, Shield, MailCheck, RefreshCw, KeyRound } from "lucide-react";
 import nutrooLogo from "@/assets/nutroo-logo-full.png";
 import { toast } from "sonner";
 
