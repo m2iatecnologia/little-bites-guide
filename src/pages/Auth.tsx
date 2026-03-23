@@ -171,6 +171,8 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [signupEmail, setSignupEmail] = useState("");
 
   const pwChecks = useMemo(() => pwRules.map((r) => ({ ...r, pass: r.test(password) })), [password]);
   const allPwValid = pwChecks.every((c) => c.pass);
