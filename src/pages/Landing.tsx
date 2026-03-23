@@ -88,7 +88,7 @@ export default function Landing() {
 
       {/* ═══ NAV ═══ */}
       <nav className="flex items-center justify-between px-5 py-4 max-w-6xl mx-auto">
-        <img src={logoImg} alt="Nutroo" className="h-8 w-auto" />
+        <img src={logoImg} alt="Nutroo" className="h-12 w-auto" />
         <button
           onClick={() => navigate("/auth")}
           className="text-sm font-semibold px-4 py-2 rounded-xl active:scale-[0.97] transition-transform"
