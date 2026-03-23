@@ -9,13 +9,26 @@ export default function Confirmacao() {
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
   useEffect(() => {
-    // The auth confirmation is handled by Supabase's token exchange
-    // Check if there's a session after the redirect
+    const hash = window.location.hash;
+    
+    // If this is a recovery link, redirect to the password reset page
+    if (hash.includes("type=recovery")) {
+      navigate(`/redefinir-senha${hash}`, { replace: true });
+      return;
+    }
+
     const checkConfirmation = async () => {
-      // Give Supabase a moment to process the token from the URL hash
       await new Promise((r) => setTimeout(r, 1500));
       
       const { data: { session } } = await supabase.auth.getSession();
+      
+      // Check auth state change for recovery event
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+        if (event === "PASSWORD_RECOVERY") {
+          subscription.unsubscribe();
+          navigate(`/redefinir-senha`, { replace: true });
+        }
+      });
       
       if (session) {
         // Update profile status to active
@@ -28,12 +41,9 @@ export default function Confirmacao() {
         await supabase.auth.signOut();
         setStatus("success");
       } else {
-        // Check URL hash for error
-        const hash = window.location.hash;
         if (hash.includes("error")) {
           setStatus("error");
         } else {
-          // Might still be processing
           setTimeout(async () => {
             const { data: { session: s2 } } = await supabase.auth.getSession();
             if (s2) {
@@ -49,10 +59,12 @@ export default function Confirmacao() {
           }, 2000);
         }
       }
+      
+      return () => subscription.unsubscribe();
     };
 
     checkConfirmation();
-  }, []);
+  }, [navigate]);
 
   return (
     <div
