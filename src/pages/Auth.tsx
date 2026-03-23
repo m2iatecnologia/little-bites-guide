@@ -186,6 +186,8 @@ export default function Auth() {
     e.preventDefault();
 
     if (mode === "signup") {
+      const emailError = validateEmail(email);
+      if (emailError) return toast.error(emailError);
       if (!acceptedTerms) return toast.error("É necessário aceitar os termos para continuar.");
       if (!allPwValid) return toast.error("A senha não atende todos os requisitos.");
       if (!pwMatch) return toast.error("As senhas não coincidem.");
