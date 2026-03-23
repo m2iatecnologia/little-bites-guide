@@ -103,5 +103,32 @@ export function useMealPlan() {
     setPlan(null);
   }, []);
 
-  return { plan, dietMode, planType, loading, saving, weekStart, savePlan, clearPlan, refetch: fetchPlan };
+  /** Update a single meal in the current plan and persist */
+  const updateMeal = useCallback(async (dayIndex: number, mealKey: keyof DayPlan, newItems: MealItem[]) => {
+    if (!plan || !user) return false;
+    const updatedPlan = { ...plan };
+    updatedPlan[dayIndex] = {
+      ...updatedPlan[dayIndex],
+      [mealKey]: newItems,
+    };
+
+    const storedDietMode = `${dietMode}|${planType}`;
+    const { error } = await supabase
+      .from("meal_plans" as any)
+      .insert({
+        user_id: user.id,
+        baby_id: baby?.id || null,
+        week_start: weekStart,
+        plan: updatedPlan as any,
+        diet_mode: storedDietMode,
+      } as any);
+
+    if (!error) {
+      setPlan(updatedPlan);
+      return true;
+    }
+    return false;
+  }, [plan, user, baby, weekStart, dietMode, planType]);
+
+  return { plan, dietMode, planType, loading, saving, weekStart, savePlan, clearPlan, updateMeal, refetch: fetchPlan };
 }

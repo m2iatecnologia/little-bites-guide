@@ -10,6 +10,7 @@ import { ShoppingCart, Check, X, MessageSquare, ChevronDown, ChevronUp, ChefHat,
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getPreparations, type FoodPreparation } from "@/data/foodPreparations";
+import { EditMealModal } from "@/components/EditMealModal";
 
 const weekdayLabels = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 const weekdayShort = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -61,7 +62,7 @@ export default function CardapioPage() {
 function CardapioContent() {
   const navigate = useNavigate();
   const { selectedFoods, savePantry, saving: pantrySaving } = usePantry();
-  const { plan, dietMode: savedDietMode, planType, savePlan, clearPlan, loading: planLoading } = useMealPlan();
+  const { plan, dietMode: savedDietMode, planType, savePlan, clearPlan, updateMeal, loading: planLoading } = useMealPlan();
 
   const [showSelection, setShowSelection] = useState(false);
   const [showDietPicker, setShowDietPicker] = useState(false);
@@ -81,6 +82,7 @@ function CardapioContent() {
   });
   const [prepFood, setPrepFood] = useState<FoodPreparation | null>(null);
   const [prepOpen, setPrepOpen] = useState(false);
+  const [editMealKey, setEditMealKey] = useState<"cafe" | "almoco" | "jantar" | "lanche" | null>(null);
 
   const selectedDate = weekDates[selectedDayIndex];
   const dateStr = formatDate(selectedDate);
@@ -125,8 +127,17 @@ function CardapioContent() {
 
   const handleOpenPrep = (foodName: string) => {
     const prep = getPreparations(foodName);
-    setPrepFood(prep || { name: foodName, preparations: [] });
+    setPrepFood(prep!);
     setPrepOpen(true);
+  };
+
+  const handleEditMealSave = async (mealKey: "cafe" | "almoco" | "jantar" | "lanche", items: import("@/hooks/useMealPlan").MealItem[]) => {
+    const ok = await updateMeal(planIndex, mealKey, items);
+    if (ok) {
+      toast.success("Refeição atualizada! ✏️");
+    } else {
+      toast.error("Erro ao salvar alteração.");
+    }
   };
 
   const toggleMealSection = (key: string) => {
@@ -487,7 +498,7 @@ function CardapioContent() {
             <div key={key} className="card-clinical overflow-hidden">
               <button
                 onClick={() => toggleMealSection(key)}
-                className="w-full px-4 py-3 flex items-center justify-between active:scale-[0.99] transition-all"
+                className="flex-1 px-4 py-3 flex items-center justify-between active:scale-[0.99] transition-all"
               >
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold" style={{ fontWeight: 700, color: "hsl(var(--app-petrol))" }}>{label}</span>
@@ -501,6 +512,19 @@ function CardapioContent() {
                 </div>
                 {isOpen ? <ChevronUp size={16} style={{ color: "hsl(var(--muted-foreground))" }} /> : <ChevronDown size={16} style={{ color: "hsl(var(--muted-foreground))" }} />}
               </button>
+              <div className="px-4 py-3 flex items-center">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setEditMealKey(key as any); }}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all active:scale-95"
+                  style={{
+                    fontWeight: 700,
+                    background: "hsl(var(--app-cream))",
+                    color: "hsl(var(--app-gold-dark))",
+                  }}
+                >
+                  <Pencil size={10} /> Editar
+                </button>
+              </div>
 
               {isOpen && (
                 <div className="px-4 pb-3 space-y-2">
@@ -665,6 +689,18 @@ function CardapioContent() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Edit Meal Modal */}
+      {editMealKey && dayPlan && (
+        <EditMealModal
+          open={!!editMealKey}
+          onOpenChange={(open) => { if (!open) setEditMealKey(null); }}
+          mealKey={editMealKey}
+          currentItems={dayPlan[editMealKey]}
+          dietMode={diet}
+          onSave={(items) => handleEditMealSave(editMealKey, items)}
+        />
+      )}
     </div>
   );
 }
