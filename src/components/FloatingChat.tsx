@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, ChevronLeft, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const SUPPORT_EMAIL = "suporte@seuemail.com"; // placeholder
+const SUPPORT_EMAIL = "suportem2ia@gmail.com";
 
 interface ChatMessage {
   from: "bot" | "user";

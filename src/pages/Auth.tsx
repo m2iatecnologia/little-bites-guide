@@ -27,7 +27,7 @@ const pwRules = [
 ];
 
 /* ── Terms of Use content ── */
-const SUPPORT_EMAIL = "suporte@nutroo.app";
+const SUPPORT_EMAIL = "suportem2ia@gmail.com";
 
 const termsContent = [
   {
