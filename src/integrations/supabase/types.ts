@@ -333,6 +333,7 @@ export type Database = {
           id: string
           name: string
           phone: string
+          status: string
           updated_at: string
           user_id: string
         }
@@ -343,6 +344,7 @@ export type Database = {
           id?: string
           name?: string
           phone?: string
+          status?: string
           updated_at?: string
           user_id: string
         }
@@ -353,6 +355,7 @@ export type Database = {
           id?: string
           name?: string
           phone?: string
+          status?: string
           updated_at?: string
           user_id?: string
         }
