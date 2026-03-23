@@ -228,6 +228,29 @@ export default function Auth() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const normalizedEmail = forgotEmail.trim().toLowerCase();
+    const emailErr = validateEmail(normalizedEmail);
+    if (emailErr) {
+      setForgotError(emailErr);
+      return;
+    }
+    setForgotLoading(true);
+    setForgotError(null);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+        redirectTo: `${window.location.origin}/redefinir-senha`,
+      });
+      if (error) throw error;
+      setForgotSent(true);
+    } catch (err: any) {
+      setForgotError(err.message || "Erro ao enviar email de recuperação.");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const normalizedEmail = email.trim().toLowerCase();
