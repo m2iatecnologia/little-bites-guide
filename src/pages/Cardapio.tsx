@@ -498,7 +498,7 @@ function CardapioContent() {
             <div key={key} className="card-clinical overflow-hidden">
               <button
                 onClick={() => toggleMealSection(key)}
-                className="w-full px-4 py-3 flex items-center justify-between active:scale-[0.99] transition-all"
+                className="flex-1 px-4 py-3 flex items-center justify-between active:scale-[0.99] transition-all"
               >
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold" style={{ fontWeight: 700, color: "hsl(var(--app-petrol))" }}>{label}</span>
@@ -512,6 +512,19 @@ function CardapioContent() {
                 </div>
                 {isOpen ? <ChevronUp size={16} style={{ color: "hsl(var(--muted-foreground))" }} /> : <ChevronDown size={16} style={{ color: "hsl(var(--muted-foreground))" }} />}
               </button>
+              <div className="px-4 py-3 flex items-center">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setEditMealKey(key as any); }}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all active:scale-95"
+                  style={{
+                    fontWeight: 700,
+                    background: "hsl(var(--app-cream))",
+                    color: "hsl(var(--app-gold-dark))",
+                  }}
+                >
+                  <Pencil size={10} /> Editar
+                </button>
+              </div>
 
               {isOpen && (
                 <div className="px-4 pb-3 space-y-2">
