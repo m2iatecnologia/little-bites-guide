@@ -279,15 +279,15 @@ export function ReportSection({ dashboardData: d }: ReportSectionProps) {
       {/* Modal */}
       {showModal && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center"
+          className="fixed inset-0 z-[120] flex items-end justify-center p-3 pt-10 sm:items-center sm:p-6"
           style={{ background: "rgba(0,0,0,0.45)" }}
           onClick={(e) => e.target === e.currentTarget && setShowModal(false)}
         >
           <div
-            className="w-full max-w-md rounded-t-3xl p-5 pb-8 max-h-[85vh] overflow-y-auto"
+            className="flex w-full max-w-md flex-col overflow-hidden rounded-[28px] shadow-2xl max-h-[calc(100dvh-6rem)] sm:max-h-[90vh]"
             style={{ background: "hsl(var(--card))" }}
           >
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: "hsl(var(--border))" }}>
               <h3
                 className="font-extrabold text-base"
                 style={{ fontWeight: 800, color: "hsl(var(--app-petrol))" }}
@@ -299,86 +299,96 @@ export function ReportSection({ dashboardData: d }: ReportSectionProps) {
               </button>
             </div>
 
-            <div
-              className="rounded-xl p-3 mb-4 space-y-1.5 text-xs"
-              style={{ background: "hsl(var(--app-cream))" }}
-            >
-              <p
-                className="font-bold mb-2"
-                style={{ color: "hsl(var(--app-petrol))", fontWeight: 700 }}
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+              <div
+                className="rounded-xl p-3 mb-4 space-y-1.5 text-xs"
+                style={{ background: "hsl(var(--app-cream))" }}
               >
-                O relatório incluirá:
-              </p>
-              {[
-                "Capa com dados da criança",
-                "Resumo geral com estatísticas do mês",
-                "Ranking de alimentos aceitos e recusados",
-                "Histórico de possíveis reações",
-                "Observações registradas nas refeições",
-                "Ocorrências pós-consumo (reações)",
-                "Gráfico de evolução semanal",
-                "Suas observações para o médico",
-              ].map((item) => (
-                <div
-                  key={item}
-                  className="flex items-center gap-2"
-                  style={{ color: "hsl(var(--app-petrol))" }}
+                <p
+                  className="font-bold mb-2"
+                  style={{ color: "hsl(var(--app-petrol))", fontWeight: 700 }}
                 >
-                  <Check size={13} style={{ color: "hsl(var(--app-gold-dark))" }} />
-                  <span>{item}</span>
-                </div>
-              ))}
+                  O relatório incluirá:
+                </p>
+                {[
+                  "Capa com dados da criança",
+                  "Resumo geral com estatísticas do mês",
+                  "Ranking de alimentos aceitos e recusados",
+                  "Histórico de possíveis reações",
+                  "Observações registradas nas refeições",
+                  "Ocorrências pós-consumo (reações)",
+                  "Gráfico de evolução semanal",
+                  "Suas observações para o médico",
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className="flex items-center gap-2"
+                    style={{ color: "hsl(var(--app-petrol))" }}
+                  >
+                    <Check size={13} style={{ color: "hsl(var(--app-gold-dark))" }} />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div>
+                <label
+                  className="block text-xs font-bold mb-1.5"
+                  style={{ color: "hsl(var(--app-petrol))", fontWeight: 700 }}
+                >
+                  📝 Observações para o médico (opcional)
+                </label>
+                <textarea
+                  rows={4}
+                  placeholder="Ex: Bebê tem tido episódios de recusa ao jantar..."
+                  value={parentNotes}
+                  onChange={(e) => setParentNotes(e.target.value)}
+                  className="w-full text-xs rounded-xl p-3 resize-none border outline-none focus:ring-2"
+                  style={{
+                    borderColor: "hsl(var(--border))",
+                    background: "hsl(var(--background))",
+                    color: "hsl(var(--foreground))",
+                  }}
+                />
+              </div>
             </div>
 
-            <div className="mb-4">
-              <label
-                className="block text-xs font-bold mb-1.5"
-                style={{ color: "hsl(var(--app-petrol))", fontWeight: 700 }}
-              >
-                📝 Observações para o médico (opcional)
-              </label>
-              <textarea
-                rows={3}
-                placeholder="Ex: Bebê tem tido episódios de recusa ao jantar..."
-                value={parentNotes}
-                onChange={(e) => setParentNotes(e.target.value)}
-                className="w-full text-xs rounded-xl p-3 resize-none border outline-none focus:ring-2"
-                style={{
-                  borderColor: "hsl(var(--border))",
-                  background: "hsl(var(--background))",
-                  color: "hsl(var(--foreground))",
-                }}
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={handleGenerate}
-                disabled={isGenerating}
-                className="btn-primary-clinical flex-1"
-              >
-                {isGenerating ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    Gerando...
-                  </>
-                ) : (
-                  <>
-                    <Download size={17} />
-                    Baixar PDF
-                  </>
-                )}
-              </button>
-              <button
-                onClick={() => window.location.href = "/em-desenvolvimento"}
-                className="px-4 py-3.5 rounded-xl flex items-center justify-center transition-all active:scale-95"
-                style={{
-                  background: "hsl(var(--app-cream))",
-                  color: "hsl(var(--app-petrol))",
-                }}
-              >
-                <Share2 size={17} />
-              </button>
+            <div
+              className="border-t px-5 pt-4 pb-[calc(env(safe-area-inset-bottom)+1rem)]"
+              style={{
+                borderColor: "hsl(var(--border))",
+                background: "hsl(var(--card))",
+              }}
+            >
+              <div className="flex gap-2">
+                <button
+                  onClick={handleGenerate}
+                  disabled={isGenerating}
+                  className="btn-primary-clinical flex-1"
+                >
+                  {isGenerating ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      Gerando...
+                    </>
+                  ) : (
+                    <>
+                      <Download size={17} />
+                      Baixar PDF
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => window.location.href = "/em-desenvolvimento"}
+                  className="px-4 py-3.5 rounded-xl flex items-center justify-center transition-all active:scale-95"
+                  style={{
+                    background: "hsl(var(--app-cream))",
+                    color: "hsl(var(--app-petrol))",
+                  }}
+                >
+                  <Share2 size={17} />
+                </button>
+              </div>
             </div>
           </div>
         </div>
