@@ -82,6 +82,7 @@ function CardapioContent() {
   });
   const [prepFood, setPrepFood] = useState<FoodPreparation | null>(null);
   const [prepOpen, setPrepOpen] = useState(false);
+  const [editMealKey, setEditMealKey] = useState<"cafe" | "almoco" | "jantar" | "lanche" | null>(null);
 
   const selectedDate = weekDates[selectedDayIndex];
   const dateStr = formatDate(selectedDate);
