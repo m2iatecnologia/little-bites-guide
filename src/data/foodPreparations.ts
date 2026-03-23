@@ -333,10 +333,128 @@ export const foodPreparations: FoodPreparation[] = [
       { method: "Cozido", steps: "Cozinhe com o dobro de água por 30 min.", texture: "Macio, mais textura que arroz branco.", tips: "Pode cozinhar com caldo de legumes." },
     ],
   },
+  {
+    name: "Inhame",
+    preparations: [
+      { method: "Cozido", steps: "Descasque, corte em cubos e cozinhe em água por 20-25 min até ficar macio.", texture: "Macia e levemente pegajosa.", tips: "Pode amassar com azeite para um purê." },
+      { method: "Assado", steps: "Corte em palitos, pincele azeite e asse a 200°C por 25 min.", texture: "Macia por dentro, levemente crocante por fora.", tips: "Ótimo para BLW." },
+    ],
+  },
+  {
+    name: "Mandioquinha",
+    preparations: [
+      { method: "Cozida", steps: "Descasque, corte em rodelas e cozinhe por 15-20 min.", texture: "Muito macia e cremosa.", tips: "Naturalmente adocicada, ótima aceitação." },
+      { method: "Purê", steps: "Cozinhe e amasse com garfo, adicione um fio de azeite.", texture: "Cremosa e aveludada.", tips: "Uma das preferidas dos bebês." },
+    ],
+  },
+  {
+    name: "Mandioca",
+    preparations: [
+      { method: "Cozida", steps: "Descasque, retire o fio central e cozinhe em água por 30-40 min.", texture: "Macia, deve desfiar facilmente.", tips: "Sempre cozinhe bem. Nunca ofereça crua." },
+      { method: "Assada", steps: "Após cozinhar, corte em palitos e asse com azeite a 200°C por 15 min.", texture: "Crocante por fora, macia por dentro.", tips: "Boa para BLW após os 9 meses." },
+    ],
+  },
+  {
+    name: "Laranja",
+    preparations: [
+      { method: "In natura", steps: "Descasque e separe os gomos. Retire a membrana se possível.", texture: "Suculenta e macia.", tips: "Rica em vitamina C. Ajuda na absorção de ferro." },
+    ],
+  },
+  {
+    name: "Kiwi",
+    preparations: [
+      { method: "In natura", steps: "Descasque e corte em fatias ou palitos.", texture: "Macia e suculenta.", tips: "Rico em vitamina C. Pode ser ácido — observe aceitação." },
+    ],
+  },
+  {
+    name: "Ameixa",
+    preparations: [
+      { method: "In natura", steps: "Lave, corte ao meio e retire o caroço. Corte em fatias.", texture: "Macia e suculenta.", tips: "Ótima para o intestino. Ajuda na constipação." },
+    ],
+  },
+  {
+    name: "Uva",
+    preparations: [
+      { method: "Cortada", steps: "Corte SEMPRE ao meio no sentido longitudinal. Para < 1 ano, corte em 4 partes.", texture: "Macia e suculenta.", tips: "⚠️ NUNCA ofereça inteira — alto risco de engasgo." },
+    ],
+  },
+  {
+    name: "Vagem",
+    preparations: [
+      { method: "Cozida", steps: "Retire as pontas e cozinhe no vapor por 10-12 min.", texture: "Macia mas com forma.", tips: "Formato ideal para BLW. Corte ao meio se muito longa." },
+    ],
+  },
+  {
+    name: "Quiabo",
+    preparations: [
+      { method: "Refogado", steps: "Corte em rodelas e refogue com azeite por 10 min.", texture: "Macia.", tips: "Para reduzir a baba, cozinhe com limão." },
+    ],
+  },
+  {
+    name: "Couve",
+    preparations: [
+      { method: "Refogada", steps: "Corte em tiras finas e refogue com azeite por 3-5 min.", texture: "Macia e murcha.", tips: "Rica em ferro e cálcio. Ofereça com vitamina C." },
+    ],
+  },
+  {
+    name: "Alface",
+    preparations: [
+      { method: "In natura", steps: "Lave bem e rasgue em pedaços pequenos.", texture: "Macia e crocante.", tips: "Introduza a partir dos 9 meses em pedaços pequenos." },
+    ],
+  },
+  {
+    name: "Agrião",
+    preparations: [
+      { method: "Refogado", steps: "Lave e refogue rapidamente com azeite por 2 min.", texture: "Macia.", tips: "Sabor levemente picante. Misture com outros alimentos." },
+    ],
+  },
+  {
+    name: "Carne bovina",
+    preparations: [
+      { method: "Cozida e desfiada", steps: "Cozinhe em panela de pressão por 40 min. Desfie bem fino.", texture: "Desfiada macia.", tips: "Use cortes magros. Adicione azeite." },
+      { method: "Moída refogada", steps: "Refogue com azeite e temperos naturais.", texture: "Granulada e macia.", tips: "Pode misturar com legumes." },
+    ],
+  },
+  {
+    name: "Fígado",
+    preparations: [
+      { method: "Grelhado", steps: "Corte em tiras finas e grelhe rapidamente (2-3 min de cada lado).", texture: "Macia por dentro.", tips: "Riquíssimo em ferro. Ofereça 1-2x por semana." },
+      { method: "Patê", steps: "Grelhe e processe com azeite até virar pasta.", texture: "Cremosa.", tips: "Pode passar no pão integral." },
+    ],
+  },
+  {
+    name: "Milho",
+    preparations: [
+      { method: "Cozido", steps: "Cozinhe a espiga por 20-30 min. Para bebês, retire os grãos e amasse.", texture: "Macia quando amassada.", tips: "Grãos inteiros só após 1 ano. Antes, amasse." },
+    ],
+  },
 ];
 
+/** Get preparation by exact or partial match */
 export function getPreparations(foodName: string): FoodPreparation | undefined {
-  return foodPreparations.find(
+  // Exact match first
+  const exact = foodPreparations.find(
     (f) => f.name.toLowerCase() === foodName.toLowerCase()
   );
+  if (exact) return exact;
+
+  // Partial match (food name contains or is contained)
+  const partial = foodPreparations.find(
+    (f) => f.name.toLowerCase().includes(foodName.toLowerCase()) ||
+           foodName.toLowerCase().includes(f.name.toLowerCase())
+  );
+  if (partial) return partial;
+
+  // Generate a generic preparation as fallback
+  return {
+    name: foodName,
+    preparations: [
+      {
+        method: "Preparo básico",
+        steps: `Lave bem e prepare o(a) ${foodName.toLowerCase()} de forma adequada à idade do bebê. Cozinhe até ficar macio(a) e ofereça em pedaços seguros.`,
+        texture: "Deve estar macia o suficiente para ser amassada com os dedos.",
+        tips: "Sempre supervisione a refeição. Adapte o corte à fase do bebê.",
+      },
+    ],
+  };
 }
