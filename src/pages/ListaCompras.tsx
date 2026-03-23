@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Download,
-  Share2 as _Share2,
+  
   Check,
   Pencil,
   Loader2,
