@@ -375,6 +375,36 @@ export default function Auth() {
 
       {/* Terms modal */}
       {showTerms && <TermsModal onClose={() => setShowTerms(false)} />}
+
+      {/* Email verification modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)" }}>
+          <div className="w-full max-w-sm rounded-3xl p-6 text-center space-y-4" style={{ background: "hsl(var(--app-card))" }}>
+            <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center" style={{ background: "hsl(var(--app-cream))" }}>
+              <MailCheck size={28} style={{ color: "hsl(var(--app-gold-dark))" }} />
+            </div>
+            <h2 className="text-lg font-bold" style={{ color: "hsl(var(--app-petrol))" }}>Verifique seu email</h2>
+            <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
+              Enviamos um link de confirmação para <strong style={{ color: "hsl(var(--app-petrol))" }}>{signupEmail}</strong>. Clique no link para ativar sua conta.
+            </p>
+            <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+              Não recebeu? Verifique sua caixa de spam.
+            </p>
+            <button
+              onClick={() => {
+                setShowEmailModal(false);
+                setMode("login");
+                setPassword("");
+                setConfirmPw("");
+              }}
+              className="w-full py-3.5 rounded-2xl font-bold text-sm active:scale-95 transition-transform"
+              style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))" }}
+            >
+              Ir para o login
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
