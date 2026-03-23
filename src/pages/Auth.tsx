@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
-import { Mail, Lock, User, Eye, EyeOff, Phone, Check, X, Shield, MailCheck } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, Phone, Check, X, Shield, MailCheck, RefreshCw } from "lucide-react";
 import nutrooLogo from "@/assets/nutroo-logo-full.png";
 import { toast } from "sonner";
 
@@ -42,8 +42,9 @@ const BLOCKED_DOMAINS = [
 
 function validateEmail(email: string): string | null {
   const trimmed = email.trim().toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-    return "Formato de email inválido.";
+  if (!trimmed) return "Informe um email válido.";
+  if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(trimmed)) {
+    return "Informe um email válido.";
   }
   const domain = trimmed.split("@")[1];
   if (BLOCKED_DOMAINS.includes(domain)) {
@@ -173,6 +174,8 @@ export default function Auth() {
   const [showTerms, setShowTerms] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [signupEmail, setSignupEmail] = useState("");
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
 
   const pwChecks = useMemo(() => pwRules.map((r) => ({ ...r, pass: r.test(password) })), [password]);
   const allPwValid = pwChecks.every((c) => c.pass);
@@ -184,12 +187,53 @@ export default function Auth() {
     color: "hsl(var(--app-petrol))",
   };
 
+  const inputErrorStyle: React.CSSProperties = {
+    ...inputStyle,
+    border: "1.5px solid hsl(0 84% 60%)",
+  };
+
+  /* Validate email on blur */
+  const handleEmailBlur = () => {
+    if (mode === "signup" && email.trim()) {
+      setEmailError(validateEmail(email));
+    }
+  };
+
+  const handleEmailChange = (val: string) => {
+    setEmail(val);
+    if (emailError) setEmailError(null);
+  };
+
+  const handleResendEmail = async () => {
+    setResending(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: signupEmail,
+        options: {
+          emailRedirectTo: `${window.location.origin}/confirmacao`,
+        },
+      });
+      if (error) throw error;
+      toast.success("Email de confirmação reenviado!");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao reenviar email");
+    } finally {
+      setResending(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const normalizedEmail = email.trim().toLowerCase();
 
     if (mode === "signup") {
-      const emailError = validateEmail(email);
-      if (emailError) return toast.error(emailError);
+      const emailErr = validateEmail(normalizedEmail);
+      if (emailErr) {
+        setEmailError(emailErr);
+        return toast.error(emailErr);
+      }
+      if (!name.trim()) return toast.error("Informe seu nome completo.");
       if (!acceptedTerms) return toast.error("É necessário aceitar os termos para continuar.");
       if (!allPwValid) return toast.error("A senha não atende todos os requisitos.");
       if (!pwMatch) return toast.error("As senhas não coincidem.");
@@ -200,25 +244,50 @@ export default function Auth() {
     try {
       if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
-          email,
+          email: normalizedEmail,
           password,
           options: {
             data: { full_name: name, phone: phone.replace(/\D/g, "") },
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: `${window.location.origin}/confirmacao`,
           },
         });
-        if (error) throw error;
-
-        if (data.session) {
-          toast.success("Conta criada com sucesso!");
-          navigate("/");
-        } else {
-          setSignupEmail(email);
-          setShowEmailModal(true);
+        if (error) {
+          if (error.message?.includes("already registered")) {
+            setEmailError("Este email já está cadastrado.");
+            throw new Error("Este email já está cadastrado. Faça login ou use outro email.");
+          }
+          throw error;
         }
+
+        // Show verification modal (email confirmation required)
+        setSignupEmail(normalizedEmail);
+        setShowEmailModal(true);
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        // Login flow
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: normalizedEmail,
+          password,
+        });
+        
+        if (error) {
+          // Check if email not confirmed
+          if (error.message?.includes("Email not confirmed")) {
+            setSignupEmail(normalizedEmail);
+            setShowEmailModal(true);
+            toast.error("Seu email ainda não foi confirmado. Verifique sua caixa de entrada.");
+            return;
+          }
+          throw error;
+        }
+
+        // Update profile status to active on successful login
+        if (data.session) {
+          await supabase
+            .from("profiles")
+            .update({ status: "active" })
+            .eq("user_id", data.session.user.id);
+        }
+
         navigate("/");
       }
     } catch (err: any) {
@@ -279,9 +348,25 @@ export default function Auth() {
             </div>
           )}
 
-          <div className="relative">
-            <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "hsl(var(--muted-foreground))" }} />
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required className="w-full py-3.5 pl-11 pr-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]" style={inputStyle} />
+          <div>
+            <div className="relative">
+              <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "hsl(var(--muted-foreground))" }} />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => handleEmailChange(e.target.value)}
+                onBlur={handleEmailBlur}
+                placeholder="Email"
+                required
+                className="w-full py-3.5 pl-11 pr-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
+                style={emailError ? inputErrorStyle : inputStyle}
+              />
+            </div>
+            {emailError && (
+              <p className="text-xs mt-1.5 pl-2" style={{ color: "hsl(0 84% 60%)" }}>
+                {emailError}
+              </p>
+            )}
           </div>
 
           {mode === "signup" && (
@@ -364,7 +449,7 @@ export default function Auth() {
         <p className="text-center text-sm mt-5" style={{ color: "hsl(var(--muted-foreground))" }}>
           {mode === "login" ? "Não tem conta?" : "Já tem conta?"}{" "}
           <button
-            onClick={() => { setMode(mode === "login" ? "signup" : "login"); setPassword(""); setConfirmPw(""); setAcceptedTerms(false); }}
+            onClick={() => { setMode(mode === "login" ? "signup" : "login"); setPassword(""); setConfirmPw(""); setAcceptedTerms(false); setEmailError(null); }}
             className="font-bold underline"
             style={{ color: "hsl(var(--app-petrol))" }}
           >
@@ -385,11 +470,23 @@ export default function Auth() {
             </div>
             <h2 className="text-lg font-bold" style={{ color: "hsl(var(--app-petrol))" }}>Verifique seu email</h2>
             <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
-              Enviamos um link de confirmação para <strong style={{ color: "hsl(var(--app-petrol))" }}>{signupEmail}</strong>. Clique no link para ativar sua conta.
+              Enviamos um link de confirmação para <strong style={{ color: "hsl(var(--app-petrol))" }}>{signupEmail}</strong>. 
+              Clique no link para ativar sua conta.
             </p>
             <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-              Não recebeu? Verifique sua caixa de spam.
+              Não recebeu? Verifique a caixa de spam ou clique abaixo para reenviar.
             </p>
+            
+            <button
+              onClick={handleResendEmail}
+              disabled={resending}
+              className="w-full py-3 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+              style={{ background: "hsl(var(--app-cream))", color: "hsl(var(--app-petrol))" }}
+            >
+              <RefreshCw size={14} className={resending ? "animate-spin" : ""} />
+              {resending ? "Reenviando..." : "Reenviar email de confirmação"}
+            </button>
+
             <button
               onClick={() => {
                 setShowEmailModal(false);
