@@ -14,8 +14,9 @@ interface PremiumGateProps {
 export function PremiumGate({ children, blur = false, fallback }: PremiumGateProps) {
   const { isPremium, loading } = useSubscription();
 
-  if (loading) return null;
+  // Don't block while loading — show content if cached as premium
   if (isPremium) return <>{children}</>;
+  if (loading) return null;
 
   if (fallback) return <>{fallback}</>;
 
