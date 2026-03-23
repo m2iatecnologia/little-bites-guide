@@ -121,9 +121,9 @@ export default function RedefinirSenha() {
             </div>
             <h1 className="text-xl font-bold" style={{ color: "hsl(var(--app-petrol))" }}>Link inválido ou expirado</h1>
             <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
-              O link de redefinição pode ter expirado ou já foi utilizado. Solicite um novo link na tela de login.
+              Este link expirou ou já foi utilizado. Solicite uma nova redefinição de senha na tela de login.
             </p>
-            <button onClick={() => navigate("/auth")} className="w-full py-4 rounded-2xl font-bold text-base active:scale-95 transition-transform" style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))", boxShadow: "0 4px 16px rgba(244,201,93,0.35)" }}>
+            <button onClick={handleGoToLogin} className="w-full py-4 rounded-2xl font-bold text-base active:scale-95 transition-transform" style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))", boxShadow: "0 4px 16px rgba(244,201,93,0.35)" }}>
               Voltar para o login
             </button>
           </>
@@ -135,6 +135,12 @@ export default function RedefinirSenha() {
             <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>Crie uma nova senha segura para sua conta.</p>
 
             <form onSubmit={handleSubmit} className="space-y-3 text-left">
+              {/* Email field - read-only, pre-filled from recovery session */}
+              <div className="relative">
+                <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "hsl(var(--muted-foreground))" }} />
+                <input type="email" value={email} readOnly className="w-full py-3.5 pl-11 pr-4 rounded-2xl text-sm outline-none opacity-70 cursor-not-allowed" style={inputStyle} />
+              </div>
+
               <div className="relative">
                 <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "hsl(var(--muted-foreground))" }} />
                 <input type={showPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Nova senha" required className="w-full py-3.5 pl-11 pr-11 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]" style={inputStyle} />
@@ -180,7 +186,7 @@ export default function RedefinirSenha() {
             </div>
             <h1 className="text-xl font-bold" style={{ color: "hsl(var(--app-petrol))" }}>Sua senha foi redefinida com sucesso!</h1>
             <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>Agora você já pode fazer login com sua nova senha.</p>
-            <button onClick={() => navigate("/auth")} className="w-full py-4 rounded-2xl font-bold text-base active:scale-95 transition-transform" style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))", boxShadow: "0 4px 16px rgba(244,201,93,0.35)" }}>
+            <button onClick={handleGoToLogin} className="w-full py-4 rounded-2xl font-bold text-base active:scale-95 transition-transform" style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))", boxShadow: "0 4px 16px rgba(244,201,93,0.35)" }}>
               Ir para o login
             </button>
           </>
