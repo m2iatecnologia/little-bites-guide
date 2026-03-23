@@ -284,7 +284,7 @@ export function ReportSection({ dashboardData: d }: ReportSectionProps) {
           onClick={(e) => e.target === e.currentTarget && setShowModal(false)}
         >
           <div
-            className="w-full max-w-md rounded-t-3xl p-5 pb-8"
+            className="w-full max-w-md rounded-t-3xl p-5 pb-8 max-h-[85vh] overflow-y-auto"
             style={{ background: "hsl(var(--card))" }}
           >
             <div className="flex justify-between items-center mb-4">
