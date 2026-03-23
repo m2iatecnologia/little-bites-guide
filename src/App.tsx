@@ -25,6 +25,7 @@ import Planos from "./pages/Planos";
 import AssinaturaConfirmada from "./pages/AssinaturaConfirmada";
 import Cancelamento from "./pages/Cancelamento";
 import TesteExpirando from "./pages/TesteExpirando";
+import Confirmacao from "./pages/Confirmacao";
 import NotFound from "./pages/NotFound";
 import { BottomNav } from "./components/BottomNav";
 import { FloatingChat } from "./components/FloatingChat";
@@ -76,6 +77,7 @@ const AppRoutes = () => {
         <Route path="/assinatura-confirmada" element={<ProtectedRoute><AssinaturaConfirmada /></ProtectedRoute>} />
         <Route path="/cancelamento" element={<ProtectedRoute><Cancelamento /></ProtectedRoute>} />
         <Route path="/teste-expirando" element={<ProtectedRoute><TesteExpirando /></ProtectedRoute>} />
+        <Route path="/confirmacao" element={<Confirmacao />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       {user && hasBaby && <BottomNav />}
