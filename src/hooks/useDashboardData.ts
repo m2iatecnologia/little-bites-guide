@@ -224,7 +224,7 @@ export function useDashboardData(): DashboardData {
       birthDate: baby?.birth_date ? format(new Date(baby.birth_date), "dd/MM/yyyy") : "",
       currentAge: babyAge,
       weight: baby?.weight_kg?.toString().replace(".", ",") ?? "",
-      period: format(new Date(), "MMMM yyyy"),
+      period: format(new Date(), "MMMM 'de' yyyy", { locale: ptBR }),
       responsibleName: profileName,
       totalFoods,
       acceptanceRate,
