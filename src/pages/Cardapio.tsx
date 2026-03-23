@@ -10,6 +10,7 @@ import { ShoppingCart, Check, X, MessageSquare, ChevronDown, ChevronUp, ChefHat,
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getPreparations, type FoodPreparation } from "@/data/foodPreparations";
+import { EditMealModal } from "@/components/EditMealModal";
 
 const weekdayLabels = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 const weekdayShort = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
