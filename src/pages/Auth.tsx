@@ -186,23 +186,16 @@ export default function Auth() {
         });
         if (error) throw error;
 
-        const isRepeatedUnconfirmedSignup = !data.session && (data.user?.identities?.length ?? 0) === 0;
-
-        if (isRepeatedUnconfirmedSignup) {
-          try {
-            await sendConfirmationEmail(email);
-          } catch (resendError) {
-            console.error("[AUTH] Failed to resend confirmation email:", resendError);
-          }
+        if (data.session) {
+          toast.success("Conta criada com sucesso!");
+          navigate("/");
+        } else {
+          toast.success("Conta criada! Faça login para continuar.");
+          setMode("login");
+          setEmail(email);
+          setPassword("");
+          setConfirmPw("");
         }
-
-        setSignupEmail(email);
-        setShowEmailModal(true);
-        toast.success(
-          isRepeatedUnconfirmedSignup
-            ? "Este email já estava cadastrado. Reenviamos a confirmação para você."
-            : "Enviamos o email de confirmação para seu cadastro."
-        );
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
