@@ -135,6 +135,7 @@ export default function Auth() {
   const [showPw, setShowPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resendingEmail, setResendingEmail] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [signupEmail, setSignupEmail] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -150,6 +151,18 @@ export default function Auth() {
     color: "hsl(var(--app-petrol))",
   };
 
+  const sendConfirmationEmail = async (targetEmail: string) => {
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: targetEmail,
+      options: {
+        emailRedirectTo: window.location.origin,
+      },
+    });
+
+    if (error) throw error;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -163,7 +176,7 @@ export default function Auth() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -172,15 +185,37 @@ export default function Auth() {
           },
         });
         if (error) throw error;
+
+        const isRepeatedUnconfirmedSignup = !data.session && (data.user?.identities?.length ?? 0) === 0;
+
+        if (isRepeatedUnconfirmedSignup) {
+          try {
+            await sendConfirmationEmail(email);
+          } catch (resendError) {
+            console.error("[AUTH] Failed to resend confirmation email:", resendError);
+          }
+        }
+
         setSignupEmail(email);
         setShowEmailModal(true);
+        toast.success(
+          isRepeatedUnconfirmedSignup
+            ? "Este email já estava cadastrado. Reenviamos a confirmação para você."
+            : "Enviamos o email de confirmação para seu cadastro."
+        );
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         navigate("/");
       }
     } catch (err: any) {
-      toast.error(err.message || "Erro ao autenticar");
+      const isLoginHint = mode === "login" && err?.message?.toLowerCase().includes("invalid login credentials");
+
+      toast.error(
+        isLoginHint
+          ? "Não foi possível entrar. Se você acabou de criar a conta, confirme seu email ou solicite um novo envio."
+          : err.message || "Erro ao autenticar"
+      );
     } finally {
       setLoading(false);
     }
@@ -202,10 +237,25 @@ export default function Auth() {
 
   const handleConfirmedEmail = async () => {
     setShowEmailModal(false);
-    toast.success("Cadastro confirmado! Faça login para continuar.");
+    toast.success("Depois de confirmar o email, faça login para continuar.");
     setMode("login");
     setEmail(signupEmail);
     setPassword("");
+    setConfirmPw("");
+  };
+
+  const handleResendConfirmationEmail = async () => {
+    if (!signupEmail) return;
+
+    setResendingEmail(true);
+    try {
+      await sendConfirmationEmail(signupEmail);
+      toast.success("Email de confirmação reenviado. Verifique sua caixa de entrada e spam.");
+    } catch (err: any) {
+      toast.error(err.message || "Não foi possível reenviar o email agora.");
+    } finally {
+      setResendingEmail(false);
+    }
   };
 
   /* ── Email confirmation modal ── */
@@ -224,15 +274,30 @@ export default function Auth() {
             Enviamos um email para <strong style={{ color: "hsl(var(--app-petrol))" }}>{signupEmail}</strong>.
             <br />Confirme seu cadastro clicando no link enviado para continuar.
           </p>
-          <button
-            onClick={handleConfirmedEmail}
-            className="w-full py-4 rounded-2xl font-bold text-base active:scale-95 transition-transform"
-            style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))", boxShadow: "0 4px 16px rgba(244,201,93,0.35)" }}
-          >
-            Já confirmei meu email
-          </button>
+          <p className="text-xs leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
+            Se você já tentou se cadastrar antes ou ainda não encontrou a mensagem, toque em <strong>Reenviar email</strong>.
+          </p>
+
+          <div className="space-y-2">
+            <button
+              onClick={handleResendConfirmationEmail}
+              disabled={resendingEmail}
+              className="w-full py-3.5 rounded-2xl font-semibold text-sm active:scale-95 transition-transform disabled:opacity-50"
+              style={inputStyle}
+            >
+              {resendingEmail ? "Reenviando..." : "Reenviar email de confirmação"}
+            </button>
+            <button
+              onClick={handleConfirmedEmail}
+              className="w-full py-4 rounded-2xl font-bold text-base active:scale-95 transition-transform"
+              style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))", boxShadow: "0 4px 16px rgba(244,201,93,0.35)" }}
+            >
+              Já confirmei meu email
+            </button>
+          </div>
+
           <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-            Não recebeu? Verifique sua caixa de spam.
+            Não recebeu? Verifique também spam, promoções e atualizações.
           </p>
         </div>
       </div>
@@ -356,6 +421,21 @@ export default function Auth() {
           >
             {loading ? "Carregando..." : mode === "login" ? "Entrar" : "Criar conta"}
           </button>
+
+          {mode === "login" && (
+            <button
+              type="button"
+              onClick={() => {
+                setSignupEmail(email);
+                setShowEmailModal(true);
+              }}
+              disabled={!email || loading}
+              className="w-full text-xs font-semibold underline pt-1 disabled:opacity-50"
+              style={{ color: "hsl(var(--app-petrol))" }}
+            >
+              Não recebeu o email de confirmação?
+            </button>
+          )}
         </form>
 
         <p className="text-center text-sm mt-5" style={{ color: "hsl(var(--muted-foreground))" }}>
