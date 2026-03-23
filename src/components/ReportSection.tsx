@@ -359,11 +359,11 @@ export function ReportSection({ dashboardData: d }: ReportSectionProps) {
                 background: "hsl(var(--card))",
               }}
             >
-              <div className="flex gap-2">
+              <div>
                 <button
                   onClick={handleGenerate}
                   disabled={isGenerating}
-                  className="btn-primary-clinical flex-1"
+                  className="btn-primary-clinical w-full"
                 >
                   {isGenerating ? (
                     <>
@@ -376,16 +376,6 @@ export function ReportSection({ dashboardData: d }: ReportSectionProps) {
                       Baixar PDF
                     </>
                   )}
-                </button>
-                <button
-                  onClick={() => window.location.href = "/em-desenvolvimento"}
-                  className="px-4 py-3.5 rounded-xl flex items-center justify-center transition-all active:scale-95"
-                  style={{
-                    background: "hsl(var(--app-cream))",
-                    color: "hsl(var(--app-petrol))",
-                  }}
-                >
-                  <Share2 size={17} />
                 </button>
               </div>
             </div>
