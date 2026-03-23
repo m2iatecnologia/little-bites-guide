@@ -100,7 +100,7 @@ export function generateShoppingListPDF(data: ShoppingPDFData): void {
     doc.setTextColor(...WHITE);
     doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
-    doc.text(category, margin + 4, y + 6.5);
+    doc.text(sanitize(category), margin + 4, y + 6.5);
     y += 11;
 
     // Items
