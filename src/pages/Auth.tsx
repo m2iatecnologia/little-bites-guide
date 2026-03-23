@@ -425,6 +425,7 @@ export default function Auth() {
             </div>
           )}
 
+          {mode === "signup" && password.length > 0 && (
             <div className="rounded-2xl p-3 space-y-1" style={{ background: "hsl(var(--app-cream))" }}>
               {pwChecks.map((c) => (
                 <div key={c.label} className="flex items-center gap-2 text-xs">
