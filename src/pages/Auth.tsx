@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
-import { Mail, Lock, User, Eye, EyeOff, Phone, Check, X, Shield, MailCheck, RefreshCw } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, Phone, Check, X, Shield, MailCheck, RefreshCw, KeyRound } from "lucide-react";
 import nutrooLogo from "@/assets/nutroo-logo-full.png";
 import { toast } from "sonner";
 
@@ -176,6 +176,11 @@ export default function Auth() {
   const [signupEmail, setSignupEmail] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
   const [resending, setResending] = useState(false);
+  const [showForgotPw, setShowForgotPw] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotError, setForgotError] = useState<string | null>(null);
 
   const pwChecks = useMemo(() => pwRules.map((r) => ({ ...r, pass: r.test(password) })), [password]);
   const allPwValid = pwChecks.every((c) => c.pass);
@@ -220,6 +225,29 @@ export default function Auth() {
       toast.error(err.message || "Erro ao reenviar email");
     } finally {
       setResending(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const normalizedEmail = forgotEmail.trim().toLowerCase();
+    const emailErr = validateEmail(normalizedEmail);
+    if (emailErr) {
+      setForgotError(emailErr);
+      return;
+    }
+    setForgotLoading(true);
+    setForgotError(null);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+        redirectTo: `${window.location.origin}/redefinir-senha`,
+      });
+      if (error) throw error;
+      setForgotSent(true);
+    } catch (err: any) {
+      setForgotError(err.message || "Erro ao enviar email de recuperação.");
+    } finally {
+      setForgotLoading(false);
     }
   };
 
@@ -384,6 +412,19 @@ export default function Auth() {
             </button>
           </div>
 
+          {mode === "login" && (
+            <div className="text-right -mt-1">
+              <button
+                type="button"
+                onClick={() => { setShowForgotPw(true); setForgotEmail(email); setForgotSent(false); setForgotError(null); }}
+                className="text-xs font-semibold"
+                style={{ color: "hsl(var(--app-petrol))" }}
+              >
+                Esqueceu sua senha?
+              </button>
+            </div>
+          )}
+
           {mode === "signup" && password.length > 0 && (
             <div className="rounded-2xl p-3 space-y-1" style={{ background: "hsl(var(--app-cream))" }}>
               {pwChecks.map((c) => (
@@ -499,6 +540,73 @@ export default function Auth() {
             >
               Ir para o login
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Forgot password modal */}
+      {showForgotPw && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)" }}>
+          <div className="w-full max-w-sm rounded-3xl p-6 text-center space-y-4" style={{ background: "hsl(var(--app-card))" }}>
+            <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center" style={{ background: "hsl(var(--app-cream))" }}>
+              <KeyRound size={28} style={{ color: "hsl(var(--app-gold-dark))" }} />
+            </div>
+            <h2 className="text-lg font-bold" style={{ color: "hsl(var(--app-petrol))" }}>Recuperar senha</h2>
+
+            {!forgotSent ? (
+              <form onSubmit={handleForgotPassword} className="space-y-3 text-left">
+                <p className="text-sm text-center" style={{ color: "hsl(var(--muted-foreground))" }}>
+                  Informe o email da sua conta e enviaremos um link para redefinir sua senha.
+                </p>
+                <div className="relative">
+                  <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "hsl(var(--muted-foreground))" }} />
+                  <input
+                    type="email"
+                    value={forgotEmail}
+                    onChange={(e) => { setForgotEmail(e.target.value); setForgotError(null); }}
+                    placeholder="Email"
+                    required
+                    className="w-full py-3.5 pl-11 pr-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
+                    style={forgotError ? inputErrorStyle : inputStyle}
+                  />
+                </div>
+                {forgotError && (
+                  <p className="text-xs pl-2" style={{ color: "hsl(0 84% 60%)" }}>{forgotError}</p>
+                )}
+                <button
+                  type="submit"
+                  disabled={forgotLoading}
+                  className="w-full py-3.5 rounded-2xl font-bold text-sm active:scale-95 transition-transform disabled:opacity-50"
+                  style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))" }}
+                >
+                  {forgotLoading ? "Enviando..." : "Enviar link de redefinição"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPw(false)}
+                  className="w-full py-3 rounded-2xl font-semibold text-sm"
+                  style={{ color: "hsl(var(--muted-foreground))" }}
+                >
+                  Cancelar
+                </button>
+              </form>
+            ) : (
+              <>
+                <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
+                  Enviamos um email com instruções para redefinir sua senha para <strong style={{ color: "hsl(var(--app-petrol))" }}>{forgotEmail}</strong>.
+                </p>
+                <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+                  Verifique também a caixa de spam.
+                </p>
+                <button
+                  onClick={() => setShowForgotPw(false)}
+                  className="w-full py-3.5 rounded-2xl font-bold text-sm active:scale-95 transition-transform"
+                  style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))" }}
+                >
+                  Voltar para o login
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
