@@ -213,11 +213,8 @@ export default function Auth() {
           toast.success("Conta criada com sucesso!");
           navigate("/");
         } else {
-          toast.success("Conta criada! Faça login para continuar.");
-          setMode("login");
-          setEmail(email);
-          setPassword("");
-          setConfirmPw("");
+          setSignupEmail(email);
+          setShowEmailModal(true);
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
