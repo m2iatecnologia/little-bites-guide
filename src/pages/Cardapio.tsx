@@ -127,8 +127,17 @@ function CardapioContent() {
 
   const handleOpenPrep = (foodName: string) => {
     const prep = getPreparations(foodName);
-    setPrepFood(prep || { name: foodName, preparations: [] });
+    setPrepFood(prep!);
     setPrepOpen(true);
+  };
+
+  const handleEditMealSave = async (mealKey: "cafe" | "almoco" | "jantar" | "lanche", items: import("@/hooks/useMealPlan").MealItem[]) => {
+    const ok = await updateMeal(planIndex, mealKey, items);
+    if (ok) {
+      toast.success("Refeição atualizada! ✏️");
+    } else {
+      toast.error("Erro ao salvar alteração.");
+    }
   };
 
   const toggleMealSection = (key: string) => {
