@@ -19,6 +19,20 @@ const GRAY: [number, number, number] = [100, 110, 120];
 const LIGHT_BG: [number, number, number] = [250, 248, 244];
 const WHITE: [number, number, number] = [255, 255, 255];
 
+// Strip emojis and other non-Latin characters that jsPDF Helvetica can't render
+function sanitize(text: string): string {
+  return text
+    .replace(/[\u{1F000}-\u{1FFFF}]/gu, "")  // Supplementary symbols
+    .replace(/[\u{2600}-\u{27BF}]/gu, "")     // Misc symbols
+    .replace(/[\u{FE00}-\u{FE0F}]/gu, "")     // Variation selectors
+    .replace(/[\u{200D}]/gu, "")               // Zero-width joiner
+    .replace(/[\u{20E3}]/gu, "")               // Combining enclosing keycap
+    .replace(/[\u{E0020}-\u{E007F}]/gu, "")    // Tags
+    .replace(/[\u00D8\u00DF\u00DD]/g, "")      // Ø ß Ý specifically
+    .replace(/^\s+/, "")                        // Trim leading whitespace after removal
+    .trim();
+}
+
 export function generateShoppingListPDF(data: ShoppingPDFData): void {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const W = 210;
@@ -40,7 +54,7 @@ export function generateShoppingListPDF(data: ShoppingPDFData): void {
   doc.setTextColor(...WHITE);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("🛒 Lista de Compras", margin, 18);
+  doc.text("Lista de Compras", margin, 18);
 
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
