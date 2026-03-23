@@ -8,9 +8,9 @@ const logStep = (step: string, details?: any) => {
 };
 
 const PRODUCT_TO_PLAN: Record<string, string> = {
-  "prod_UA51MKpyHjm7pV": "mensal",
-  "prod_UA53qLN4dqKmMS": "semestral",
-  "prod_UA53rF7VfL99Jt": "anual",
+  "prod_UCfuzqN3xeBChd": "mensal",
+  "prod_UCfuZLHeSLhBRr": "semestral",
+  "prod_UCfuxVxgzcVgEk": "anual",
 };
 
 serve(async (req) => {
