@@ -10,6 +10,14 @@ interface QuizQuestion {
 
 const QUESTIONS: QuizQuestion[] = [
   {
+    question: "Você é mamãe ou papai?",
+    options: ["Mamãe", "Papai", "Outro cuidador"],
+  },
+  {
+    question: "De qual região do Brasil você é?",
+    options: ["Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"],
+  },
+  {
     question: "Qual a idade do seu bebê?",
     options: ["6 meses", "7–8 meses", "9–12 meses", "Mais de 1 ano"],
   },
