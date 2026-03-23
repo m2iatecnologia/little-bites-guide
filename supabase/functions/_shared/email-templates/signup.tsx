@@ -22,36 +22,35 @@ interface SignupEmailProps {
 }
 
 export const SignupEmail = ({
-  siteName,
+  siteName = 'Nutroo',
   siteUrl,
   recipient,
   confirmationUrl,
 }: SignupEmailProps) => (
-  <Html lang="en" dir="ltr">
+  <Html lang="pt-BR" dir="ltr">
     <Head />
-    <Preview>Confirm your email for {siteName}</Preview>
+    <Preview>Confirme seu cadastro na Nutroo 🍎</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email</Heading>
+        <div style={logoSection}>
+          <Text style={logoText}>🍎 Nutroo</Text>
+        </div>
+        <Heading style={h1}>Falta só um passo!</Heading>
         <Text style={text}>
-          Thanks for signing up for{' '}
-          <Link href={siteUrl} style={link}>
-            <strong>{siteName}</strong>
-          </Link>
-          !
-        </Text>
-        <Text style={text}>
-          Please confirm your email address (
-          <Link href={`mailto:${recipient}`} style={link}>
-            {recipient}
-          </Link>
-          ) by clicking the button below:
+          Olá! Estamos muito felizes em ter você na <strong>Nutroo</strong>.
+          Para concluir seu cadastro e acessar o app, confirme seu email clicando no botão abaixo:
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Verify Email
+          Confirmar meu email
         </Button>
+        <Text style={textSmall}>
+          Se o botão não funcionar, copie e cole este link no navegador:
+        </Text>
+        <Text style={linkFallback}>
+          {confirmationUrl}
+        </Text>
         <Text style={footer}>
-          If you didn't create an account, you can safely ignore this email.
+          Se você não criou uma conta na Nutroo, ignore este email com segurança.
         </Text>
       </Container>
     </Body>
@@ -60,27 +59,45 @@ export const SignupEmail = ({
 
 export default SignupEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
+const main = { backgroundColor: '#ffffff', fontFamily: "'Nunito', Arial, sans-serif" }
+const container = { padding: '30px 25px', maxWidth: '480px', margin: '0 auto' }
+const logoSection = { textAlign: 'center' as const, marginBottom: '24px' }
+const logoText = { fontSize: '28px', fontWeight: 'bold' as const, color: '#3B5366', margin: '0' }
 const h1 = {
-  fontSize: '22px',
+  fontSize: '24px',
   fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
+  color: '#3B5366',
+  margin: '0 0 16px',
+  textAlign: 'center' as const,
 }
 const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
+  fontSize: '15px',
+  color: '#6B6358',
+  lineHeight: '1.6',
+  margin: '0 0 24px',
 }
-const link = { color: 'inherit', textDecoration: 'underline' }
+const textSmall = {
+  fontSize: '12px',
+  color: '#999999',
+  margin: '24px 0 4px',
+}
+const linkFallback = {
+  fontSize: '11px',
+  color: '#999999',
+  wordBreak: 'break-all' as const,
+  margin: '0 0 24px',
+}
 const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
+  backgroundColor: '#E8B84B',
+  color: '#3B5366',
+  fontSize: '16px',
+  fontWeight: 'bold' as const,
+  borderRadius: '16px',
+  padding: '14px 32px',
   textDecoration: 'none',
+  display: 'block',
+  textAlign: 'center' as const,
+  width: '100%',
+  boxSizing: 'border-box' as const,
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0', textAlign: 'center' as const }

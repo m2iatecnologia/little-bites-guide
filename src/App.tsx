@@ -25,6 +25,7 @@ import Planos from "./pages/Planos";
 import AssinaturaConfirmada from "./pages/AssinaturaConfirmada";
 import Cancelamento from "./pages/Cancelamento";
 import TesteExpirando from "./pages/TesteExpirando";
+import Confirmacao from "./pages/Confirmacao";
 import NotFound from "./pages/NotFound";
 import { BottomNav } from "./components/BottomNav";
 import { FloatingChat } from "./components/FloatingChat";
