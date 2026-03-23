@@ -87,7 +87,7 @@ export default function Landing() {
     <div className="min-h-screen overflow-x-hidden" style={{ background: "hsl(var(--app-cream))" }}>
 
       {/* ═══ NAV ═══ */}
-      <nav className="flex items-center justify-between px-5 py-4 max-w-5xl mx-auto">
+      <nav className="flex items-center justify-between px-5 py-4 max-w-6xl mx-auto">
         <img src={logoImg} alt="Nutroo" className="h-8 w-auto" />
         <button
           onClick={() => navigate("/auth")}
@@ -99,8 +99,8 @@ export default function Landing() {
       </nav>
 
       {/* ═══ HERO ═══ */}
-      <section className="px-5 pt-6 pb-14 max-w-5xl mx-auto">
-        <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+      <section className="px-5 pt-8 pb-14 lg:pt-16 lg:pb-20 max-w-6xl mx-auto">
+        <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
           {/* text */}
           <div className="flex-1 text-center lg:text-left">
             <div
@@ -111,14 +111,14 @@ export default function Landing() {
             </div>
 
             <h1
-              className="text-[1.75rem] sm:text-3xl lg:text-4xl font-extrabold leading-[1.15] mb-4 animate-fade-in"
+              className="text-[1.75rem] sm:text-3xl lg:text-[2.75rem] xl:text-5xl font-extrabold leading-[1.15] mb-4 animate-fade-in"
               style={{ color: "hsl(var(--app-petrol))", textWrap: "balance", animationDelay: "100ms" }}
             >
               Nunca mais fique na dúvida sobre o que seu bebê pode comer
             </h1>
 
             <p
-              className="text-sm sm:text-base leading-relaxed mb-8 max-w-md mx-auto lg:mx-0 animate-fade-in"
+              className="text-sm sm:text-base lg:text-lg leading-relaxed mb-8 max-w-md mx-auto lg:mx-0 lg:max-w-lg animate-fade-in"
               style={{ color: "hsl(var(--app-petrol-light))", textWrap: "pretty", animationDelay: "200ms" }}
             >
               Cardápios personalizados, receitas seguras e orientação completa para a introdução alimentar — tudo em um só app.
@@ -141,7 +141,6 @@ export default function Landing() {
           {/* mockup */}
           <div className="flex-1 flex justify-center animate-fade-in" style={{ animationDelay: "400ms" }}>
             <div className="relative">
-              {/* soft blob behind */}
               <div
                 className="absolute -inset-8 rounded-full blur-3xl opacity-40"
                 style={{ background: "hsl(var(--app-gold-light))" }}
@@ -149,7 +148,7 @@ export default function Landing() {
               <img
                 src={appMockup}
                 alt="Tela do app Nutroo mostrando cardápio semanal"
-                className="relative w-64 sm:w-72 lg:w-80 drop-shadow-2xl"
+                className="relative w-64 sm:w-72 lg:w-80 xl:w-96 drop-shadow-2xl"
               />
             </div>
           </div>
@@ -167,16 +166,16 @@ export default function Landing() {
       </Reveal>
 
       {/* ═══ PROBLEM ═══ */}
-      <section className="px-5 py-14 max-w-lg mx-auto">
+      <section className="px-5 py-14 max-w-6xl mx-auto">
         <Reveal>
-          <h2 className="text-xl font-extrabold text-center mb-2" style={{ color: "hsl(var(--app-petrol))" }}>
+          <h2 className="text-xl lg:text-2xl font-extrabold text-center mb-2" style={{ color: "hsl(var(--app-petrol))" }}>
             Você se identifica?
           </h2>
-          <p className="text-sm text-center mb-8" style={{ color: "hsl(var(--app-petrol-light))" }}>
+          <p className="text-sm lg:text-base text-center mb-8" style={{ color: "hsl(var(--app-petrol-light))" }}>
             A maioria dos pais passa por isso na introdução alimentar
           </p>
         </Reveal>
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-3xl mx-auto">
           {PROBLEMS.map((p, i) => (
             <Reveal key={i} delay={i * 80}>
               <div
@@ -194,19 +193,19 @@ export default function Landing() {
       </section>
 
       {/* ═══ EMOTIONAL ═══ */}
-      <section className="px-5 py-14 max-w-5xl mx-auto">
+      <section className="px-5 py-14 max-w-6xl mx-auto">
         <Reveal>
           <div className="rounded-3xl overflow-hidden" style={{ background: "hsl(var(--app-card))", boxShadow: "0 4px 24px hsla(210,29%,29%,0.08)" }}>
             <div className="flex flex-col md:flex-row">
               <div className="md:w-1/2">
                 <img src={heroMomBaby} alt="Mãe alimentando bebê com carinho" className="w-full h-56 md:h-full object-cover" />
               </div>
-              <div className="md:w-1/2 p-6 md:p-10 flex flex-col justify-center">
+              <div className="md:w-1/2 p-6 md:p-10 lg:p-14 flex flex-col justify-center">
                 <Heart size={24} className="mb-3" style={{ color: "hsl(var(--app-gold-dark))" }} />
-                <h2 className="text-lg font-extrabold mb-3 leading-snug" style={{ color: "hsl(var(--app-petrol))" }}>
+                <h2 className="text-lg lg:text-xl font-extrabold mb-3 leading-snug" style={{ color: "hsl(var(--app-petrol))" }}>
                   Sabemos que a introdução alimentar pode gerar insegurança…
                 </h2>
-                <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--app-petrol-light))" }}>
+                <p className="text-sm lg:text-base leading-relaxed" style={{ color: "hsl(var(--app-petrol-light))" }}>
                   É normal se sentir perdida. Cada bebê é único e os primeiros meses de alimentação trazem muitas dúvidas.
                   O Nutroo foi criado por quem entende essa jornada — para que você se sinta segura em cada refeição.
                 </p>
@@ -217,16 +216,16 @@ export default function Landing() {
       </section>
 
       {/* ═══ SOLUTION ═══ */}
-      <section className="px-5 py-14 max-w-lg mx-auto">
+      <section className="px-5 py-14 max-w-6xl mx-auto">
         <Reveal>
-          <h2 className="text-xl font-extrabold text-center mb-2" style={{ color: "hsl(var(--app-petrol))" }}>
+          <h2 className="text-xl lg:text-2xl font-extrabold text-center mb-2" style={{ color: "hsl(var(--app-petrol))" }}>
             A solução está aqui
           </h2>
-          <p className="text-sm text-center mb-8" style={{ color: "hsl(var(--app-petrol-light))" }}>
+          <p className="text-sm lg:text-base text-center mb-8" style={{ color: "hsl(var(--app-petrol-light))" }}>
             Tudo o que você precisa em um único app
           </p>
         </Reveal>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5 max-w-4xl mx-auto">
           {SOLUTIONS.map((s, i) => (
             <Reveal key={i} delay={i * 80}>
               <div
@@ -245,12 +244,12 @@ export default function Landing() {
       </section>
 
       {/* ═══ APP SHOWCASE ═══ */}
-      <section className="px-5 py-14 max-w-lg mx-auto text-center">
+      <section className="px-5 py-14 max-w-6xl mx-auto text-center">
         <Reveal>
-          <h2 className="text-xl font-extrabold mb-2" style={{ color: "hsl(var(--app-petrol))" }}>
+          <h2 className="text-xl lg:text-2xl font-extrabold mb-2" style={{ color: "hsl(var(--app-petrol))" }}>
             Veja o app em ação
           </h2>
-          <p className="text-sm mb-8" style={{ color: "hsl(var(--app-petrol-light))" }}>
+          <p className="text-sm lg:text-base mb-8" style={{ color: "hsl(var(--app-petrol-light))" }}>
             Interface simples, intuitiva e feita para pais ocupados
           </p>
         </Reveal>
@@ -263,21 +262,20 @@ export default function Landing() {
             <img
               src={babyEating}
               alt="Bebê feliz comendo alimentos saudáveis"
-              className="relative w-full max-w-sm rounded-3xl shadow-xl mx-auto"
+              className="relative w-full max-w-sm lg:max-w-lg rounded-3xl shadow-xl mx-auto"
             />
           </div>
         </Reveal>
       </section>
 
       {/* ═══ HOW IT WORKS — TIMELINE ═══ */}
-      <section className="px-5 py-14 max-w-lg mx-auto">
+      <section className="px-5 py-14 max-w-3xl mx-auto">
         <Reveal>
-          <h2 className="text-xl font-extrabold text-center mb-8" style={{ color: "hsl(var(--app-petrol))" }}>
+          <h2 className="text-xl lg:text-2xl font-extrabold text-center mb-8" style={{ color: "hsl(var(--app-petrol))" }}>
             Como funciona?
           </h2>
         </Reveal>
         <div className="relative">
-          {/* timeline line */}
           <div
             className="absolute left-[22px] top-2 bottom-2 w-0.5 rounded-full"
             style={{ background: "hsl(var(--app-gold-light))" }}
@@ -307,13 +305,13 @@ export default function Landing() {
       </section>
 
       {/* ═══ BENEFITS ═══ */}
-      <section className="px-5 py-14 max-w-lg mx-auto">
+      <section className="px-5 py-14 max-w-6xl mx-auto">
         <Reveal>
-          <h2 className="text-xl font-extrabold text-center mb-8" style={{ color: "hsl(var(--app-petrol))" }}>
+          <h2 className="text-xl lg:text-2xl font-extrabold text-center mb-8" style={{ color: "hsl(var(--app-petrol))" }}>
             Por que usar o Nutroo?
           </h2>
         </Reveal>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5 max-w-4xl mx-auto">
           {BENEFITS.map((b, i) => (
             <Reveal key={i} delay={i * 80}>
               <div
@@ -332,20 +330,20 @@ export default function Landing() {
       </section>
 
       {/* ═══ TESTIMONIALS ═══ */}
-      <section className="px-5 py-14 max-w-lg mx-auto">
+      <section className="px-5 py-14 max-w-6xl mx-auto">
         <Reveal>
-          <h2 className="text-xl font-extrabold text-center mb-2" style={{ color: "hsl(var(--app-petrol))" }}>
+          <h2 className="text-xl lg:text-2xl font-extrabold text-center mb-2" style={{ color: "hsl(var(--app-petrol))" }}>
             O que dizem as mães
           </h2>
-          <p className="text-sm text-center mb-8" style={{ color: "hsl(var(--app-petrol-light))" }}>
+          <p className="text-sm lg:text-base text-center mb-8" style={{ color: "hsl(var(--app-petrol-light))" }}>
             Histórias reais de quem já usa o Nutroo
           </p>
         </Reveal>
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
           {TESTIMONIALS.map((t, i) => (
             <Reveal key={i} delay={i * 100}>
               <div
-                className="p-5 rounded-2xl transition-shadow hover:shadow-md"
+                className="p-5 rounded-2xl transition-shadow hover:shadow-md h-full flex flex-col"
                 style={{ background: "hsl(var(--app-card))", boxShadow: "0 2px 12px hsla(210,29%,29%,0.07)" }}
               >
                 <div className="flex gap-0.5 mb-3">
@@ -353,7 +351,7 @@ export default function Landing() {
                     <Star key={j} size={14} fill="hsl(var(--app-gold))" style={{ color: "hsl(var(--app-gold))" }} />
                   ))}
                 </div>
-                <p className="text-sm leading-relaxed mb-3 italic" style={{ color: "hsl(var(--app-petrol))" }}>
+                <p className="text-sm leading-relaxed mb-3 italic flex-1" style={{ color: "hsl(var(--app-petrol))" }}>
                   "{t.text}"
                 </p>
                 <p className="text-xs font-bold" style={{ color: "hsl(var(--app-petrol))" }}>
@@ -366,37 +364,37 @@ export default function Landing() {
       </section>
 
       {/* ═══ CTA FINAL ═══ */}
-      <section className="px-5 pt-8 pb-20 max-w-lg mx-auto text-center">
+      <section className="px-5 pt-8 pb-20 max-w-3xl mx-auto text-center">
         <Reveal>
           <div
-            className="p-8 rounded-3xl"
+            className="p-8 lg:p-12 rounded-3xl"
             style={{ background: "hsl(var(--app-gold-light))", boxShadow: "0 4px 24px hsla(43,88%,65%,0.2)" }}
           >
-            <h2 className="text-xl font-extrabold mb-2" style={{ color: "hsl(var(--app-petrol))" }}>
+            <h2 className="text-xl lg:text-2xl font-extrabold mb-2" style={{ color: "hsl(var(--app-petrol))" }}>
               Pronto para começar?
             </h2>
-            <p className="text-sm mb-6" style={{ color: "hsl(var(--app-petrol-light))" }}>
+            <p className="text-sm lg:text-base mb-6" style={{ color: "hsl(var(--app-petrol-light))" }}>
               Monte um cardápio semanal personalizado agora mesmo.
             </p>
-            <div className="flex flex-col gap-3 max-w-xs mx-auto">
+            <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto justify-center">
               <button
                 onClick={() => navigate("/quiz")}
-                className="w-full py-4 rounded-2xl font-bold text-base active:scale-[0.97] transition-all hover:brightness-105"
+                className="flex-1 py-4 rounded-2xl font-bold text-base active:scale-[0.97] transition-all hover:brightness-105"
                 style={{ background: "hsl(var(--app-gold))", color: "hsl(var(--app-petrol))", boxShadow: "0 8px 32px hsla(43,88%,65%,0.45)" }}
               >
                 Comece grátis por 7 dias <ArrowRight size={16} className="inline ml-1" />
               </button>
-              <p className="text-xs" style={{ color: "hsl(var(--app-petrol-light))" }}>
-                Sem compromisso · Cancele quando quiser
-              </p>
               <button
                 onClick={() => navigate("/auth")}
-                className="w-full py-3.5 rounded-2xl font-semibold text-sm active:scale-[0.97] transition-transform"
+                className="flex-1 py-3.5 rounded-2xl font-semibold text-sm active:scale-[0.97] transition-transform"
                 style={{ background: "hsl(var(--app-card))", border: "1.5px solid hsl(var(--app-divider))", color: "hsl(var(--app-petrol))" }}
               >
                 Já tenho conta · Entrar
               </button>
             </div>
+            <p className="text-xs mt-3" style={{ color: "hsl(var(--app-petrol-light))" }}>
+              Sem compromisso · Cancele quando quiser
+            </p>
           </div>
         </Reveal>
       </section>
