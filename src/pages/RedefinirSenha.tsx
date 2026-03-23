@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Lock, Eye, EyeOff, Check, X, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { Lock, Mail, Eye, EyeOff, Check, X, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import nutrooLogo from "@/assets/nutroo-logo-full.png";
 import { toast } from "sonner";
 
@@ -15,40 +15,64 @@ const pwRules = [
 export default function RedefinirSenha() {
   const navigate = useNavigate();
   const [status, setStatus] = useState<"loading" | "ready" | "success" | "error">("loading");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [sessionEmail, setSessionEmail] = useState("");
 
   const pwChecks = useMemo(() => pwRules.map((r) => ({ ...r, pass: r.test(password) })), [password]);
   const allPwValid = pwChecks.every((c) => c.pass);
   const pwMatch = password === confirmPw && confirmPw.length > 0;
 
   useEffect(() => {
-    // Listen for PASSWORD_RECOVERY event from the URL token
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
+    let resolved = false;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (resolved) return;
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+        resolved = true;
+        if (session?.user?.email) {
+          setSessionEmail(session.user.email);
+          setEmail(session.user.email);
+        }
         setStatus("ready");
       }
     });
 
-    // Also check hash for recovery type
-    const hash = window.location.hash;
-    if (hash.includes("type=recovery")) {
-      setStatus("ready");
-    }
+    // Also check if there's already a session (link may have been processed before mount)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (resolved) return;
+      if (session?.user) {
+        resolved = true;
+        if (session.user.email) {
+          setSessionEmail(session.user.email);
+          setEmail(session.user.email);
+        }
+        setStatus("ready");
+      }
+    });
 
     // Timeout fallback
     const timeout = setTimeout(() => {
-      setStatus((prev) => (prev === "loading" ? "error" : prev));
-    }, 5000);
+      if (!resolved) {
+        setStatus("error");
+      }
+    }, 8000);
 
     return () => {
       subscription.unsubscribe();
       clearTimeout(timeout);
     };
   }, []);
+
+  const handleGoToLogin = async () => {
+    // Always sign out before going to login to prevent auto-login
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +83,7 @@ export default function RedefinirSenha() {
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
+      // Always sign out after password reset to prevent auto-login
       await supabase.auth.signOut();
       setStatus("success");
     } catch (err: any) {
