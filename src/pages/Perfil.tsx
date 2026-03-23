@@ -15,6 +15,12 @@ export default function Perfil() {
   const [mealCount, setMealCount] = useState(0);
   const [editingBaby, setEditingBaby] = useState(false);
   const [babyForm, setBabyForm] = useState({ name: "", birth_date: "", weight_kg: "", height_cm: "", gender: "not_informed", restrictions: "" });
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [pwForm, setPwForm] = useState({ current: "", newPw: "", confirm: "" });
+  const [pwLoading, setPwLoading] = useState(false);
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     if (!user) return;
