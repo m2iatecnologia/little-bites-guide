@@ -412,7 +412,19 @@ export default function Auth() {
             </button>
           </div>
 
-          {mode === "signup" && password.length > 0 && (
+          {mode === "login" && (
+            <div className="text-right -mt-1">
+              <button
+                type="button"
+                onClick={() => { setShowForgotPw(true); setForgotEmail(email); setForgotSent(false); setForgotError(null); }}
+                className="text-xs font-semibold"
+                style={{ color: "hsl(var(--app-petrol))" }}
+              >
+                Esqueceu sua senha?
+              </button>
+            </div>
+          )}
+
             <div className="rounded-2xl p-3 space-y-1" style={{ background: "hsl(var(--app-cream))" }}>
               {pwChecks.map((c) => (
                 <div key={c.label} className="flex items-center gap-2 text-xs">
