@@ -6,9 +6,9 @@ export type SubscriptionStatus = "active" | "trial" | "expired" | "canceled" | "
 export type SubscriptionPlan = "mensal" | "semestral" | "anual" | null;
 
 const PRODUCT_TO_PLAN: Record<string, SubscriptionPlan> = {
-  "prod_UCfuzqN3xeBChd": "mensal",
-  "prod_UCfuZLHeSLhBRr": "semestral",
-  "prod_UCfuxVxgzcVgEk": "anual",
+  "prod_UA51MKpyHjm7pV": "mensal",
+  "prod_UA53qLN4dqKmMS": "semestral",
+  "prod_UA53rF7VfL99Jt": "anual",
 };
 
 const CACHE_KEY = "nutroo_sub_cache";

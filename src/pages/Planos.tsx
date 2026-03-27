@@ -16,16 +16,16 @@ const benefits = [
 
 const PLAN_PRICES = {
   mensal: {
-    price_id: "price_1TEGYYRYEHL7XIv1C9iXpJZj",
-    product_id: "prod_UCfuzqN3xeBChd",
+    price_id: "price_1TBkrjRYz6uQ5h1iKqsCl0sl",
+    product_id: "prod_UA51MKpyHjm7pV",
   },
   semestral: {
-    price_id: "price_1TEGYeRYEHL7XIv11ydCuWGt",
-    product_id: "prod_UCfuZLHeSLhBRr",
+    price_id: "price_1TBktERYz6uQ5h1iCKkOdfjd",
+    product_id: "prod_UA53qLN4dqKmMS",
   },
   anual: {
-    price_id: "price_1TEGYZRYEHL7XIv1019FFonN",
-    product_id: "prod_UCfuxVxgzcVgEk",
+    price_id: "price_1TBktXRYz6uQ5h1ixPm5b2rU",
+    product_id: "prod_UA53rF7VfL99Jt",
   },
 } as const;
 
