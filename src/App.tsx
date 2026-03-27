@@ -56,35 +56,44 @@ const AppRoutes = () => {
   if (loading || (user && babyLoading)) return <LoadingSpinner />;
 
   return (
-    <div className="app-container">
+    <>
       <Routes>
+        {/* Full-width pages (no app-container) */}
         <Route path="/landing" element={user ? (hasBaby ? <Navigate to="/" replace /> : <Navigate to="/cadastro-bebe" replace />) : <Landing />} />
         <Route path="/quiz" element={user ? (hasBaby ? <Navigate to="/" replace /> : <Navigate to="/cadastro-bebe" replace />) : <Quiz />} />
         <Route path="/auth" element={user ? (hasBaby ? <Navigate to="/" replace /> : <Navigate to="/cadastro-bebe" replace />) : <Auth />} />
-        <Route path="/cadastro-bebe" element={user ? (hasBaby ? <Navigate to="/" replace /> : <CadastroBebe />) : <Navigate to="/landing" replace />} />
-        <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-        <Route path="/alimentos" element={<ProtectedRoute><Alimentos /></ProtectedRoute>} />
-        <Route path="/receitas" element={<ProtectedRoute><Receitas /></ProtectedRoute>} />
-        <Route path="/receitas/:id" element={<ProtectedRoute><ReceitaDetalhe /></ProtectedRoute>} />
-        <Route path="/guias" element={<ProtectedRoute><Guias /></ProtectedRoute>} />
-        <Route path="/cardapio" element={<ProtectedRoute><Cardapio /></ProtectedRoute>} />
-        <Route path="/checklist" element={<ProtectedRoute><Checklist /></ProtectedRoute>} />
-        <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
-        <Route path="/lista-compras" element={<ProtectedRoute><ListaCompras /></ProtectedRoute>} />
-        <Route path="/em-desenvolvimento" element={<ProtectedRoute><EmDesenvolvimento /></ProtectedRoute>} />
-        <Route path="/dicas" element={<ProtectedRoute><Dicas /></ProtectedRoute>} />
-        <Route path="/dicas/:id" element={<ProtectedRoute><Dicas /></ProtectedRoute>} />
-        <Route path="/planos" element={<ProtectedRoute><Planos /></ProtectedRoute>} />
-        <Route path="/assinatura-confirmada" element={<ProtectedRoute><AssinaturaConfirmada /></ProtectedRoute>} />
-        <Route path="/cancelamento" element={<ProtectedRoute><Cancelamento /></ProtectedRoute>} />
-        <Route path="/teste-expirando" element={<ProtectedRoute><TesteExpirando /></ProtectedRoute>} />
         <Route path="/confirmacao" element={<Confirmacao />} />
         <Route path="/redefinir-senha" element={<RedefinirSenha />} />
-        <Route path="*" element={<NotFound />} />
+
+        {/* App pages (constrained container) */}
+        <Route path="*" element={
+          <div className="app-container">
+            <Routes>
+              <Route path="/cadastro-bebe" element={user ? (hasBaby ? <Navigate to="/" replace /> : <CadastroBebe />) : <Navigate to="/landing" replace />} />
+              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+              <Route path="/alimentos" element={<ProtectedRoute><Alimentos /></ProtectedRoute>} />
+              <Route path="/receitas" element={<ProtectedRoute><Receitas /></ProtectedRoute>} />
+              <Route path="/receitas/:id" element={<ProtectedRoute><ReceitaDetalhe /></ProtectedRoute>} />
+              <Route path="/guias" element={<ProtectedRoute><Guias /></ProtectedRoute>} />
+              <Route path="/cardapio" element={<ProtectedRoute><Cardapio /></ProtectedRoute>} />
+              <Route path="/checklist" element={<ProtectedRoute><Checklist /></ProtectedRoute>} />
+              <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
+              <Route path="/lista-compras" element={<ProtectedRoute><ListaCompras /></ProtectedRoute>} />
+              <Route path="/em-desenvolvimento" element={<ProtectedRoute><EmDesenvolvimento /></ProtectedRoute>} />
+              <Route path="/dicas" element={<ProtectedRoute><Dicas /></ProtectedRoute>} />
+              <Route path="/dicas/:id" element={<ProtectedRoute><Dicas /></ProtectedRoute>} />
+              <Route path="/planos" element={<ProtectedRoute><Planos /></ProtectedRoute>} />
+              <Route path="/assinatura-confirmada" element={<ProtectedRoute><AssinaturaConfirmada /></ProtectedRoute>} />
+              <Route path="/cancelamento" element={<ProtectedRoute><Cancelamento /></ProtectedRoute>} />
+              <Route path="/teste-expirando" element={<ProtectedRoute><TesteExpirando /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            {user && hasBaby && <BottomNav />}
+            {user && hasBaby && <FloatingChat />}
+          </div>
+        } />
       </Routes>
-      {user && hasBaby && <BottomNav />}
-      {user && hasBaby && <FloatingChat />}
-    </div>
+    </>
   );
 };
 
