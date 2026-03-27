@@ -248,7 +248,7 @@ export default function Landing() {
       {/* ═══ NAV ═══ */}
       <nav className="sticky top-0 z-50 backdrop-blur-md" style={{ background: "hsla(34,33%,95%,0.85)", borderBottom: "1px solid hsl(var(--app-divider))" }}>
         <div className="flex items-center justify-between px-5 sm:px-8 py-3 max-w-7xl mx-auto">
-          <img src={logoImg} alt="Nutroo" className="h-12 lg:h-14 w-auto" />
+          <img src={logoImg} alt="Nutroo" className="h-24 lg:h-28 w-auto" />
           <div className="flex items-center gap-3">
             <button
               onClick={loginClick}
