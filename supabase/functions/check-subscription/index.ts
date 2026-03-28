@@ -117,9 +117,9 @@ serve(async (req) => {
 
       // Sync to local subscriptions table
       const PRODUCT_TO_PLAN: Record<string, string> = {
-        "prod_UA51MKpyHjm7pV": "mensal",
-        "prod_UA53qLN4dqKmMS": "semestral",
-        "prod_UA53rF7VfL99Jt": "anual",
+        "prod_UEQgqEXmVqTOic": "mensal",
+        "prod_UEQhYVRkCJMm0d": "semestral",
+        "prod_UEQhNRAOjZTQml": "anual",
       };
       const plan = productId ? (PRODUCT_TO_PLAN[productId] || "mensal") : "mensal";
       const dbStatus = cancelAtPeriodEnd ? "canceled" : "active";
