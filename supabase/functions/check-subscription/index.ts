@@ -87,9 +87,14 @@ serve(async (req) => {
       subscriptionId = sub.id;
       cancelAtPeriodEnd = sub.cancel_at_period_end === true;
 
-      // Safely extract period end
-      const periodEnd = sub.current_period_end;
-      logStep("Raw period end", { periodEnd, type: typeof periodEnd });
+      // Log all top-level keys to debug the subscription object shape
+      logStep("Subscription object keys", Object.keys(sub));
+      logStep("Subscription status", { status: sub.status, id: sub.id });
+
+      // Try to get period end from the full subscription object
+      const fullSub = await stripe.subscriptions.retrieve(sub.id);
+      const periodEnd = fullSub.current_period_end;
+      logStep("Full sub period end", { periodEnd, type: typeof periodEnd });
       
       if (typeof periodEnd === "number" && periodEnd > 0) {
         subscriptionEnd = new Date(periodEnd * 1000).toISOString();
