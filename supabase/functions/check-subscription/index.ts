@@ -87,9 +87,11 @@ serve(async (req) => {
       subscriptionId = sub.id;
       cancelAtPeriodEnd = sub.cancel_at_period_end === true;
 
-      // Safely extract period end
-      const periodEnd = sub.current_period_end;
-      logStep("Raw period end", { periodEnd, type: typeof periodEnd });
+      // Safely extract period end - try multiple field names for API compatibility
+      const periodEnd = sub.current_period_end ?? sub.billing_cycle_anchor ?? null;
+      const cancelAt = sub.cancel_at ?? null;
+      const endedAt = sub.ended_at ?? null;
+      logStep("Raw period end", { periodEnd, cancelAt, endedAt, type: typeof periodEnd, keys: Object.keys(sub).filter(k => k.includes('period') || k.includes('end') || k.includes('cancel')) });
       
       if (typeof periodEnd === "number" && periodEnd > 0) {
         subscriptionEnd = new Date(periodEnd * 1000).toISOString();
