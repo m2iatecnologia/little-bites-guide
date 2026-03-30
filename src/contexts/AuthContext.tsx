@@ -24,32 +24,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    let initialSessionRestored = false;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // 1. Restore session from storage FIRST
+    supabase.auth.getSession().then(({ data: { session: restored }, error }) => {
       if (!mounted) return;
-      setSession(session);
-      setLoading(false);
-    });
-
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (!mounted) return;
+      initialSessionRestored = true;
       if (error) {
         console.error("Auth session error, clearing stale session:", error.message);
-        // Clear stale tokens to stop infinite retry loops
         supabase.auth.signOut().catch(() => {});
         setSession(null);
       } else {
-        setSession(session);
+        setSession(restored);
       }
       setLoading(false);
     }).catch((err) => {
       if (!mounted) return;
+      initialSessionRestored = true;
       console.error("Auth getSession failed:", err);
       setSession(null);
       setLoading(false);
     });
 
-    // Safety timeout - never stay loading forever
+    // 2. Listen for SUBSEQUENT auth changes (sign in/out/token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      // Skip the INITIAL_SESSION event — we handle it via getSession above
+      if (!initialSessionRestored) return;
+      setSession(session);
+      setLoading(false);
+    });
+
+    // Safety timeout
     const timeout = setTimeout(() => {
       if (mounted && loading) {
         console.warn("Auth loading timeout, proceeding without session");
